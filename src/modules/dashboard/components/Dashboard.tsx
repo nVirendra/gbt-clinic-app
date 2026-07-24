@@ -89,7 +89,7 @@ export default function Dashboard() {
           <div>
             <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Outstanding Dues</p>
             <h3 className="text-2xl font-bold text-slate-800 mt-0.5 font-mono">
-              ₹{(outstandingBills.reduce((sum, b) => sum + b.balance_due, 0) || 0).toFixed(2)}
+              ₹{(outstandingBills.reduce((sum, b) => sum + (b?.balance_due ?? 0), 0) || 0).toFixed(2)}
             </h3>
             <p className="text-[10px] text-amber-600 font-medium mt-0.5">Pending collection dues</p>
           </div>
@@ -154,20 +154,20 @@ export default function Dashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-slate-600">
-                  {outstandingBills.map((bill) => (
-                    <tr key={bill.id} className="hover:bg-slate-50/50 transition">
+                  {outstandingBills.map((bill, idx) => (
+                    <tr key={bill?.id || bill?.bill_no || `outstanding-${idx}`} className="hover:bg-slate-50/50 transition">
                       <td className="px-6 py-4.5 font-semibold text-slate-800">
                         {bill.patient?.full_name || bill.walkin_name}
                       </td>
                       <td className="px-6 py-4.5 font-mono text-xs">{bill.bill_no}</td>
                       <td className="px-6 py-4.5 text-right font-bold text-red-650 font-mono">
-                        ₹{bill.balance_due.toFixed(2)}
+                        ₹{(bill?.balance_due ?? 0).toFixed(2)}
                       </td>
                       <td className="px-6 py-4.5 text-center">
                         <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                          bill.amount_paid > 0 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'
+                          (bill?.amount_paid ?? 0) > 0 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'
                         }`}>
-                          {bill.amount_paid > 0 ? 'PARTIAL' : 'UNPAID'}
+                          {(bill?.amount_paid ?? 0) > 0 ? 'PARTIAL' : 'UNPAID'}
                         </span>
                       </td>
                     </tr>
@@ -209,14 +209,14 @@ export default function Dashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-slate-655">
-                  {recentBills.map((bill) => (
-                    <tr key={bill.id} className="hover:bg-slate-50/50 transition">
+                  {recentBills.map((bill, idx) => (
+                    <tr key={bill?.id || bill?.bill_no || `recent-${idx}`} className="hover:bg-slate-50/50 transition">
                       <td className="px-6 py-4.5 font-semibold text-slate-800">
                         {bill.patient?.full_name || bill.walkin_name}
                       </td>
                       <td className="px-6 py-4.5 font-mono text-xs">{bill.bill_no}</td>
                       <td className="px-6 py-4.5 text-right font-bold text-slate-900 font-mono">
-                        ₹{bill.grand_total.toFixed(2)}
+                        ₹{(bill?.grand_total ?? 0).toFixed(2)}
                       </td>
                       <td className="px-6 py-4.5 text-center">
                         <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
@@ -224,11 +224,11 @@ export default function Dashboard() {
                             ? 'bg-red-150 text-red-800 border border-red-200'
                             : bill.status === 'DRAFT'
                             ? 'bg-slate-100 text-slate-700 border border-slate-200'
-                            : bill.balance_due === 0
+                            : (bill?.balance_due ?? 0) === 0
                             ? 'bg-teal-50 text-teal-700 border border-teal-200'
                             : 'bg-amber-50 text-amber-700 border border-amber-200'
                         }`}>
-                          {bill.status === 'FINALIZED' && bill.balance_due === 0 ? 'PAID' : bill.status === 'FINALIZED' && bill.balance_due > 0 ? 'PARTIAL' : bill.status}
+                          {bill.status === 'FINALIZED' && (bill?.balance_due ?? 0) === 0 ? 'PAID' : bill.status === 'FINALIZED' && (bill?.balance_due ?? 0) > 0 ? 'PARTIAL' : bill.status}
                         </span>
                       </td>
                     </tr>

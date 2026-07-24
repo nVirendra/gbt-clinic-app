@@ -81,12 +81,12 @@ export default function Settings() {
   useEffect(() => {
     if (profile) {
       setProfileForm({
-        name: profile.name,
-        address: profile.address,
-        phone: profile.phone,
-        email: profile.email,
-        gstin: profile.gstin,
-        defaultTaxRate: profile.defaultTaxRate.toString(),
+        name: profile.name || '',
+        address: profile.address || '',
+        phone: profile.phone || '',
+        email: profile.email || '',
+        gstin: profile.gstin || '',
+        defaultTaxRate: (profile.defaultTaxRate ?? 0).toString(),
         invoicePrefix: profile.invoicePrefix || 'INV',
         fyReset: profile.fyReset ?? true,
         backupDir: profile.backupDir || '',

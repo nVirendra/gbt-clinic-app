@@ -110,8 +110,8 @@ export default function Billing({ onSuccess }: BillingProps) {
 
   // Sync default tax rate
   useEffect(() => {
-    if (profile) {
-      setItemForm(prev => ({ ...prev, gstPercent: profile.defaultTaxRate.toString() }))
+    if (profile && profile.defaultTaxRate != null) {
+      setItemForm(prev => ({ ...prev, gstPercent: (profile.defaultTaxRate ?? 0).toString() }))
     }
   }, [profile])
 

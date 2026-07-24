@@ -229,9 +229,9 @@ export default function Reports() {
                   <div>
                     <p className="text-[10px] font-bold text-teal-400 uppercase tracking-widest">Total Collections</p>
                     <h3 className="text-3xl font-black text-white mt-1 flex items-center font-mono">
-                      ₹{stats.totalCollected.toFixed(2)}
+                      ₹{(stats?.totalCollected ?? 0).toFixed(2)}
                     </h3>
-                    <p className="text-[10px] text-slate-400 mt-1">Logged over {stats.paymentCount} payments</p>
+                    <p className="text-[10px] text-slate-400 mt-1">Logged over {stats?.paymentCount ?? 0} payments</p>
                   </div>
                   <div className="h-10 w-10 bg-teal-500/10 rounded-xl flex items-center justify-center text-teal-400">
                     <Coins className="h-5 w-5" />
@@ -242,9 +242,9 @@ export default function Reports() {
                   <div>
                     <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Total Invoiced Billed</p>
                     <h3 className="text-3xl font-black text-slate-900 mt-1 flex items-center font-mono">
-                      ₹{stats.totalBilled.toFixed(2)}
+                      ₹{(stats?.totalBilled ?? 0).toFixed(2)}
                     </h3>
-                    <p className="text-[10px] text-slate-500 mt-1">Sum of {stats.billCount} invoices created</p>
+                    <p className="text-[10px] text-slate-500 mt-1">Sum of {stats?.billCount ?? 0} invoices created</p>
                   </div>
                   <div className="h-10 w-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-500">
                     <TrendingUp className="h-5 w-5" />
@@ -255,7 +255,7 @@ export default function Reports() {
                   <div>
                     <p className="text-[10px] font-bold text-slate-505 uppercase tracking-widest">Outstanding (All time)</p>
                     <h3 className="text-3xl font-black text-slate-900 mt-1 flex items-center font-mono">
-                      ₹{dues.reduce((sum, d) => sum + d.balance_due, 0).toFixed(2)}
+                      ₹{dues.reduce((sum, d) => sum + (d?.balance_due ?? 0), 0).toFixed(2)}
                     </h3>
                     <p className="text-[10px] text-red-500 font-semibold mt-1">Dues pending collection</p>
                   </div>
@@ -273,19 +273,19 @@ export default function Reports() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
                   <div className="p-4 rounded-xl border border-slate-100 bg-slate-50/30">
                     <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Cash</p>
-                    <p className="text-xl font-bold text-slate-800 mt-1 font-mono">₹{stats.cashCollected.toFixed(2)}</p>
+                    <p className="text-xl font-bold text-slate-800 mt-1 font-mono">₹{(stats?.cashCollected ?? 0).toFixed(2)}</p>
                   </div>
                   <div className="p-4 rounded-xl border border-slate-100 bg-slate-50/30">
                     <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">UPI</p>
-                    <p className="text-xl font-bold text-slate-800 mt-1 font-mono">₹{stats.upiCollected.toFixed(2)}</p>
+                    <p className="text-xl font-bold text-slate-800 mt-1 font-mono">₹{(stats?.upiCollected ?? 0).toFixed(2)}</p>
                   </div>
                   <div className="p-4 rounded-xl border border-slate-100 bg-slate-50/30">
                     <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Card</p>
-                    <p className="text-xl font-bold text-slate-800 mt-1 font-mono">₹{stats.cardCollected.toFixed(2)}</p>
+                    <p className="text-xl font-bold text-slate-800 mt-1 font-mono">₹{(stats?.cardCollected ?? 0).toFixed(2)}</p>
                   </div>
                   <div className="p-4 rounded-xl border border-slate-100 bg-slate-50/30">
                     <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Bank Transfer</p>
-                    <p className="text-xl font-bold text-slate-800 mt-1 font-mono">₹{stats.bankCollected.toFixed(2)}</p>
+                    <p className="text-xl font-bold text-slate-800 mt-1 font-mono">₹{(stats?.bankCollected ?? 0).toFixed(2)}</p>
                   </div>
                 </div>
               </div>

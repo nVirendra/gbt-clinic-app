@@ -26,9 +26,12 @@ import { Login, useAuthStore } from '../modules/auth'
 import { useShellStore } from '../modules/shell'
 import PrintInvoice from '../components/PrintInvoice'
 
-import { mockApi } from '../lib/mockApi'
+import { useState } from 'react'
+import { api, checkBackendHealth, isUsingRealApi } from '../lib/api'
 
 export default function Home() {
+  const [isApiConnected, setIsApiConnected] = useState<boolean>(false)
+
   const user = useAuthStore((state) => state.user)
   const setUser = useAuthStore((state) => state.setUser)
   const logout = useAuthStore((state) => state.logout)
@@ -41,11 +44,16 @@ export default function Home() {
   const currentHash = useShellStore((state) => state.currentHash)
   const setCurrentHash = useShellStore((state) => state.setCurrentHash)
 
-  // Bind mockApi to window.api client-side
+  // Bind api manager to window.api client-side & check health
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      window.api = mockApi
+      window.api = api
       setCurrentHash(window.location.hash)
+
+      checkBackendHealth().then((connected) => {
+        setIsApiConnected(connected)
+        fetchProfile()
+      })
     }
   }, [])
 
@@ -175,8 +183,11 @@ export default function Home() {
             {menuItems.find((item) => item.id === activeTab)?.name || activeTab}
           </h1>
           <div className="flex items-center space-x-4">
-            <div className="text-xs text-slate-550 bg-slate-100 px-3 py-1.5 rounded-full font-medium">
-              Offline Database Connected
+            <div className={`text-xs px-3 py-1.5 rounded-full font-medium flex items-center space-x-1.5 ${
+              isApiConnected ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'
+            }`}>
+              <span className={`h-2 w-2 rounded-full ${isApiConnected ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
+              <span>{isApiConnected ? 'Backend API Connected (v1)' : 'Offline / Mock API Mode'}</span>
             </div>
           </div>
         </header>

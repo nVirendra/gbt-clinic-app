@@ -170,7 +170,7 @@ export default function Services() {
                   </td>
                   <td className="px-6 py-4 font-bold text-slate-800">{service.name}</td>
                   <td className="px-6 py-4 text-right font-black text-slate-900 font-mono">
-                    ₹{service.price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    ₹{(service?.price ?? service?.default_price ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                   </td>
                   <td className="px-6 py-4 text-center space-x-1.5">
                     <button
