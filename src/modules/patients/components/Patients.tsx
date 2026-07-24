@@ -41,7 +41,7 @@ export default function Patients() {
     fullName: '',
     dob: '',
     ageYears: '',
-    gender: 'Male',
+    gender: 'MALE',
     phone: '',
     address: '',
     referringDoctor: '',
@@ -54,7 +54,7 @@ export default function Patients() {
     fullName: '',
     dob: '',
     ageYears: '',
-    gender: 'Male',
+    gender: 'MALE',
     phone: '',
     address: '',
     referringDoctor: '',
@@ -113,7 +113,7 @@ export default function Patients() {
         fullName: '',
         dob: '',
         ageYears: '',
-        gender: 'Male',
+        gender: 'MALE',
         phone: '',
         address: '',
         referringDoctor: '',
@@ -542,9 +542,9 @@ export default function Patients() {
                     onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
                     className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
                   >
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
+                    <option value="MALE">Male</option>
+                    <option value="FEMALE">Female</option>
+                    <option value="OTHER">Other</option>
                   </select>
                 </div>
               </div>
@@ -699,9 +699,9 @@ export default function Patients() {
                     onChange={(e) => setEditFormData({ ...editFormData, gender: e.target.value })}
                     className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
                   >
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
+                    <option value="MALE">Male</option>
+                    <option value="FEMALE">Female</option>
+                    <option value="OTHER">Other</option>
                   </select>
                 </div>
               </div>

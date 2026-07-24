@@ -5,7 +5,9 @@ interface AuthState {
   user: UserSummary | null;
   usersList: UserSummary[];
   loading: boolean;
+  initializing: boolean;
   error: string | null;
+  checkAuth: () => Promise<void>;
   login: (username: string, password: string) => Promise<{ success: boolean; message?: string }>;
   logout: () => void;
   setUser: (user: UserSummary | null) => void;
@@ -19,8 +21,22 @@ export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   usersList: [],
   loading: false,
+  initializing: true,
   error: null,
   setUser: (user) => set({ user }),
+  checkAuth: async () => {
+    set({ initializing: true });
+    try {
+      if (typeof window !== 'undefined' && window.api && typeof window.api.getCurrentUser === 'function') {
+        const u = await window.api.getCurrentUser();
+        set({ user: u, initializing: false });
+      } else {
+        set({ initializing: false });
+      }
+    } catch {
+      set({ user: null, initializing: false });
+    }
+  },
   login: async (username, password) => {
     set({ loading: true, error: null });
     try {
@@ -38,6 +54,10 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
   logout: () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('gbt_auth_token');
+      localStorage.removeItem('gbt_user');
+    }
     set({ user: null });
   },
   fetchUsers: async () => {

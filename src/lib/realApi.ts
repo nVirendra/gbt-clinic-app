@@ -147,16 +147,19 @@ export const realApi: Window['api'] = {
   },
 
   async createPatient(args: { data: Partial<Patient>; userId: string }): Promise<Patient> {
+    const rawGender = args.data.gender ? String(args.data.gender).toUpperCase() : 'MALE';
+    const gender = ['MALE', 'FEMALE', 'OTHER'].includes(rawGender) ? rawGender : 'MALE';
+
     const payload = {
       full_name: args.data.full_name,
-      gender: args.data.gender || 'MALE',
+      gender,
       phone: args.data.phone,
-      dob: args.data.dob,
-      age_years: args.data.age_years,
-      address: args.data.address,
-      referring_doctor: args.data.referring_doctor,
-      allergies_notes: args.data.allergies_notes,
-      notes: args.data.notes,
+      dob: args.data.dob || null,
+      age_years: args.data.age_years || null,
+      address: args.data.address || null,
+      referring_doctor: args.data.referring_doctor || null,
+      allergies_notes: args.data.allergies_notes || null,
+      notes: args.data.notes || null,
     };
     return request<Patient>('/patients', {
       method: 'POST',
@@ -165,17 +168,20 @@ export const realApi: Window['api'] = {
   },
 
   async updatePatient(args: { id: string; data: Partial<Patient>; userId: string }): Promise<Patient> {
-    const payload = {
-      full_name: args.data.full_name,
-      gender: args.data.gender,
-      phone: args.data.phone,
-      dob: args.data.dob,
-      age_years: args.data.age_years,
-      address: args.data.address,
-      referring_doctor: args.data.referring_doctor,
-      allergies_notes: args.data.allergies_notes,
-      notes: args.data.notes,
-    };
+    const rawGender = args.data.gender ? String(args.data.gender).toUpperCase() : undefined;
+    const gender = rawGender && ['MALE', 'FEMALE', 'OTHER'].includes(rawGender) ? rawGender : undefined;
+
+    const payload: Record<string, any> = {};
+    if (args.data.full_name !== undefined) payload.full_name = args.data.full_name;
+    if (gender !== undefined) payload.gender = gender;
+    if (args.data.phone !== undefined) payload.phone = args.data.phone;
+    if (args.data.dob !== undefined) payload.dob = args.data.dob || null;
+    if (args.data.age_years !== undefined) payload.age_years = args.data.age_years || null;
+    if (args.data.address !== undefined) payload.address = args.data.address || null;
+    if (args.data.referring_doctor !== undefined) payload.referring_doctor = args.data.referring_doctor || null;
+    if (args.data.allergies_notes !== undefined) payload.allergies_notes = args.data.allergies_notes || null;
+    if (args.data.notes !== undefined) payload.notes = args.data.notes || null;
+
     return request<Patient>(`/patients/${args.id}`, {
       method: 'PUT',
       body: JSON.stringify(payload),
@@ -222,17 +228,43 @@ export const realApi: Window['api'] = {
     return request<Medicine[]>('/inventory/medicines');
   },
 
-  async createMedicine(args: { data: Partial<Medicine>; userId: string }): Promise<Medicine> {
+  async createMedicine(args: { data: Partial<Medicine> | any; userId: string }): Promise<Medicine> {
+    const raw = args.data || {};
+    const payload = {
+      name: raw.name,
+      type: raw.type || 'TABLET',
+      unit_label: raw.unit_label || raw.unitLabel,
+      hsn_code: raw.hsn_code !== undefined ? raw.hsn_code : (raw.hsnCode || null),
+      reorder_level: raw.reorder_level !== undefined ? Number(raw.reorder_level) : (Number(raw.reorderLevel) || 0),
+      default_gst_percent: raw.default_gst_percent !== undefined ? Number(raw.default_gst_percent) : (Number(raw.defaultGstPercent) || 12.0),
+    };
     return request<Medicine>('/inventory/medicines', {
       method: 'POST',
-      body: JSON.stringify(args.data),
+      body: JSON.stringify(payload),
     });
   },
 
-  async updateMedicine(args: { id: string; data: Partial<Medicine>; userId: string }): Promise<Medicine> {
+  async updateMedicine(args: { id: string; data: Partial<Medicine> | any; userId: string }): Promise<Medicine> {
+    const raw = args.data || {};
+    const payload: Record<string, any> = {};
+    if (raw.name !== undefined) payload.name = raw.name;
+    if (raw.type !== undefined) payload.type = raw.type;
+    if (raw.unit_label !== undefined || raw.unitLabel !== undefined) {
+      payload.unit_label = raw.unit_label || raw.unitLabel;
+    }
+    if (raw.hsn_code !== undefined || raw.hsnCode !== undefined) {
+      payload.hsn_code = raw.hsn_code !== undefined ? raw.hsn_code : raw.hsnCode;
+    }
+    if (raw.reorder_level !== undefined || raw.reorderLevel !== undefined) {
+      payload.reorder_level = raw.reorder_level !== undefined ? Number(raw.reorder_level) : Number(raw.reorderLevel);
+    }
+    if (raw.default_gst_percent !== undefined || raw.defaultGstPercent !== undefined) {
+      payload.default_gst_percent = raw.default_gst_percent !== undefined ? Number(raw.default_gst_percent) : Number(raw.defaultGstPercent);
+    }
+
     return request<Medicine>(`/inventory/medicines/${args.id}`, {
       method: 'PUT',
-      body: JSON.stringify(args.data),
+      body: JSON.stringify(payload),
     });
   },
 
@@ -250,9 +282,25 @@ export const realApi: Window['api'] = {
   },
 
   async createPurchase(args: { data: any; userId: string }): Promise<Purchase> {
+    const raw = args.data || {};
+    const payload = {
+      vendorId: raw.vendorId,
+      purchaseInvoiceNo: raw.purchaseInvoiceNo,
+      purchaseDate: raw.purchaseDate,
+      totalAmount: raw.totalAmount,
+      notes: raw.notes || null,
+      items: (raw.items || []).map((item: any) => ({
+        medicineId: item.medicineId,
+        batchNo: item.batchNo,
+        expiryDate: item.expiryDate,
+        qty: item.qty !== undefined ? Number(item.qty) : Number(item.qtyPurchased),
+        purchasePrice: item.purchasePrice !== undefined ? Number(item.purchasePrice) : Number(item.purchasePricePerUnit),
+        sellingPrice: item.sellingPrice !== undefined ? Number(item.sellingPrice) : Number(item.sellingPricePerUnit),
+      })),
+    };
     return request<Purchase>('/inventory/purchases', {
       method: 'POST',
-      body: JSON.stringify(args.data),
+      body: JSON.stringify(payload),
     });
   },
 
@@ -271,7 +319,7 @@ export const realApi: Window['api'] = {
     return request<InventoryBatch>('/inventory/adjust', {
       method: 'POST',
       body: JSON.stringify({
-        batch_id: args.batchId,
+        batchId: args.batchId,
         qty: args.qty,
         reason: args.reason,
       }),
@@ -286,7 +334,13 @@ export const realApi: Window['api'] = {
   },
 
   async createService(args: any): Promise<Service> {
-    const payload = args.data || args;
+    const raw = args.data || args;
+    const payload = {
+      name: raw.name,
+      default_price: raw.default_price !== undefined ? Number(raw.default_price) : Number(raw.defaultPrice || raw.price || 0),
+      gst_percent: raw.gst_percent !== undefined ? Number(raw.gst_percent) : Number(raw.gstPercent || 0),
+      sac_code: raw.sac_code !== undefined ? raw.sac_code : (raw.sacCode || null),
+    };
     return request<Service>('/services', {
       method: 'POST',
       body: JSON.stringify(payload),
@@ -295,7 +349,22 @@ export const realApi: Window['api'] = {
 
   async updateService(args: any): Promise<Service> {
     const id = args.id;
-    const payload = args.data || args;
+    const raw = args.data || args;
+    const payload: Record<string, any> = {};
+    if (raw.name !== undefined) payload.name = raw.name;
+    if (raw.default_price !== undefined || raw.defaultPrice !== undefined || raw.price !== undefined) {
+      payload.default_price = raw.default_price !== undefined ? Number(raw.default_price) : Number(raw.defaultPrice || raw.price);
+    }
+    if (raw.gst_percent !== undefined || raw.gstPercent !== undefined) {
+      payload.gst_percent = raw.gst_percent !== undefined ? Number(raw.gst_percent) : Number(raw.gstPercent);
+    }
+    if (raw.sac_code !== undefined || raw.sacCode !== undefined) {
+      payload.sac_code = raw.sac_code !== undefined ? raw.sac_code : raw.sacCode;
+    }
+    if (raw.is_active !== undefined || raw.isActive !== undefined) {
+      payload.is_active = raw.is_active !== undefined ? raw.is_active : raw.isActive;
+    }
+
     return request<Service>(`/services/${id}`, {
       method: 'PUT',
       body: JSON.stringify(payload),
@@ -333,19 +402,18 @@ export const realApi: Window['api'] = {
   async createBill(args: { data: any; userId: string }): Promise<Bill> {
     const rawData = args.data;
     const payload = {
-      patient_id: rawData.patientId,
-      walkin_name: rawData.walkinName,
-      bill_date: rawData.date,
-      notes: rawData.notes,
+      patientId: rawData.patientId || rawData.patient_id || null,
+      walkinName: rawData.walkinName || rawData.walkin_name || null,
+      notes: rawData.notes || null,
       items: (rawData.items || []).map((item: any) => ({
-        item_type: item.itemType,
-        service_id: item.serviceId,
-        batch_id: item.batchId,
+        itemType: item.itemType || item.item_type,
+        serviceId: item.serviceId || item.service_id || null,
+        batchId: item.batchId || item.batch_id || null,
         description: item.name || item.description,
-        qty: item.quantity || item.qty,
-        unit_price: item.price || item.unit_price,
-        discount_amount: item.discount || item.discount_amount || 0,
-        gst_percent: item.gstPercent || item.gst_percent || 0,
+        qty: Number(item.quantity || item.qty),
+        unitPrice: Number(item.price !== undefined ? item.price : (item.unitPrice !== undefined ? item.unitPrice : (item.unit_price || 0))),
+        discountAmount: Number(item.discount !== undefined ? item.discount : (item.discountAmount !== undefined ? item.discountAmount : (item.discount_amount || 0))),
+        gstPercent: Number(item.gstPercent !== undefined ? item.gstPercent : (item.gst_percent || 0)),
       })),
     };
 
@@ -373,13 +441,14 @@ export const realApi: Window['api'] = {
     });
 
     if (args.paidAmount > 0) {
-      return this.recordPayment({
+      const updatedBill = await this.recordPayment({
         billId: args.billId,
         amount: args.paidAmount,
         mode: args.paymentMode,
         referenceNo: args.transactionId,
         userId: args.userId,
       });
+      return (updatedBill && updatedBill.id) ? updatedBill : bill;
     }
 
     return bill;
@@ -396,14 +465,19 @@ export const realApi: Window['api'] = {
   // Payments
   // ==========================================
   async recordPayment(args: { billId: string; amount: number; mode: string; referenceNo?: string; userId: string }): Promise<Bill> {
-    return request<Bill>(`/billing/${args.billId}/payments`, {
+    const res = await request<any>(`/billing/${args.billId}/payments`, {
       method: 'POST',
       body: JSON.stringify({
         amount: args.amount,
         mode: args.mode,
-        reference_no: args.referenceNo,
+        referenceNo: args.referenceNo || null,
       }),
     });
+
+    if (res && res.bill) {
+      return res.bill;
+    }
+    return res;
   },
 
   // ==========================================
@@ -471,6 +545,38 @@ export const realApi: Window['api'] = {
   // ==========================================
   // Auth & User Management
   // ==========================================
+  async getCurrentUser(): Promise<UserSummary | null> {
+    try {
+      const token = getToken();
+      if (!token) {
+        if (typeof window !== 'undefined') {
+          const stored = localStorage.getItem('gbt_user');
+          if (stored) {
+            try { return JSON.parse(stored); } catch {}
+          }
+        }
+        return null;
+      }
+
+      const res = await request<{ success: boolean; user: UserSummary }>('/auth/me');
+      if (res.success && res.user) {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('gbt_user', JSON.stringify(res.user));
+        }
+        return res.user;
+      }
+      return null;
+    } catch {
+      if (typeof window !== 'undefined') {
+        const stored = localStorage.getItem('gbt_user');
+        if (stored) {
+          try { return JSON.parse(stored); } catch {}
+        }
+      }
+      return null;
+    }
+  },
+
   async login(args: { username: string; password: string }): Promise<{ success: boolean; message?: string; user?: UserSummary }> {
     try {
       const res = await request<{ success: boolean; token: string; user: UserSummary }>('/auth/login', {
@@ -480,6 +586,9 @@ export const realApi: Window['api'] = {
 
       if (res.token) {
         setToken(res.token);
+      }
+      if (res.user && typeof window !== 'undefined') {
+        localStorage.setItem('gbt_user', JSON.stringify(res.user));
       }
 
       return {

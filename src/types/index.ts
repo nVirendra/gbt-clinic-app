@@ -294,6 +294,7 @@ declare global {
       getVendorPurchases(): Promise<any[]>
 
       // Auth & User Management
+      getCurrentUser(): Promise<UserSummary | null>
       login(args: { username: string; password: string }): Promise<{ success: boolean; message?: string; user?: UserSummary }>
       createUser(args: { username: string; password: string; role: string; userId: string }): Promise<{ success: boolean; message?: string; user?: UserSummary }>
       getUsers(): Promise<UserSummary[]>

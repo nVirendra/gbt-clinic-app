@@ -1486,6 +1486,25 @@ export const mockApi = {
   },
 
   // Auth & User Management
+  getCurrentUser: async (): Promise<UserSummary | null> => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('gbt_user');
+      if (stored) {
+        try { return JSON.parse(stored); } catch {}
+      }
+      const token = localStorage.getItem('gbt_auth_token');
+      if (token) {
+        return {
+          id: 'u1',
+          username: 'admin',
+          role: 'ADMIN',
+          is_active: true,
+        };
+      }
+    }
+    return null;
+  },
+
   login: async (args: { username: string; password: string }): Promise<{ success: boolean; message?: string; user?: UserSummary }> => {
     const users = getJSON<any[]>(KEYS.USERS, [])
     const u = users.find(x => x.username === args.username && x.is_active)
@@ -1493,6 +1512,10 @@ export const mockApi = {
     
     if (u.password_hash === args.password) {
       const summary: UserSummary = { id: u.id, username: u.username, role: u.role, is_active: u.is_active }
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('gbt_auth_token', 'mock_token_' + Date.now());
+        localStorage.setItem('gbt_user', JSON.stringify(summary));
+      }
       // Log login action
       addAuditLog('LOGIN', 'User', u.id, { username: u.username }, u.id)
       return { success: true, user: summary }

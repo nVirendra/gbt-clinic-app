@@ -111,9 +111,13 @@ export default function Inventory() {
       const data = {
         name: medForm.name,
         type: medForm.type,
+        unit_label: medForm.unitLabel,
         unitLabel: medForm.unitLabel,
+        hsn_code: medForm.hsnCode || null,
         hsnCode: medForm.hsnCode || null,
+        reorder_level: parseInt(medForm.reorderLevel) || 0,
         reorderLevel: parseInt(medForm.reorderLevel) || 0,
+        default_gst_percent: parseFloat(medForm.defaultGstPercent) || 12.0,
         defaultGstPercent: parseFloat(medForm.defaultGstPercent) || 12.0
       }
 

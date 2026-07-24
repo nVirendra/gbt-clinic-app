@@ -33,6 +33,8 @@ export default function Home() {
   const [isApiConnected, setIsApiConnected] = useState<boolean>(false)
 
   const user = useAuthStore((state) => state.user)
+  const initializing = useAuthStore((state) => state.initializing)
+  const checkAuth = useAuthStore((state) => state.checkAuth)
   const setUser = useAuthStore((state) => state.setUser)
   const logout = useAuthStore((state) => state.logout)
 
@@ -44,7 +46,7 @@ export default function Home() {
   const currentHash = useShellStore((state) => state.currentHash)
   const setCurrentHash = useShellStore((state) => state.setCurrentHash)
 
-  // Bind api manager to window.api client-side & check health
+  // Bind api manager to window.api client-side & check health & restore auth session
   useEffect(() => {
     if (typeof window !== 'undefined') {
       window.api = api
@@ -54,6 +56,7 @@ export default function Home() {
         setIsApiConnected(connected)
         fetchProfile()
       })
+      checkAuth()
     }
   }, [])
 
@@ -100,6 +103,18 @@ export default function Home() {
   if (currentHash.startsWith('#/print/')) {
     const billId = currentHash.replace('#/print/', '')
     return <PrintInvoice billId={billId} />
+  }
+
+  // If session is restoring on page refresh, show loading indicator
+  if (initializing) {
+    return (
+      <div className="h-screen w-screen flex items-center justify-center bg-slate-900 text-slate-100">
+        <div className="flex flex-col items-center space-y-3">
+          <div className="h-9 w-9 border-3 border-teal-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm font-medium text-slate-400">Verifying session...</p>
+        </div>
+      </div>
+    )
   }
 
   // If user is not logged in, render the login page
