@@ -53,9 +53,18 @@ export interface Purchase {
   purchase_date: string
   purchase_type?: string
   due_date?: string | null
+  payment_date?: string | null
   payment_status?: string
   payment_mode?: string | null
+  taxable_amount?: number
+  cgst_amount?: number
+  sgst_amount?: number
+  igst_amount?: number
+  gst_amount?: number
+  gst_percent?: number
   total_amount: number
+  paid_amount?: number
+  pending_amount?: number
   notes: string | null
   created_at: string
   updated_at: string
@@ -74,6 +83,11 @@ export interface InventoryBatch {
   qty_available: number
   mrp?: number
   discount_percent?: number
+  taxable_amount?: number
+  cgst_amount?: number
+  sgst_amount?: number
+  igst_amount?: number
+  gst_percent?: number
   purchase_price_per_unit: number
   selling_price_per_unit: number
   created_at: string

@@ -83,7 +83,10 @@ export default function Inventory() {
     purchaseInvoiceNo: '',
     purchaseDate: new Date().toISOString().split('T')[0],
     purchaseType: 'CASH',
+    taxType: 'INTRASTATE', // INTRASTATE (CGST+SGST) / INTERSTATE (IGST)
     dueDate: '',
+    paymentDate: new Date().toISOString().split('T')[0],
+    paidAmount: '',
     paymentStatus: 'PAID',
     paymentMode: 'CASH',
     notes: '',
@@ -95,6 +98,11 @@ export default function Inventory() {
       freeQty: number
       mrp: number
       discountPercent: number
+      taxableAmount: number
+      cgstAmount: number
+      sgstAmount: number
+      igstAmount: number
+      gstPercent: number
       purchasePricePerUnit: number
       sellingPricePerUnit: number
     }>
@@ -108,6 +116,7 @@ export default function Inventory() {
     freeQty: '',
     mrp: '',
     discountPercent: '',
+    gstPercent: '',
     purchasePricePerUnit: '',
     amount: '',
     sellingPricePerUnit: ''
@@ -309,6 +318,26 @@ export default function Inventory() {
     if (isNaN(pPrice) || pPrice < 0) return alert('Purchase price invalid')
     if (isNaN(sPrice) || sPrice < pPrice) return alert('Selling price should be >= purchase price')
 
+    const selMed = safeMedicines.find(m => m.id === stockInItem.medicineId)
+    const gstPercent = parseFloat(stockInItem.gstPercent) || selMed?.default_gst_percent || 12.0
+
+    // Tax calculation per item
+    const baseGross = qty * pPrice
+    const discountAmt = baseGross * (discountPercent / 100)
+    const taxableAmount = Math.max(0, baseGross - discountAmt)
+    const gstAmount = taxableAmount * (gstPercent / 100)
+
+    let cgstAmount = 0
+    let sgstAmount = 0
+    let igstAmount = 0
+
+    if (purchaseForm.taxType === 'INTERSTATE') {
+      igstAmount = gstAmount
+    } else {
+      cgstAmount = gstAmount / 2
+      sgstAmount = gstAmount / 2
+    }
+
     const newItems = [...purchaseForm.items, {
       medicineId: stockInItem.medicineId,
       batchNo: stockInItem.batchNo,
@@ -317,6 +346,11 @@ export default function Inventory() {
       freeQty,
       mrp,
       discountPercent,
+      taxableAmount,
+      cgstAmount,
+      sgstAmount,
+      igstAmount,
+      gstPercent,
       purchasePricePerUnit: pPrice,
       sellingPricePerUnit: sPrice
     }]
@@ -335,6 +369,7 @@ export default function Inventory() {
       freeQty: '',
       mrp: '',
       discountPercent: '',
+      gstPercent: '',
       purchasePricePerUnit: '',
       amount: '',
       sellingPricePerUnit: ''
@@ -352,7 +387,25 @@ export default function Inventory() {
     if (!purchaseForm.purchaseInvoiceNo.trim()) return alert('Enter purchase invoice number')
     if (purchaseForm.items.length === 0) return alert('Add at least one item')
 
-    const totalAmount = purchaseForm.items.reduce((sum, item) => sum + (item.qtyPurchased * item.purchasePricePerUnit), 0)
+    const taxableAmount = purchaseForm.items.reduce((sum, item) => sum + (item.taxableAmount || 0), 0)
+    const cgstAmount = purchaseForm.items.reduce((sum, item) => sum + (item.cgstAmount || 0), 0)
+    const sgstAmount = purchaseForm.items.reduce((sum, item) => sum + (item.sgstAmount || 0), 0)
+    const igstAmount = purchaseForm.items.reduce((sum, item) => sum + (item.igstAmount || 0), 0)
+    const gstAmount = cgstAmount + sgstAmount + igstAmount
+    const totalAmount = (taxableAmount + gstAmount) > 0 
+      ? (taxableAmount + gstAmount) 
+      : purchaseForm.items.reduce((sum, item) => sum + (item.qtyPurchased * item.purchasePricePerUnit), 0)
+
+    const isCash = purchaseForm.purchaseType === 'CASH'
+    const paidAmount = isCash ? totalAmount : (parseFloat(purchaseForm.paidAmount) || 0)
+    const pendingAmount = Math.max(0, totalAmount - paidAmount)
+
+    let status = 'PAID'
+    if (!isCash) {
+      if (paidAmount >= totalAmount) status = 'PAID'
+      else if (paidAmount > 0) status = 'PARTIAL'
+      else status = 'PENDING'
+    }
 
     try {
       await createPurchase({
@@ -362,9 +415,18 @@ export default function Inventory() {
           purchaseDate: purchaseForm.purchaseDate,
           purchaseType: purchaseForm.purchaseType,
           dueDate: purchaseForm.dueDate || null,
-          paymentStatus: purchaseForm.paymentStatus,
+          paymentDate: purchaseForm.paymentDate || null,
+          paymentStatus: status,
           paymentMode: purchaseForm.paymentMode,
+          taxableAmount,
+          cgstAmount,
+          sgstAmount,
+          igstAmount,
+          gstAmount,
+          gstPercent: purchaseForm.items.length > 0 ? (purchaseForm.items[0].gstPercent || 12) : 12,
           totalAmount,
+          paidAmount,
+          pendingAmount,
           notes: purchaseForm.notes,
           items: purchaseForm.items
         },
@@ -377,7 +439,10 @@ export default function Inventory() {
         purchaseInvoiceNo: '',
         purchaseDate: new Date().toISOString().split('T')[0],
         purchaseType: 'CASH',
+        taxType: 'INTRASTATE',
         dueDate: '',
+        paymentDate: new Date().toISOString().split('T')[0],
+        paidAmount: '',
         paymentStatus: 'PAID',
         paymentMode: 'CASH',
         notes: '',
@@ -670,7 +735,7 @@ export default function Inventory() {
                 />
               </div>
 
-              {/* Purchase Type */}
+              {/* Purchase Type & Tax Type */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Purchase Type *</label>
@@ -692,44 +757,85 @@ export default function Inventory() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Due Date {purchaseForm.purchaseType === 'CREDIT' ? '*' : '(Optional)'}</label>
-                  <input
-                    type="date"
-                    value={purchaseForm.dueDate}
-                    onChange={(e) => setPurchaseForm({ ...purchaseForm, dueDate: e.target.value })}
-                    className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  />
-                </div>
-              </div>
-
-              {/* Payment Status & Payment Mode */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Payment Status</label>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Tax Type *</label>
                   <select
-                    value={purchaseForm.paymentStatus}
-                    onChange={(e) => setPurchaseForm({ ...purchaseForm, paymentStatus: e.target.value })}
+                    value={purchaseForm.taxType}
+                    onChange={(e) => setPurchaseForm({ ...purchaseForm, taxType: e.target.value })}
                     className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 font-semibold"
                   >
-                    <option value="PAID">PAID</option>
-                    <option value="PENDING">PENDING</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Payment Mode (Optional)</label>
-                  <select
-                    value={purchaseForm.paymentMode}
-                    onChange={(e) => setPurchaseForm({ ...purchaseForm, paymentMode: e.target.value })}
-                    className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  >
-                    <option value="CASH">CASH</option>
-                    <option value="UPI">UPI</option>
-                    <option value="BANK">BANK TRANSFER</option>
-                    <option value="CARD">CARD</option>
+                    <option value="INTRASTATE">CGST + SGST (In-State)</option>
+                    <option value="INTERSTATE">IGST (Out of State)</option>
                   </select>
                 </div>
               </div>
+
+              {/* Payment Mode */}
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Payment Mode</label>
+                <select
+                  value={purchaseForm.paymentMode}
+                  onChange={(e) => setPurchaseForm({ ...purchaseForm, paymentMode: e.target.value })}
+                  className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                >
+                  <option value="CASH">CASH</option>
+                  <option value="UPI">UPI</option>
+                  <option value="BANK">BANK TRANSFER</option>
+                  <option value="CARD">CARD</option>
+                </select>
+              </div>
+
+              {/* Credit breakdown fields */}
+              {purchaseForm.purchaseType === 'CREDIT' && (
+                <div className="p-3 bg-amber-50/60 border border-amber-200/80 rounded-xl space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-bold text-amber-800 uppercase mb-1">Paid Amount (₹)</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        placeholder="₹ 0.00"
+                        value={purchaseForm.paidAmount}
+                        onChange={(e) => setPurchaseForm({ ...purchaseForm, paidAmount: e.target.value })}
+                        className="w-full py-2 px-3 rounded-lg border border-amber-300 bg-white text-sm font-bold text-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-amber-800 uppercase mb-1">Pending Amount (₹)</label>
+                      <input
+                        type="text"
+                        readOnly
+                        value={`₹ ${(() => {
+                          const tot = purchaseForm.items.reduce((sum, item) => sum + (item.qtyPurchased * item.purchasePricePerUnit), 0)
+                          const pd = parseFloat(purchaseForm.paidAmount) || 0
+                          return Math.max(0, tot - pd).toFixed(2)
+                        })()}`}
+                        className="w-full py-2 px-3 rounded-lg border border-amber-200 bg-amber-100/50 text-sm font-bold text-red-700 cursor-not-allowed"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-bold text-amber-800 uppercase mb-1">Due Date *</label>
+                      <input
+                        type="date"
+                        value={purchaseForm.dueDate}
+                        onChange={(e) => setPurchaseForm({ ...purchaseForm, dueDate: e.target.value })}
+                        className="w-full py-2 px-3 rounded-lg border border-amber-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-amber-800 uppercase mb-1">Payment Date</label>
+                      <input
+                        type="date"
+                        value={purchaseForm.paymentDate}
+                        onChange={(e) => setPurchaseForm({ ...purchaseForm, paymentDate: e.target.value })}
+                        className="w-full py-2 px-3 rounded-lg border border-amber-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Remarks / Notes */}
               <div>
@@ -753,7 +859,15 @@ export default function Inventory() {
                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Medicine *</label>
                 <select
                   value={stockInItem.medicineId}
-                  onChange={(e) => setStockInItem({ ...stockInItem, medicineId: e.target.value })}
+                  onChange={(e) => {
+                    const mId = e.target.value
+                    const sel = safeMedicines.find(m => m.id === mId)
+                    setStockInItem({
+                      ...stockInItem,
+                      medicineId: mId,
+                      gstPercent: sel ? sel.default_gst_percent.toString() : ''
+                    })
+                  }}
                   className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 font-semibold"
                 >
                   <option value="">Select Medicine</option>
@@ -832,8 +946,8 @@ export default function Inventory() {
                 </div>
               </div>
 
-              {/* MRP & Discount % */}
-              <div className="grid grid-cols-2 gap-3">
+              {/* MRP, Discount % & GST % */}
+              <div className="grid grid-cols-3 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase mb-1">MRP (₹)</label>
                   <input
@@ -846,7 +960,7 @@ export default function Inventory() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Discount %</label>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Disc %</label>
                   <input
                     type="number"
                     step="0.01"
@@ -854,6 +968,17 @@ export default function Inventory() {
                     value={stockInItem.discountPercent}
                     onChange={(e) => setStockInItem({ ...stockInItem, discountPercent: e.target.value })}
                     className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">GST %</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="e.g. 12"
+                    value={stockInItem.gstPercent}
+                    onChange={(e) => setStockInItem({ ...stockInItem, gstPercent: e.target.value })}
+                    className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-teal-500"
                   />
                 </div>
               </div>
@@ -978,23 +1103,65 @@ export default function Inventory() {
               </div>
             </div>
 
-            <div className="border-t border-slate-100 pt-5 mt-5 flex items-center justify-between">
-              <div>
-                <p className="text-xs font-bold text-slate-500 uppercase">Estimated Total Amount</p>
-                <p className="text-xl font-bold text-slate-900">
-                  ₹{purchaseForm.items.reduce((sum, item) => sum + (item.qtyPurchased * item.purchasePricePerUnit), 0).toFixed(2)}
-                </p>
-              </div>
+            {/* Tax Breakdown & Invoice Total Footer */}
+            {(() => {
+              const taxable = purchaseForm.items.reduce((s, i) => s + (i.taxableAmount || 0), 0)
+              const cgst = purchaseForm.items.reduce((s, i) => s + (i.cgstAmount || 0), 0)
+              const sgst = purchaseForm.items.reduce((s, i) => s + (i.sgstAmount || 0), 0)
+              const igst = purchaseForm.items.reduce((s, i) => s + (i.igstAmount || 0), 0)
+              const totalGst = cgst + sgst + igst
+              const grandTotal = taxable + totalGst > 0 
+                ? (taxable + totalGst) 
+                : purchaseForm.items.reduce((sum, item) => sum + (item.qtyPurchased * item.purchasePricePerUnit), 0)
 
-              <button
-                type="button"
-                onClick={handlePurchaseSubmit}
-                disabled={purchaseForm.items.length === 0}
-                className="px-6 py-2.5 bg-teal-500 text-white rounded-lg text-sm font-semibold hover:bg-teal-600 shadow-md shadow-teal-500/10 transition-all disabled:bg-slate-100 disabled:text-slate-400 disabled:shadow-none cursor-pointer"
-              >
-                Log Stock Purchase <ArrowRight className="inline-block h-4 w-4 ml-1.5" />
-              </button>
-            </div>
+              return (
+                <div className="border-t border-slate-100 pt-5 mt-5 space-y-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50 p-4 rounded-xl text-xs">
+                    <div>
+                      <span className="text-slate-500 font-semibold block">Taxable Amount</span>
+                      <span className="font-bold text-slate-900 text-sm">₹{taxable.toFixed(2)}</span>
+                    </div>
+                    {purchaseForm.taxType === 'INTERSTATE' ? (
+                      <div>
+                        <span className="text-slate-500 font-semibold block">IGST Total</span>
+                        <span className="font-bold text-slate-900 text-sm">₹{igst.toFixed(2)}</span>
+                      </div>
+                    ) : (
+                      <>
+                        <div>
+                          <span className="text-slate-500 font-semibold block">CGST Total</span>
+                          <span className="font-bold text-slate-900 text-sm">₹{cgst.toFixed(2)}</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-500 font-semibold block">SGST Total</span>
+                          <span className="font-bold text-slate-900 text-sm">₹{sgst.toFixed(2)}</span>
+                        </div>
+                      </>
+                    )}
+                    <div>
+                      <span className="text-slate-500 font-semibold block">Total GST</span>
+                      <span className="font-bold text-teal-700 text-sm">₹{totalGst.toFixed(2)}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2">
+                    <div>
+                      <p className="text-xs font-bold text-slate-500 uppercase">Grand Total Invoice Amount</p>
+                      <p className="text-2xl font-bold text-slate-900">₹{grandTotal.toFixed(2)}</p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handlePurchaseSubmit}
+                      disabled={purchaseForm.items.length === 0}
+                      className="px-6 py-2.5 bg-teal-500 text-white rounded-lg text-sm font-semibold hover:bg-teal-600 shadow-md shadow-teal-500/10 transition-all disabled:bg-slate-100 disabled:text-slate-400 disabled:shadow-none cursor-pointer"
+                    >
+                      Log Stock Purchase <ArrowRight className="inline-block h-4 w-4 ml-1.5" />
+                    </button>
+                  </div>
+                </div>
+              )
+            })()}
           </div>
         </div>
       )}
@@ -1006,56 +1173,72 @@ export default function Inventory() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  <th className="px-6 py-4">Purchase Date</th>
-                  <th className="px-6 py-4">Vendor</th>
-                  <th className="px-6 py-4">Invoice No</th>
-                  <th className="px-6 py-4">Type</th>
-                  <th className="px-6 py-4">Due Date</th>
-                  <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4">Mode</th>
-                  <th className="px-6 py-4">Total Amount</th>
-                  <th className="px-6 py-4">Items Stocked</th>
-                  <th className="px-6 py-4">Remarks</th>
+                  <th className="px-5 py-4">Purchase Date</th>
+                  <th className="px-5 py-4">Vendor / Invoice</th>
+                  <th className="px-5 py-4">Type</th>
+                  <th className="px-5 py-4 text-right">Invoice Total</th>
+                  <th className="px-5 py-4 text-right">Paid Amount</th>
+                  <th className="px-5 py-4 text-right">Pending Amount</th>
+                  <th className="px-5 py-4">Due Date</th>
+                  <th className="px-5 py-4">Payment Date</th>
+                  <th className="px-5 py-4">Status</th>
+                  <th className="px-5 py-4">Mode</th>
+                  <th className="px-5 py-4">Items Stocked</th>
+                  <th className="px-5 py-4">Remarks</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
-                {purchases.map((pur) => (
-                  <tr key={pur.id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-6 py-4">
-                      {new Date(pur.purchase_date).toLocaleDateString('en-GB')}
-                    </td>
-                    <td className="px-6 py-4 font-medium text-slate-900">{pur.vendor?.name}</td>
-                    <td className="px-6 py-4 font-mono text-xs">{pur.purchase_invoice_no}</td>
-                    <td className="px-6 py-4">
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-bold uppercase ${
-                        pur.purchase_type === 'CREDIT' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'
-                      }`}>
-                        {pur.purchase_type || 'CASH'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-xs font-mono">
-                      {pur.due_date ? new Date(pur.due_date).toLocaleDateString('en-GB') : '-'}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-bold uppercase ${
-                        pur.payment_status === 'PENDING' ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'
-                      }`}>
-                        {pur.payment_status || 'PAID'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-xs font-semibold uppercase">{pur.payment_mode || 'CASH'}</td>
-                    <td className="px-6 py-4 font-semibold text-slate-900">₹{pur.total_amount.toFixed(2)}</td>
-                    <td className="px-6 py-4 text-xs">
-                      {pur.batches?.map(b => `${b.medicine?.name} (${b.qty_purchased})`).join(', ')}
-                    </td>
-                    <td className="px-6 py-4 text-slate-500 truncate max-w-xs">{pur.notes || 'N/A'}</td>
-                  </tr>
-                ))}
-                {purchases.length === 0 && (
-                  <tr>
-                    <td colSpan={6} className="px-6 py-8 text-center text-slate-400 text-sm">No purchases recorded</td>
-                  </tr>
-                )}
+                {purchases.map((pur) => {
+                  const paid = pur.paid_amount !== undefined ? pur.paid_amount : (pur.purchase_type === 'CREDIT' ? 0 : pur.total_amount)
+                  const pending = pur.pending_amount !== undefined ? pur.pending_amount : (pur.purchase_type === 'CREDIT' ? pur.total_amount : 0)
+                  return (
+                    <tr key={pur.id} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="px-5 py-4 font-mono text-xs">
+                        {new Date(pur.purchase_date).toLocaleDateString('en-GB')}
+                      </td>
+                      <td className="px-5 py-4 font-medium text-slate-900">
+                        <div>{pur.vendor?.name}</div>
+                        <div className="text-xs font-mono text-slate-500">#{pur.purchase_invoice_no}</div>
+                      </td>
+                      <td className="px-5 py-4">
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-bold uppercase ${
+                          pur.purchase_type === 'CREDIT' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'
+                        }`}>
+                          {pur.purchase_type || 'CASH'}
+                        </span>
+                      </td>
+                      <td className="px-5 py-4 text-right font-semibold text-slate-900">₹{pur.total_amount.toFixed(2)}</td>
+                      <td className="px-5 py-4 text-right font-semibold text-emerald-700">₹{paid.toFixed(2)}</td>
+                      <td className="px-5 py-4 text-right font-semibold text-red-600">
+                        {pending > 0 ? `₹${pending.toFixed(2)}` : '₹0.00'}
+                      </td>
+                      <td className="px-5 py-4 text-xs font-mono">
+                        {pur.due_date ? new Date(pur.due_date).toLocaleDateString('en-GB') : '-'}
+                      </td>
+                      <td className="px-5 py-4 text-xs font-mono">
+                        {pur.payment_date ? new Date(pur.payment_date).toLocaleDateString('en-GB') : '-'}
+                      </td>
+                      <td className="px-5 py-4">
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-bold uppercase ${
+                          pur.payment_status === 'PENDING' ? 'bg-red-100 text-red-700' :
+                          pur.payment_status === 'PARTIAL' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'
+                        }`}>
+                          {pur.payment_status || 'PAID'}
+                        </span>
+                      </td>
+                      <td className="px-5 py-4 text-xs font-semibold uppercase">{pur.payment_mode || 'CASH'}</td>
+                      <td className="px-5 py-4 text-xs">
+                        {pur.batches?.map(b => `${b.medicine?.name} (${b.qty_purchased})`).join(', ')}
+                      </td>
+                      <td className="px-5 py-4 text-slate-500 truncate max-w-xs">{pur.notes || 'N/A'}</td>
+                    </tr>
+                  )
+                })}
+                  {purchases.length === 0 && (
+                    <tr>
+                      <td colSpan={12} className="px-6 py-8 text-center text-slate-400 text-sm">No purchases recorded</td>
+                    </tr>
+                  )}
               </tbody>
             </table>
           </div>
