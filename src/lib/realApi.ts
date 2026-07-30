@@ -71,7 +71,12 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     return {} as T;
   }
 
-  return response.json();
+  const json = await response.json();
+  if (json && typeof json === 'object' && 'data' in json && json.data !== undefined) {
+    return json.data as T;
+  }
+
+  return json as T;
 }
 
 export const realApi: Window['api'] = {
@@ -232,6 +237,9 @@ export const realApi: Window['api'] = {
     const raw = args.data || {};
     const payload = {
       name: raw.name,
+      generic_name: raw.generic_name !== undefined ? raw.generic_name : (raw.genericName || null),
+      manufacturer: raw.manufacturer || null,
+      pack: raw.pack || null,
       type: raw.type || 'TABLET',
       unit_label: raw.unit_label || raw.unitLabel,
       hsn_code: raw.hsn_code !== undefined ? raw.hsn_code : (raw.hsnCode || null),
@@ -248,6 +256,11 @@ export const realApi: Window['api'] = {
     const raw = args.data || {};
     const payload: Record<string, any> = {};
     if (raw.name !== undefined) payload.name = raw.name;
+    if (raw.generic_name !== undefined || raw.genericName !== undefined) {
+      payload.generic_name = raw.generic_name !== undefined ? raw.generic_name : raw.genericName;
+    }
+    if (raw.manufacturer !== undefined) payload.manufacturer = raw.manufacturer;
+    if (raw.pack !== undefined) payload.pack = raw.pack;
     if (raw.type !== undefined) payload.type = raw.type;
     if (raw.unit_label !== undefined || raw.unitLabel !== undefined) {
       payload.unit_label = raw.unit_label || raw.unitLabel;
@@ -287,6 +300,10 @@ export const realApi: Window['api'] = {
       vendorId: raw.vendorId,
       purchaseInvoiceNo: raw.purchaseInvoiceNo,
       purchaseDate: raw.purchaseDate,
+      purchaseType: raw.purchaseType || 'CASH',
+      dueDate: raw.dueDate || null,
+      paymentStatus: raw.paymentStatus || (raw.purchaseType === 'CREDIT' ? 'PENDING' : 'PAID'),
+      paymentMode: raw.paymentMode || 'CASH',
       totalAmount: raw.totalAmount,
       notes: raw.notes || null,
       items: (raw.items || []).map((item: any) => ({
@@ -294,6 +311,9 @@ export const realApi: Window['api'] = {
         batchNo: item.batchNo,
         expiryDate: item.expiryDate,
         qty: item.qty !== undefined ? Number(item.qty) : Number(item.qtyPurchased),
+        freeQty: item.freeQty !== undefined ? Number(item.freeQty) : (Number(item.qtyFree) || 0),
+        mrp: Number(item.mrp || 0),
+        discountPercent: item.discountPercent !== undefined ? Number(item.discountPercent) : (Number(item.discount_percent) || 0),
         purchasePrice: item.purchasePrice !== undefined ? Number(item.purchasePrice) : Number(item.purchasePricePerUnit),
         sellingPrice: item.sellingPrice !== undefined ? Number(item.sellingPrice) : Number(item.sellingPricePerUnit),
       })),
@@ -660,7 +680,7 @@ export const realApi: Window['api'] = {
 
   async printInvoice(billId: string): Promise<boolean> {
     if (typeof window !== 'undefined') {
-      window.open(`${getBaseUrl()}/billing/${billId}/print`, '_blank');
+      window.open(`/print/${billId}`, '_blank');
       return true;
     }
     return false;

@@ -22,6 +22,7 @@ export interface Vendor {
   phone: string
   address: string
   gstin: string | null
+  drug_license_no?: string | null
   notes: string | null
   created_at: string
   updated_at: string
@@ -31,6 +32,9 @@ export interface Vendor {
 export interface Medicine {
   id: string
   name: string
+  generic_name?: string | null
+  manufacturer?: string | null
+  pack?: string | null
   type: string
   unit_label: string
   hsn_code: string | null
@@ -47,6 +51,10 @@ export interface Purchase {
   vendor_id: string
   purchase_invoice_no: string
   purchase_date: string
+  purchase_type?: string
+  due_date?: string | null
+  payment_status?: string
+  payment_mode?: string | null
   total_amount: number
   notes: string | null
   created_at: string
@@ -62,7 +70,10 @@ export interface InventoryBatch {
   batch_no: string
   expiry_date: string
   qty_purchased: number
+  qty_free?: number
   qty_available: number
+  mrp?: number
+  discount_percent?: number
   purchase_price_per_unit: number
   selling_price_per_unit: number
   created_at: string

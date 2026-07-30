@@ -58,6 +58,9 @@ export default function Inventory() {
   // Form states
   const [medForm, setMedForm] = useState({
     name: '',
+    genericName: '',
+    manufacturer: '',
+    pack: '',
     type: 'TABLET',
     unitLabel: 'strip',
     hsnCode: '',
@@ -70,6 +73,7 @@ export default function Inventory() {
     phone: '',
     address: '',
     gstin: '',
+    drug_license_no: '',
     notes: ''
   })
 
@@ -78,12 +82,19 @@ export default function Inventory() {
     vendorId: '',
     purchaseInvoiceNo: '',
     purchaseDate: new Date().toISOString().split('T')[0],
+    purchaseType: 'CASH',
+    dueDate: '',
+    paymentStatus: 'PAID',
+    paymentMode: 'CASH',
     notes: '',
     items: [] as Array<{
       medicineId: string
       batchNo: string
       expiryDate: string
       qtyPurchased: number
+      freeQty: number
+      mrp: number
+      discountPercent: number
       purchasePricePerUnit: number
       sellingPricePerUnit: number
     }>
@@ -94,9 +105,55 @@ export default function Inventory() {
     batchNo: '',
     expiryDate: '',
     qtyPurchased: '',
+    freeQty: '',
+    mrp: '',
+    discountPercent: '',
     purchasePricePerUnit: '',
+    amount: '',
     sellingPricePerUnit: ''
   })
+
+  const handleQtyPurchasedChange = (val: string) => {
+    const qty = parseFloat(val) || 0
+    const pPrice = parseFloat(stockInItem.purchasePricePerUnit) || 0
+    let newAmount = stockInItem.amount
+    if (qty > 0 && pPrice > 0) {
+      newAmount = (qty * pPrice).toFixed(2)
+    }
+    setStockInItem((prev) => ({
+      ...prev,
+      qtyPurchased: val,
+      amount: newAmount
+    }))
+  }
+
+  const handlePurchasePriceChange = (val: string) => {
+    const pPrice = parseFloat(val) || 0
+    const qty = parseFloat(stockInItem.qtyPurchased) || 0
+    let newAmount = stockInItem.amount
+    if (qty > 0 && pPrice > 0) {
+      newAmount = (qty * pPrice).toFixed(2)
+    }
+    setStockInItem((prev) => ({
+      ...prev,
+      purchasePricePerUnit: val,
+      amount: newAmount
+    }))
+  }
+
+  const handleAmountChange = (val: string) => {
+    const amt = parseFloat(val) || 0
+    const qty = parseFloat(stockInItem.qtyPurchased) || 0
+    let newPPrice = stockInItem.purchasePricePerUnit
+    if (qty > 0 && amt >= 0) {
+      newPPrice = (amt / qty).toFixed(2)
+    }
+    setStockInItem((prev) => ({
+      ...prev,
+      amount: val,
+      purchasePricePerUnit: newPPrice
+    }))
+  }
 
   useEffect(() => {
     loadAllData()
@@ -110,6 +167,10 @@ export default function Inventory() {
     try {
       const data = {
         name: medForm.name,
+        generic_name: medForm.genericName || null,
+        genericName: medForm.genericName || null,
+        manufacturer: medForm.manufacturer || null,
+        pack: medForm.pack || null,
         type: medForm.type,
         unit_label: medForm.unitLabel,
         unitLabel: medForm.unitLabel,
@@ -120,7 +181,6 @@ export default function Inventory() {
         default_gst_percent: parseFloat(medForm.defaultGstPercent) || 12.0,
         defaultGstPercent: parseFloat(medForm.defaultGstPercent) || 12.0
       }
-
       if (editingMed) {
         await updateMedicine({ id: editingMed.id, data, userId: currentUser?.id || '' })
         alert('Medicine updated')
@@ -130,7 +190,7 @@ export default function Inventory() {
       }
       setShowMedModal(false)
       setEditingMed(null)
-      setMedForm({ name: '', type: 'TABLET', unitLabel: 'strip', hsnCode: '', reorderLevel: '10', defaultGstPercent: '12' })
+      setMedForm({ name: '', genericName: '', manufacturer: '', pack: '', type: 'TABLET', unitLabel: 'strip', hsnCode: '', reorderLevel: '10', defaultGstPercent: '12' })
     } catch (err: any) {
       alert(err.message || 'Error saving medicine')
     }
@@ -140,6 +200,9 @@ export default function Inventory() {
     setEditingMed(m)
     setMedForm({
       name: m.name,
+      genericName: m.generic_name || '',
+      manufacturer: m.manufacturer || '',
+      pack: m.pack || '',
       type: m.type,
       unitLabel: m.unit_label,
       hsnCode: m.hsn_code || '',
@@ -173,7 +236,7 @@ export default function Inventory() {
       }
       setShowVendorModal(false)
       setEditingVendor(null)
-      setVendorForm({ name: '', phone: '', address: '', gstin: '', notes: '' })
+      setVendorForm({ name: '', phone: '', address: '', gstin: '', drug_license_no: '', notes: '' })
     } catch (err: any) {
       alert(err.message || 'Error saving vendor')
     }
@@ -186,6 +249,7 @@ export default function Inventory() {
       phone: v.phone,
       address: v.address,
       gstin: v.gstin || '',
+      drug_license_no: v.drug_license_no || '',
       notes: v.notes || ''
     })
     setShowVendorModal(true)
@@ -230,10 +294,18 @@ export default function Inventory() {
     if (!stockInItem.expiryDate) return alert('Select expiry date')
     
     const qty = parseInt(stockInItem.qtyPurchased)
-    const pPrice = parseFloat(stockInItem.purchasePricePerUnit)
+    const freeQty = parseInt(stockInItem.freeQty) || 0
+    const mrp = parseFloat(stockInItem.mrp) || 0
+    const discountPercent = parseFloat(stockInItem.discountPercent) || 0
+    let pPrice = parseFloat(stockInItem.purchasePricePerUnit)
+    const lineAmt = parseFloat(stockInItem.amount)
     const sPrice = parseFloat(stockInItem.sellingPricePerUnit)
 
-    if (isNaN(qty) || qty <= 0) return alert('Quantity must be > 0')
+    if (isNaN(pPrice) && !isNaN(lineAmt) && qty > 0) {
+      pPrice = lineAmt / qty
+    }
+
+    if (isNaN(qty) || qty <= 0) return alert('Purchased Quantity must be > 0')
     if (isNaN(pPrice) || pPrice < 0) return alert('Purchase price invalid')
     if (isNaN(sPrice) || sPrice < pPrice) return alert('Selling price should be >= purchase price')
 
@@ -242,6 +314,9 @@ export default function Inventory() {
       batchNo: stockInItem.batchNo,
       expiryDate: stockInItem.expiryDate,
       qtyPurchased: qty,
+      freeQty,
+      mrp,
+      discountPercent,
       purchasePricePerUnit: pPrice,
       sellingPricePerUnit: sPrice
     }]
@@ -257,7 +332,11 @@ export default function Inventory() {
       batchNo: '',
       expiryDate: '',
       qtyPurchased: '',
+      freeQty: '',
+      mrp: '',
+      discountPercent: '',
       purchasePricePerUnit: '',
+      amount: '',
       sellingPricePerUnit: ''
     })
   }
@@ -281,6 +360,10 @@ export default function Inventory() {
           vendorId: purchaseForm.vendorId,
           purchaseInvoiceNo: purchaseForm.purchaseInvoiceNo,
           purchaseDate: purchaseForm.purchaseDate,
+          purchaseType: purchaseForm.purchaseType,
+          dueDate: purchaseForm.dueDate || null,
+          paymentStatus: purchaseForm.paymentStatus,
+          paymentMode: purchaseForm.paymentMode,
           totalAmount,
           notes: purchaseForm.notes,
           items: purchaseForm.items
@@ -293,6 +376,10 @@ export default function Inventory() {
         vendorId: '',
         purchaseInvoiceNo: '',
         purchaseDate: new Date().toISOString().split('T')[0],
+        purchaseType: 'CASH',
+        dueDate: '',
+        paymentStatus: 'PAID',
+        paymentMode: 'CASH',
         notes: '',
         items: []
       })
@@ -303,19 +390,28 @@ export default function Inventory() {
   }
 
   // Filter lists based on search
-  const filteredBatches = batches.filter(b => 
-    b.medicine?.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    b.batch_no.toLowerCase().includes(searchQuery.toLowerCase())
+  const safeBatches = Array.isArray(batches) ? batches : []
+  const safeMedicines = Array.isArray(medicines) ? medicines : []
+  const safeVendors = Array.isArray(vendors) ? vendors : []
+
+  const filteredBatches = safeBatches.filter(b => 
+    (b.medicine?.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (b.batch_no || '').toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const filteredMedicines = medicines.filter(m => 
-    m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    m.type.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredMedicines = safeMedicines.filter(m => 
+    (m.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (m.generic_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (m.manufacturer || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (m.pack || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (m.type || '').toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const filteredVendors = vendors.filter(v => 
-    v.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    v.phone.includes(searchQuery)
+  const filteredVendors = safeVendors.filter(v => 
+    (v.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (v.phone || '').includes(searchQuery) ||
+    (v.gstin || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (v.drug_license_no || '').toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   const getDaysToExpiry = (expiryStr: string) => {
@@ -370,7 +466,7 @@ export default function Inventory() {
               <button
                 onClick={() => {
                   setEditingMed(null)
-                  setMedForm({ name: '', type: 'TABLET', unitLabel: 'strip', hsnCode: '', reorderLevel: '10', defaultGstPercent: '12' })
+                  setMedForm({ name: '', genericName: '', manufacturer: '', pack: '', type: 'TABLET', unitLabel: 'strip', hsnCode: '', reorderLevel: '10', defaultGstPercent: '12' })
                   setShowMedModal(true)
                 }}
                 className="flex items-center justify-center px-4 py-2 bg-teal-500 text-white rounded-lg text-sm font-semibold hover:bg-teal-600 shadow-md shadow-teal-500/10 transition-all cursor-pointer w-full sm:w-auto"
@@ -383,7 +479,7 @@ export default function Inventory() {
               <button
                 onClick={() => {
                   setEditingVendor(null)
-                  setVendorForm({ name: '', phone: '', address: '', gstin: '', notes: '' })
+                  setVendorForm({ name: '', phone: '', address: '', gstin: '', drug_license_no: '', notes: '' })
                   setShowVendorModal(true)
                 }}
                 className="flex items-center justify-center px-4 py-2 bg-teal-500 text-white rounded-lg text-sm font-semibold hover:bg-teal-600 shadow-md shadow-teal-500/10 transition-all cursor-pointer w-full sm:w-auto"
@@ -474,6 +570,9 @@ export default function Inventory() {
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider">
                   <th className="px-6 py-4">Medicine Name</th>
+                  <th className="px-6 py-4">Generic Name</th>
+                  <th className="px-6 py-4">Manufacturer</th>
+                  <th className="px-6 py-4">Pack</th>
                   <th className="px-6 py-4">Type</th>
                   <th className="px-6 py-4">Unit Label</th>
                   <th className="px-6 py-4">HSN Code</th>
@@ -486,6 +585,9 @@ export default function Inventory() {
                 {filteredMedicines.map((med) => (
                   <tr key={med.id} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-4 font-medium text-slate-900">{med.name}</td>
+                    <td className="px-6 py-4 text-slate-600 text-xs font-medium">{med.generic_name || 'N/A'}</td>
+                    <td className="px-6 py-4 text-slate-600 text-xs">{med.manufacturer || 'N/A'}</td>
+                    <td className="px-6 py-4 font-mono text-xs">{med.pack || 'N/A'}</td>
                     <td className="px-6 py-4 font-mono text-xs">{med.type}</td>
                     <td className="px-6 py-4 capitalize">{med.unit_label}</td>
                     <td className="px-6 py-4 font-mono text-xs">{med.hsn_code || 'N/A'}</td>
@@ -539,7 +641,7 @@ export default function Inventory() {
                   className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
                 >
                   <option value="">Select Vendor</option>
-                  {vendors.map(v => (
+                  {safeVendors.map(v => (
                     <option key={v.id} value={v.id}>{v.name}</option>
                   ))}
                 </select>
@@ -568,9 +670,70 @@ export default function Inventory() {
                 />
               </div>
 
-              {/* Notes */}
+              {/* Purchase Type */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Purchase Type *</label>
+                  <select
+                    value={purchaseForm.purchaseType}
+                    onChange={(e) => {
+                      const pType = e.target.value
+                      setPurchaseForm({
+                        ...purchaseForm,
+                        purchaseType: pType,
+                        paymentStatus: pType === 'CREDIT' ? 'PENDING' : 'PAID'
+                      })
+                    }}
+                    className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 font-semibold"
+                  >
+                    <option value="CASH">CASH</option>
+                    <option value="CREDIT">CREDIT</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Due Date {purchaseForm.purchaseType === 'CREDIT' ? '*' : '(Optional)'}</label>
+                  <input
+                    type="date"
+                    value={purchaseForm.dueDate}
+                    onChange={(e) => setPurchaseForm({ ...purchaseForm, dueDate: e.target.value })}
+                    className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  />
+                </div>
+              </div>
+
+              {/* Payment Status & Payment Mode */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Payment Status</label>
+                  <select
+                    value={purchaseForm.paymentStatus}
+                    onChange={(e) => setPurchaseForm({ ...purchaseForm, paymentStatus: e.target.value })}
+                    className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 font-semibold"
+                  >
+                    <option value="PAID">PAID</option>
+                    <option value="PENDING">PENDING</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Payment Mode (Optional)</label>
+                  <select
+                    value={purchaseForm.paymentMode}
+                    onChange={(e) => setPurchaseForm({ ...purchaseForm, paymentMode: e.target.value })}
+                    className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  >
+                    <option value="CASH">CASH</option>
+                    <option value="UPI">UPI</option>
+                    <option value="BANK">BANK TRANSFER</option>
+                    <option value="CARD">CARD</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Remarks / Notes */}
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Notes</label>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Remarks / Notes (Optional)</label>
                 <textarea
                   rows={2}
                   placeholder="Enter remarks..."
@@ -591,13 +754,35 @@ export default function Inventory() {
                 <select
                   value={stockInItem.medicineId}
                   onChange={(e) => setStockInItem({ ...stockInItem, medicineId: e.target.value })}
-                  className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 font-semibold"
                 >
                   <option value="">Select Medicine</option>
-                  {medicines.map(m => (
-                    <option key={m.id} value={m.id}>{m.name} ({m.type})</option>
+                  {safeMedicines.map(m => (
+                    <option key={m.id} value={m.id}>
+                      {m.name} {m.pack ? `[${m.pack}]` : ''} ({m.type})
+                    </option>
                   ))}
                 </select>
+
+                {/* Selected Medicine Info Badge */}
+                {(() => {
+                  const selMed = safeMedicines.find(m => m.id === stockInItem.medicineId)
+                  if (!selMed) return null
+                  return (
+                    <div className="mt-2.5 p-3 bg-teal-50/70 border border-teal-200/80 rounded-xl text-xs space-y-1">
+                      <div className="flex items-center justify-between text-teal-900 font-bold">
+                        <span>{selMed.name}</span>
+                        <span className="bg-teal-600 text-white px-2 py-0.5 rounded-full text-[10px]">GST {selMed.default_gst_percent}%</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-slate-600 pt-1 border-t border-teal-200/50">
+                        <div><span className="font-semibold text-slate-700">Generic:</span> {selMed.generic_name || 'N/A'}</div>
+                        <div><span className="font-semibold text-slate-700">Pack:</span> {selMed.pack || 'N/A'}</div>
+                        <div><span className="font-semibold text-slate-700">HSN:</span> <code className="font-mono text-slate-800">{selMed.hsn_code || 'N/A'}</code></div>
+                        <div><span className="font-semibold text-slate-700">Unit:</span> {selMed.unit_label}</div>
+                      </div>
+                    </div>
+                  )
+                })()}
               </div>
 
               {/* Batch No & Expiry */}
@@ -623,31 +808,83 @@ export default function Inventory() {
                 </div>
               </div>
 
-              {/* Quantity Purchased */}
-              <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Qty Purchased *</label>
-                <input
-                  type="number"
-                  placeholder="e.g. 100"
-                  value={stockInItem.qtyPurchased}
-                  onChange={(e) => setStockInItem({ ...stockInItem, qtyPurchased: e.target.value })}
-                  className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-                />
-              </div>
-
-              {/* Prices */}
+              {/* Quantity Purchased & Free Qty */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Purchase Price *</label>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Qty Purchased *</label>
                   <input
                     type="number"
-                    step="0.01"
-                    placeholder="₹ per unit"
-                    value={stockInItem.purchasePricePerUnit}
-                    onChange={(e) => setStockInItem({ ...stockInItem, purchasePricePerUnit: e.target.value })}
+                    placeholder="e.g. 100"
+                    value={stockInItem.qtyPurchased}
+                    onChange={(e) => handleQtyPurchasedChange(e.target.value)}
+                    className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 font-semibold"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Free Qty</label>
+                  <input
+                    type="number"
+                    placeholder="e.g. 10"
+                    value={stockInItem.freeQty}
+                    onChange={(e) => setStockInItem({ ...stockInItem, freeQty: e.target.value })}
                     className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
                   />
                 </div>
+              </div>
+
+              {/* MRP & Discount % */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">MRP (₹)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="₹ 150.00"
+                    value={stockInItem.mrp}
+                    onChange={(e) => setStockInItem({ ...stockInItem, mrp: e.target.value })}
+                    className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Discount %</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="e.g. 10"
+                    value={stockInItem.discountPercent}
+                    onChange={(e) => setStockInItem({ ...stockInItem, discountPercent: e.target.value })}
+                    className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  />
+                </div>
+              </div>
+
+              {/* Purchase Price, Amount, Selling Price */}
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Purchase Price *</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      placeholder="₹ per unit"
+                      value={stockInItem.purchasePricePerUnit}
+                      onChange={(e) => handlePurchasePriceChange(e.target.value)}
+                      className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Amount (Qty × Pur.Price)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      placeholder="₹ Total Net Amount"
+                      value={stockInItem.amount}
+                      onChange={(e) => handleAmountChange(e.target.value)}
+                      className="w-full py-2 px-3 rounded-lg border border-teal-300 bg-teal-50/50 text-sm font-bold text-teal-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    />
+                  </div>
+                </div>
+
                 <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Selling Price *</label>
                   <input
@@ -683,28 +920,42 @@ export default function Inventory() {
                   <thead>
                     <tr className="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider">
                       <th className="px-4 py-2">Medicine</th>
+                      <th className="px-4 py-2">HSN / GST</th>
                       <th className="px-4 py-2">Batch No</th>
                       <th className="px-4 py-2">Expiry</th>
                       <th className="px-4 py-2 text-right">Qty</th>
-                      <th className="px-4 py-2 text-right">Purchase Price</th>
-                      <th className="px-4 py-2 text-right">Selling Price</th>
-                      <th className="px-4 py-2 text-right">Total Price</th>
+                      <th className="px-4 py-2 text-right">Free</th>
+                      <th className="px-4 py-2 text-right">MRP</th>
+                      <th className="px-4 py-2 text-right">Disc %</th>
+                      <th className="px-4 py-2 text-right">Pur. Price</th>
+                      <th className="px-4 py-2 text-right">Sell Price</th>
+                      <th className="px-4 py-2 text-right">Net Total</th>
                       <th className="px-4 py-2 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {purchaseForm.items.map((item, index) => {
-                      const med = medicines.find(m => m.id === item.medicineId)
+                      const med = safeMedicines.find(m => m.id === item.medicineId)
                       const itemTotal = item.qtyPurchased * item.purchasePricePerUnit
                       return (
                         <tr key={index} className="hover:bg-slate-50/50">
-                          <td className="px-4 py-2 font-medium">{med?.name}</td>
+                          <td className="px-4 py-2 font-medium">
+                            <div>{med?.name || 'Medicine'}</div>
+                            {med?.pack && <div className="text-[11px] text-slate-500 font-mono">Pack: {med.pack}</div>}
+                          </td>
+                          <td className="px-4 py-2 text-xs font-mono">
+                            <div>{med?.hsn_code || 'N/A'}</div>
+                            <span className="text-[10px] bg-slate-100 text-slate-700 font-sans px-1.5 py-0.5 rounded font-bold">GST {med?.default_gst_percent || 12}%</span>
+                          </td>
                           <td className="px-4 py-2 font-mono text-xs">{item.batchNo}</td>
-                          <td className="px-4 py-2">{new Date(item.expiryDate).toLocaleDateString('en-GB')}</td>
-                          <td className="px-4 py-2 text-right">{item.qtyPurchased}</td>
+                          <td className="px-4 py-2 text-xs">{new Date(item.expiryDate).toLocaleDateString('en-GB')}</td>
+                          <td className="px-4 py-2 text-right font-medium">{item.qtyPurchased}</td>
+                          <td className="px-4 py-2 text-right text-emerald-600 font-semibold">{item.freeQty > 0 ? `+${item.freeQty}` : '-'}</td>
+                          <td className="px-4 py-2 text-right font-mono text-xs">{item.mrp > 0 ? `₹${item.mrp.toFixed(2)}` : '-'}</td>
+                          <td className="px-4 py-2 text-right text-xs">{item.discountPercent > 0 ? `${item.discountPercent}%` : '-'}</td>
                           <td className="px-4 py-2 text-right">₹{item.purchasePricePerUnit.toFixed(2)}</td>
                           <td className="px-4 py-2 text-right">₹{item.sellingPricePerUnit.toFixed(2)}</td>
-                          <td className="px-4 py-2 text-right font-semibold">₹{itemTotal.toFixed(2)}</td>
+                          <td className="px-4 py-2 text-right font-semibold text-slate-900">₹{itemTotal.toFixed(2)}</td>
                           <td className="px-4 py-2 text-right">
                             <button
                               type="button"
@@ -758,9 +1009,13 @@ export default function Inventory() {
                   <th className="px-6 py-4">Purchase Date</th>
                   <th className="px-6 py-4">Vendor</th>
                   <th className="px-6 py-4">Invoice No</th>
+                  <th className="px-6 py-4">Type</th>
+                  <th className="px-6 py-4">Due Date</th>
+                  <th className="px-6 py-4">Status</th>
+                  <th className="px-6 py-4">Mode</th>
                   <th className="px-6 py-4">Total Amount</th>
                   <th className="px-6 py-4">Items Stocked</th>
-                  <th className="px-6 py-4">Notes</th>
+                  <th className="px-6 py-4">Remarks</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
@@ -771,8 +1026,26 @@ export default function Inventory() {
                     </td>
                     <td className="px-6 py-4 font-medium text-slate-900">{pur.vendor?.name}</td>
                     <td className="px-6 py-4 font-mono text-xs">{pur.purchase_invoice_no}</td>
-                    <td className="px-6 py-4 font-semibold text-slate-900">₹{pur.total_amount.toFixed(2)}</td>
                     <td className="px-6 py-4">
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-bold uppercase ${
+                        pur.purchase_type === 'CREDIT' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'
+                      }`}>
+                        {pur.purchase_type || 'CASH'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-xs font-mono">
+                      {pur.due_date ? new Date(pur.due_date).toLocaleDateString('en-GB') : '-'}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-bold uppercase ${
+                        pur.payment_status === 'PENDING' ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'
+                      }`}>
+                        {pur.payment_status || 'PAID'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-xs font-semibold uppercase">{pur.payment_mode || 'CASH'}</td>
+                    <td className="px-6 py-4 font-semibold text-slate-900">₹{pur.total_amount.toFixed(2)}</td>
+                    <td className="px-6 py-4 text-xs">
                       {pur.batches?.map(b => `${b.medicine?.name} (${b.qty_purchased})`).join(', ')}
                     </td>
                     <td className="px-6 py-4 text-slate-500 truncate max-w-xs">{pur.notes || 'N/A'}</td>
@@ -800,6 +1073,7 @@ export default function Inventory() {
                   <th className="px-6 py-4">Phone</th>
                   <th className="px-6 py-4">Address</th>
                   <th className="px-6 py-4">GSTIN</th>
+                  <th className="px-6 py-4">Drug License No</th>
                   <th className="px-6 py-4">Notes</th>
                   <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
@@ -811,6 +1085,7 @@ export default function Inventory() {
                     <td className="px-6 py-4 font-mono text-xs">{vendor.phone}</td>
                     <td className="px-6 py-4">{vendor.address}</td>
                     <td className="px-6 py-4 font-mono text-xs uppercase">{vendor.gstin || 'N/A'}</td>
+                    <td className="px-6 py-4 font-mono text-xs uppercase">{vendor.drug_license_no || 'N/A'}</td>
                     <td className="px-6 py-4 text-slate-500 truncate max-w-xs">{vendor.notes || 'N/A'}</td>
                     <td className="px-6 py-4 text-right space-x-3">
                       <button
@@ -854,8 +1129,42 @@ export default function Inventory() {
                   placeholder="e.g. Paracetamol 650mg"
                   value={medForm.name}
                   onChange={(e) => setMedForm({ ...medForm, name: e.target.value })}
+                  className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 font-semibold"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Generic Name</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Paracetamol"
+                  value={medForm.genericName}
+                  onChange={(e) => setMedForm({ ...medForm, genericName: e.target.value })}
                   className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
                 />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Manufacturer</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Cipla / Sun Pharma"
+                    value={medForm.manufacturer}
+                    onChange={(e) => setMedForm({ ...medForm, manufacturer: e.target.value })}
+                    className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Pack Size</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 10x10 / 100ml"
+                    value={medForm.pack}
+                    onChange={(e) => setMedForm({ ...medForm, pack: e.target.value })}
+                    className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 font-mono"
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -980,15 +1289,27 @@ export default function Inventory() {
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">GSTIN</label>
-                <input
-                  type="text"
-                  placeholder="e.g. 27AAAAA1111A1Z1"
-                  value={vendorForm.gstin}
-                  onChange={(e) => setVendorForm({ ...vendorForm, gstin: e.target.value })}
-                  className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 font-mono uppercase"
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">GSTIN</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 27AAAAA1111A1Z1"
+                    value={vendorForm.gstin}
+                    onChange={(e) => setVendorForm({ ...vendorForm, gstin: e.target.value })}
+                    className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 font-mono uppercase"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Drug License No</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. DL-12345/2026"
+                    value={vendorForm.drug_license_no}
+                    onChange={(e) => setVendorForm({ ...vendorForm, drug_license_no: e.target.value })}
+                    className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 font-mono uppercase"
+                  />
+                </div>
               </div>
 
               <div>
