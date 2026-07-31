@@ -16,6 +16,7 @@ import { useBillingStore } from '../store'
 import { useAuthStore } from '../../auth/store'
 import { useSettingsStore } from '../../settings/store'
 import { Bill } from '../../../types'
+import { DataTable, ColumnDef } from '../../../components/common/DataTable'
 
 export default function Invoices() {
   const bills = useBillingStore((state) => state.bills)
@@ -73,18 +74,6 @@ export default function Invoices() {
     loadBills()
   }, [statusFilter, startDate, endDate])
 
-  // Filter bills in memory for patient search query
-  const filteredBills = useMemo(() => {
-    const query = searchQuery.toLowerCase()
-    if (!query) return bills
-    return bills.filter(b => {
-      const billNoMatch = b.bill_no.toLowerCase().includes(query)
-      const patientNameMatch = b.patient?.full_name.toLowerCase().includes(query) || b.walkin_name?.toLowerCase().includes(query)
-      const phoneMatch = b.patient?.phone.includes(query)
-      return billNoMatch || patientNameMatch || phoneMatch
-    })
-  }, [bills, searchQuery])
-
   // Open Details Modal
   const openDetails = async (id: string) => {
     try {
@@ -121,46 +110,37 @@ export default function Invoices() {
       await recordPayment({
         billId: selectedBill.id,
         amount,
-        mode: paymentMode,
-        referenceNo: transactionId,
+        mode: paymentMode as any,
+        referenceNo: transactionId || undefined,
         userId: currentUser?.id || ''
       })
-      alert('Payment logged successfully!')
+      alert('Payment recorded successfully!')
       setShowPaymentModal(false)
-      if (showDetailsModal) {
-        const updatedDetails = await window.api.getBillById(selectedBill.id)
-        setSelectedBill(updatedDetails)
-      }
       loadBills()
-    } catch (e: any) {
-      console.error('Failed to log payment:', e)
-      alert(e.message || 'Error logging payment')
+    } catch (err: any) {
+      console.error('Failed to log payment:', err)
+      alert(err.message || 'Error logging payment')
     } finally {
       setSubmittingPayment(false)
     }
   }
 
-  // Handle Finalize Draft Bill
+  // Handle Finalize Submit
   const handleFinalizeSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!selectedBill) return
 
-    const paid = parseFloat(finalizePaidAmount) || 0
-    if (paid < 0 || paid > selectedBill.grand_total) {
-      alert('Paid amount must be between 0 and grand total')
-      return
-    }
-
+    const paidAmt = parseFloat(finalizePaidAmount) || 0
     setSubmittingFinalize(true)
     try {
       await finalizeBill({
         billId: selectedBill.id,
-        paidAmount: paid,
-        paymentMode: finalizePaymentMode,
-        transactionId: finalizeTransactionId,
+        paidAmount: paidAmt,
+        paymentMode: finalizePaymentMode as any,
+        transactionId: finalizeTransactionId || undefined,
         userId: currentUser?.id || ''
       })
-      alert('Draft Invoice finalized successfully!')
+      alert('Invoice finalized successfully!')
       setShowFinalizeModal(false)
       setShowDetailsModal(false)
       loadBills()
@@ -171,11 +151,11 @@ export default function Invoices() {
     }
   }
 
-  // Handle Cancel Finalized Bill
+  // Handle Cancel Submit
   const handleCancelSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!selectedBill) return
-    if (!cancelReason.trim()) return alert('Cancellation reason is required')
+    if (!cancelReason.trim()) return alert('Reason is required.')
 
     setSubmittingCancel(true)
     try {
@@ -210,177 +190,161 @@ export default function Invoices() {
     }
   }
 
-  return (
-    <div className="space-y-6 animate-fade-in">
-      
-      {/* FILTER BAR */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-        {/* Search */}
+  const columns: ColumnDef<Bill>[] = [
+    {
+      key: 'bill_no',
+      header: 'Invoice Number',
+      sortable: true,
+      render: (b) => <span className="font-bold text-slate-900 font-mono">{b.bill_no}</span>
+    },
+    {
+      key: 'patient',
+      header: 'Patient',
+      sortable: true,
+      sortValue: (b) => b.patient?.full_name || b.walkin_name || '',
+      render: (b) => (
         <div>
-          <label className="block text-xs font-bold text-slate-505 uppercase tracking-wider mb-1.5">
-            Search
-          </label>
-          <div className="relative">
-            <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
-              <Search className="h-4 w-4" />
-            </span>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="INV no, Patient Name, Phone..."
-              className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm bg-white"
-            />
-          </div>
+          <p className="font-semibold text-slate-800">{b.patient?.full_name || b.walkin_name || 'Walk-in Patient'}</p>
+          {b.patient?.phone && <p className="text-xs text-slate-400 font-mono">{b.patient.phone}</p>}
         </div>
-
-        {/* Status */}
-        <div>
-          <label className="block text-xs font-bold text-slate-505 uppercase tracking-wider mb-1.5">
-            Status
-          </label>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm bg-white"
+      )
+    },
+    {
+      key: 'bill_date',
+      header: 'Date',
+      sortable: true,
+      render: (b) => <span className="font-mono text-xs text-slate-600">{b.bill_date}</span>
+    },
+    {
+      key: 'grand_total',
+      header: 'Grand Total',
+      sortable: true,
+      align: 'right',
+      render: (b) => <span className="font-bold text-slate-900 font-mono">₹{b.grand_total.toFixed(2)}</span>
+    },
+    {
+      key: 'paid_amount',
+      header: 'Paid Amount',
+      sortable: true,
+      align: 'right',
+      render: (b) => <span className="font-semibold text-emerald-700 font-mono">₹{b.amount_paid.toFixed(2)}</span>
+    },
+    {
+      key: 'balance_due',
+      header: 'Balance Due',
+      sortable: true,
+      align: 'right',
+      render: (b) => (
+        <span className={`font-bold font-mono ${b.balance_due > 0 ? 'text-amber-700' : 'text-slate-500'}`}>
+          ₹{b.balance_due.toFixed(2)}
+        </span>
+      )
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      sortable: true,
+      align: 'center',
+      render: (b) => {
+        const isPaid = b.status === 'FINALIZED' && b.balance_due === 0
+        const isPartial = b.status === 'FINALIZED' && b.balance_due > 0
+        return (
+          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold uppercase ${
+            b.status === 'CANCELLED'
+              ? 'bg-red-100 text-red-800 border border-red-200'
+              : b.status === 'DRAFT'
+              ? 'bg-slate-100 text-slate-700 border border-slate-200'
+              : isPaid
+              ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+              : 'bg-amber-100 text-amber-800 border border-amber-200'
+          }`}>
+            {isPaid ? 'PAID' : isPartial ? 'PARTIAL' : b.status}
+          </span>
+        )
+      }
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      align: 'center',
+      render: (b) => (
+        <div className="flex items-center justify-center space-x-1.5" onClick={(e) => e.stopPropagation()}>
+          <button
+            onClick={() => openDetails(b.id)}
+            title="View Details"
+            className="p-1.5 rounded-lg text-slate-600 hover:bg-slate-100 transition cursor-pointer"
           >
-            <option value="">All Lifecycle Statuses</option>
-            <option value="DRAFT">DRAFT</option>
-            <option value="FINALIZED">FINALIZED</option>
-            <option value="CANCELLED">CANCELLED</option>
-          </select>
-        </div>
-
-        {/* Start Date */}
-        <div>
-          <label className="block text-xs font-bold text-slate-505 uppercase tracking-wider mb-1.5 flex items-center">
-            <Calendar className="h-3.5 w-3.5 text-slate-400 mr-1" /> Start Date
-          </label>
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm bg-white"
-          />
-        </div>
-
-        {/* End Date */}
-        <div>
-          <label className="block text-xs font-bold text-slate-505 uppercase tracking-wider mb-1.5 flex items-center">
-            <Calendar className="h-3.5 w-3.5 text-slate-400 mr-1" /> End Date
-          </label>
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm bg-white"
-          />
-        </div>
-      </div>
-
-      {/* BILLS TABLE CARD */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col">
-        <div className="overflow-x-auto">
-          {loading && filteredBills.length === 0 ? (
-            <div className="p-8 text-center text-slate-400 text-sm">Loading invoices...</div>
-          ) : filteredBills.length === 0 ? (
-            <div className="p-8 text-center text-slate-400 text-sm">No billing records found.</div>
-          ) : (
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="bg-slate-50 border-b border-slate-200/80 text-slate-555 font-semibold">
-                  <th className="px-6 py-4.5">Invoice Number</th>
-                  <th className="px-6 py-4.5">Patient</th>
-                  <th className="px-6 py-4.5">Date</th>
-                  <th className="px-6 py-4.5 text-right">Grand Total</th>
-                  <th className="px-6 py-4.5 text-right">Paid</th>
-                  <th className="px-6 py-4.5 text-right">Balance Due</th>
-                  <th className="px-6 py-4.5 text-center">Status</th>
-                  <th className="px-6 py-4.5 text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 text-slate-600">
-                {filteredBills.map((bill) => (
-                  <tr key={bill.id} className="hover:bg-slate-50/40 transition-colors">
-                    <td className="px-6 py-4 font-mono font-bold text-slate-900">{bill.bill_no}</td>
-                    <td className="px-6 py-4">
-                      {bill.patient_id ? (
-                        <>
-                           <div className="font-semibold text-slate-800">{bill.patient?.full_name}</div>
-                           <div className="text-[10px] text-slate-400 font-mono mt-0.5">{bill.patient?.patient_code} | {bill.patient?.phone}</div>
-                        </>
-                      ) : (
-                        <>
-                           <div className="font-semibold text-slate-800">{bill.walkin_name}</div>
-                           <div className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full inline-block font-semibold mt-0.5">Walk-in</div>
-                        </>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      {new Date(bill.bill_date).toLocaleDateString('en-GB')}
-                    </td>
-                    <td className="px-6 py-4 text-right font-semibold text-slate-850 font-mono">
-                      ₹{bill.grand_total.toFixed(2)}
-                    </td>
-                    <td className="px-6 py-4 text-right text-teal-650 font-semibold font-mono">
-                      ₹{bill.amount_paid.toFixed(2)}
-                    </td>
-                    <td className="px-6 py-4 text-right font-semibold font-mono">
-                      {bill.balance_due > 0 && bill.status !== 'CANCELLED' ? (
-                        <span className="text-red-600">₹{bill.balance_due.toFixed(2)}</span>
-                      ) : (
-                        <span className="text-teal-600">₹0.00</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <span className={`inline-flex items-center px-2 py-0.8 rounded text-xs font-semibold uppercase ${
-                        bill.status === 'CANCELLED'
-                          ? 'bg-red-100 text-red-800 border border-red-200'
-                          : bill.status === 'DRAFT'
-                          ? 'bg-slate-100 text-slate-700 border border-slate-200'
-                          : bill.balance_due === 0
-                          ? 'bg-teal-50 text-teal-700 border border-teal-200'
-                          : 'bg-amber-50 text-amber-700 border border-amber-200'
-                      }`}>
-                        {bill.status === 'FINALIZED' && bill.balance_due === 0 ? 'PAID' : bill.status === 'FINALIZED' && bill.balance_due > 0 ? 'PARTIAL' : bill.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-center space-x-1.5">
-                      <button
-                        onClick={() => openDetails(bill.id)}
-                        title="View Details"
-                        className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 transition inline-flex items-center cursor-pointer"
-                      >
-                        <Eye className="h-4.5 w-4.5" />
-                      </button>
-                      
-                      {bill.status !== 'DRAFT' && (
-                        <button
-                          onClick={() => handlePrint(bill.id)}
-                          title="Print / Save PDF"
-                          className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 transition inline-flex items-center cursor-pointer"
-                        >
-                          <Printer className="h-4.5 w-4.5" />
-                        </button>
-                      )}
-
-                      {bill.balance_due > 0 && bill.status === 'FINALIZED' && (
-                        <button
-                          onClick={() => openPayment(bill)}
-                          title="Record Payment"
-                          className="p-1.5 rounded-lg text-teal-600 hover:bg-teal-50 transition inline-flex items-center cursor-pointer"
-                        >
-                          <Coins className="h-4.5 w-4.5" />
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <Eye className="h-4 w-4" />
+          </button>
+          {b.status === 'FINALIZED' && b.balance_due > 0 && (
+            <button
+              onClick={() => openPayment(b)}
+              title="Record Payment"
+              className="p-1.5 rounded-lg text-amber-600 hover:bg-amber-50 transition cursor-pointer"
+            >
+              <Coins className="h-4 w-4" />
+            </button>
           )}
+          <button
+            onClick={() => handlePrint(b.id)}
+            title="Print Invoice"
+            className="p-1.5 rounded-lg text-teal-600 hover:bg-teal-50 transition cursor-pointer"
+          >
+            <Printer className="h-4 w-4" />
+          </button>
         </div>
-      </div>
+      )
+    }
+  ]
+
+  return (
+    <div className="space-y-6 animate-fade-in pb-12">
+      
+      {/* DATA TABLE WITH INTEGRATED UNIFIED FILTER BAR */}
+      <DataTable
+        columns={columns}
+        data={bills}
+        loading={loading}
+        rowKey={(b) => b.id}
+        searchPlaceholder="Search INV no, Patient Name, Phone..."
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        filterFields={[
+          {
+            id: 'status',
+            label: 'Status',
+            type: 'select',
+            options: [
+              { label: 'DRAFT', value: 'DRAFT' },
+              { label: 'FINALIZED', value: 'FINALIZED' },
+              { label: 'CANCELLED', value: 'CANCELLED' }
+            ],
+            placeholder: 'All Statuses'
+          }
+        ]}
+        activeFilterValues={{ status: statusFilter }}
+        onFilterChange={(fId, val) => {
+          if (fId === 'status') setStatusFilter(val)
+        }}
+        onClearAllFilters={() => {
+          setStatusFilter('')
+          setStartDate('')
+          setEndDate('')
+        }}
+        datePreset={startDate || endDate ? 'custom' : 'all'}
+        onDatePresetChange={(preset, start, end) => {
+          if (start && end) {
+            setStartDate(start)
+            setEndDate(end)
+          } else {
+            setStartDate('')
+            setEndDate('')
+          }
+        }}
+        emptyMessage="No billing records found"
+        emptySubtext="Generate your first invoice from the New Invoice module."
+        onRowClick={(b) => openDetails(b.id)}
+      />
 
       {/* DETAILS INVOICE MODAL */}
       {showDetailsModal && selectedBill && (

@@ -13,6 +13,7 @@ import {
   FileText
 } from 'lucide-react'
 import { useReportsStore } from '../store'
+import { DataTable, ColumnDef } from '../../../components/common/DataTable'
 
 export default function Reports() {
   const [activeReportTab, setActiveReportTab] = useState('financials') // 'financials', 'gst', 'inventory', 'ledger', 'vendors'
@@ -307,45 +308,35 @@ export default function Reports() {
               </button>
             </div>
 
-            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden text-sm">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold">
-                    <th className="px-6 py-3">Patient Code</th>
-                    <th className="px-6 py-3">Patient Name</th>
-                    <th className="px-6 py-3">Phone</th>
-                    <th className="px-6 py-3">Invoice No</th>
-                    <th className="px-6 py-3 text-right">Invoice Total</th>
-                    <th className="px-6 py-3 text-right">Balance Due</th>
-                    <th className="px-6 py-3 text-center">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 text-slate-600">
-                  {dues.map(d => (
-                    <tr key={d.id} className="hover:bg-slate-50/30">
-                      <td className="px-6 py-3 font-mono font-medium">{d.patient?.patient_code || 'Walkin'}</td>
-                      <td className="px-6 py-3 font-semibold text-slate-800">{d.patient?.full_name || d.walkin_name}</td>
-                      <td className="px-6 py-3 font-mono">{d.patient?.phone || 'N/A'}</td>
-                      <td className="px-6 py-3 font-mono font-bold">{d.bill_no}</td>
-                      <td className="px-6 py-3 text-right font-mono">₹{d.grand_total.toFixed(2)}</td>
-                      <td className="px-6 py-3 text-right text-red-600 font-bold font-mono">₹{d.balance_due.toFixed(2)}</td>
-                      <td className="px-6 py-3 text-center">
-                        <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                          d.amount_paid > 0 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'
-                        }`}>
-                          {d.amount_paid > 0 ? 'PARTIAL' : 'UNPAID'}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                  {dues.length === 0 && (
-                    <tr>
-                      <td colSpan={7} className="p-8 text-center text-slate-400">No outstanding dues recorded!</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+            <DataTable
+              columns={[
+                { key: 'patient_code', header: 'Patient Code', sortable: true, render: (d: any) => <span className="font-mono text-xs font-semibold">{d.patient?.patient_code || 'Walk-in'}</span> },
+                { key: 'patient_name', header: 'Patient Name', sortable: true, sortValue: (d: any) => d.patient?.full_name || d.walkin_name || '', render: (d: any) => <span className="font-bold text-slate-900">{d.patient?.full_name || d.walkin_name}</span> },
+                { key: 'phone', header: 'Phone', sortable: true, sortValue: (d: any) => d.patient?.phone || '', render: (d: any) => <span className="font-mono text-xs text-slate-500">{d.patient?.phone || 'N/A'}</span> },
+                { key: 'bill_no', header: 'Invoice No', sortable: true, render: (d: any) => <span className="font-mono font-bold text-slate-800">{d.bill_no}</span> },
+                { key: 'grand_total', header: 'Invoice Total', sortable: true, align: 'right', render: (d: any) => <span className="font-mono font-bold">₹{d.grand_total.toFixed(2)}</span> },
+                { key: 'balance_due', header: 'Balance Due', sortable: true, align: 'right', render: (d: any) => <span className="font-mono font-bold text-red-600">₹{d.balance_due.toFixed(2)}</span> },
+                {
+                  key: 'status',
+                  header: 'Status',
+                  sortable: true,
+                  align: 'center',
+                  render: (d: any) => (
+                    <span className={`inline-block px-2.5 py-0.5 rounded text-[10px] font-bold uppercase ${
+                      d.amount_paid > 0 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'
+                    }`}>
+                      {d.amount_paid > 0 ? 'PARTIAL' : 'UNPAID'}
+                    </span>
+                  )
+                }
+              ]}
+              data={dues}
+              loading={duesLoading}
+              rowKey={(d) => d.id}
+              searchPlaceholder="Search dues by patient or invoice..."
+              emptyMessage="No outstanding dues recorded!"
+              emptySubtext="All patient invoices have been fully settled."
+            />
           </div>
         </div>
       )}

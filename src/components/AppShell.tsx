@@ -110,7 +110,6 @@ export default function AppShell({ children, activeTab }: AppShellProps) {
     { id: 'inventory', href: '/inventory', name: 'Inventory', icon: Package },
     { id: 'billing', href: '/billing', name: 'New Invoice', icon: Receipt },
     { id: 'invoices', href: '/invoices', name: 'Bills & Payments', icon: FileSpreadsheet },
-    { id: 'services', href: '/services', name: 'Price List', icon: Layers },
     { id: 'reports', href: '/reports', name: 'Reports', icon: TrendingUp },
     ...(user.role === 'ADMIN' ? [{ id: 'audit-log', href: '/audit-log', name: 'Audit Log', icon: History }] : []),
     { id: 'settings', href: '/settings', name: 'Settings', icon: SettingsIcon }

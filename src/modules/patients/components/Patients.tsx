@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { 
   Search, 
   UserPlus, 
@@ -11,10 +11,711 @@ import {
   AlertOctagon, 
   Stethoscope, 
   FileText,
-  X
+  X,
+  Check,
+  CheckCircle2,
+  XCircle,
+  Info,
+  Calendar,
+  ShieldAlert,
+  ChevronDown,
+  Tag
 } from 'lucide-react'
 import { usePatientsStore } from '../store'
 import { useAuthStore } from '../../auth/store'
+import { Patient } from '../../../types'
+
+// Toast Component
+function Toast({ 
+  message, 
+  type, 
+  onClose 
+}: { 
+  message: string
+  type: 'success' | 'error' | 'info'
+  onClose: () => void 
+}) {
+  useEffect(() => {
+    const timer = setTimeout(onClose, 3000)
+    return () => clearTimeout(timer)
+  }, [onClose])
+
+  const bgColors = {
+    success: 'bg-emerald-950 text-emerald-100 border-emerald-800/60',
+    error: 'bg-red-950 text-red-100 border-red-800/60',
+    info: 'bg-slate-900 text-white border-slate-700'
+  }
+
+  const icons = {
+    success: <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />,
+    error: <XCircle className="w-4 h-4 text-red-400 shrink-0" />,
+    info: <Info className="w-4 h-4 text-teal-400 shrink-0" />
+  }
+
+  return (
+    <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl border shadow-xl backdrop-blur-md animate-fade-in transition-all text-sm font-medium ${bgColors[type]}`}>
+      {icons[type]}
+      <span>{message}</span>
+      <button onClick={onClose} className="ml-2 hover:opacity-70 text-slate-400 hover:text-white cursor-pointer">
+        <X className="w-4 h-4" />
+      </button>
+    </div>
+  )
+}
+
+// Generic Free-Text Typeahead Combobox Component for Form Inputs
+function FreeTextCombobox({
+  value,
+  onChange,
+  options,
+  placeholder,
+  error,
+  inputRef
+}: {
+  value: string
+  onChange: (val: string) => void
+  options: Array<{ value: string; label?: string; meta?: string }>
+  placeholder?: string
+  error?: string
+  inputRef?: React.RefObject<HTMLInputElement | null>
+}) {
+  const [isOpen, setIsOpen] = useState(false)
+  const [highlightedIndex, setHighlightedIndex] = useState(0)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const filtered = options.filter(
+    (opt) =>
+      opt.value.toLowerCase().includes((value || '').toLowerCase()) ||
+      (opt.label && opt.label.toLowerCase().includes((value || '').toLowerCase()))
+  )
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!isOpen && (e.key === 'ArrowDown' || e.key === 'Enter')) {
+      if (options.length > 0) setIsOpen(true)
+      return
+    }
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setHighlightedIndex((prev) => (prev < filtered.length - 1 ? prev + 1 : prev))
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : 0))
+    } else if (e.key === 'Enter') {
+      if (isOpen && filtered[highlightedIndex]) {
+        e.preventDefault()
+        const selected = filtered[highlightedIndex].value
+        onChange(selected)
+        setIsOpen(false)
+      }
+    } else if (e.key === 'Escape') {
+      setIsOpen(false)
+    }
+  }
+
+  return (
+    <div ref={containerRef} className="relative w-full">
+      <div className="relative">
+        <input
+          ref={inputRef}
+          type="text"
+          value={value}
+          onFocus={() => setIsOpen(true)}
+          onChange={(e) => {
+            onChange(e.target.value)
+            setIsOpen(true)
+            setHighlightedIndex(0)
+          }}
+          onKeyDown={handleKeyDown}
+          placeholder={placeholder}
+          className={`w-full py-2 pl-3 pr-8 text-sm rounded-xl border transition-all ${
+            error
+              ? 'border-red-300 bg-red-50/30 focus:ring-red-500'
+              : 'border-slate-200 focus:ring-teal-500'
+          } focus:outline-none focus:ring-2`}
+        />
+        {options.length > 0 && (
+          <ChevronDown
+            onClick={() => setIsOpen(!isOpen)}
+            className="absolute right-3 top-2.5 h-4 w-4 text-slate-400 cursor-pointer hover:text-slate-600 transition-colors"
+          />
+        )}
+      </div>
+
+      {error && <p className="text-[11px] text-red-500 mt-1 font-medium">{error}</p>}
+
+      {isOpen && filtered.length > 0 && (
+        <ul className="absolute z-50 mt-1 w-full max-h-48 overflow-y-auto rounded-xl bg-white border border-slate-200 shadow-xl py-1 text-sm">
+          {filtered.map((opt, idx) => (
+            <li
+              key={idx}
+              onMouseEnter={() => setHighlightedIndex(idx)}
+              onClick={() => {
+                onChange(opt.value)
+                setIsOpen(false)
+              }}
+              className={`px-3 py-2 cursor-pointer flex justify-between items-center transition-colors ${
+                idx === highlightedIndex ? 'bg-teal-50 text-teal-900 font-semibold' : 'text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              <div>
+                <span className="font-medium text-slate-900">{opt.value}</span>
+                {opt.label && <span className="ml-2 text-xs text-slate-500">({opt.label})</span>}
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
+
+// Helpers for DOB <-> Age Sync
+function calculateAgeFromDob(dobStr: string): string {
+  if (!dobStr) return ''
+  const birthDate = new Date(dobStr)
+  if (isNaN(birthDate.getTime())) return ''
+  const today = new Date()
+  let age = today.getFullYear() - birthDate.getFullYear()
+  const monthDiff = today.getMonth() - birthDate.getMonth()
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    age--
+  }
+  return age >= 0 ? age.toString() : ''
+}
+
+function calculateDobFromAge(ageStr: string, currentDob?: string): string {
+  const age = parseInt(ageStr, 10)
+  if (isNaN(age) || age < 0 || age > 120) return ''
+  const currentYear = new Date().getFullYear()
+  const birthYear = currentYear - age
+  if (currentDob) {
+    const parts = currentDob.split('-')
+    if (parts.length === 3) {
+      return `${birthYear}-${parts[1]}-${parts[2]}`
+    }
+  }
+  return `${birthYear}-01-01`
+}
+
+// Redesigned Add / Edit Patient Modal Component
+function RedesignedPatientModal({
+  isOpen,
+  onClose,
+  onSubmit,
+  editingPatient,
+  existingPatients
+}: {
+  isOpen: boolean
+  onClose: () => void
+  onSubmit: (formData: any) => Promise<void>
+  editingPatient: Patient | null
+  existingPatients: Patient[]
+}) {
+  const [form, setForm] = useState({
+    fullName: '',
+    phone: '',
+    dob: '',
+    ageYears: '',
+    gender: 'MALE',
+    address: '',
+    referringDoctor: '',
+    notes: ''
+  })
+
+  // Allergy Chips State
+  const [allergiesList, setAllergiesList] = useState<string[]>([])
+  const [allergyInput, setAllergyInput] = useState('')
+  const [noAllergies, setNoAllergies] = useState(false)
+
+  const [submitting, setSubmitting] = useState(false)
+  const fullNameInputRef = useRef<HTMLInputElement>(null)
+
+  // Initialize form when modal opens or editingPatient changes
+  useEffect(() => {
+    if (isOpen) {
+      if (editingPatient) {
+        const rawDob = editingPatient.dob ? new Date(editingPatient.dob).toISOString().split('T')[0] : ''
+        const rawAge = editingPatient.age_years ? editingPatient.age_years.toString() : calculateAgeFromDob(rawDob)
+        const rawAllergies = editingPatient.allergies_notes || ''
+
+        let isNkda = false
+        let parsedTags: string[] = []
+
+        if (rawAllergies) {
+          if (rawAllergies.toLowerCase().includes('no known') || rawAllergies.toUpperCase().includes('NKDA')) {
+            isNkda = true
+          } else {
+            parsedTags = rawAllergies.split(',').map((s) => s.trim()).filter(Boolean)
+          }
+        }
+
+        setForm({
+          fullName: editingPatient.full_name || '',
+          phone: editingPatient.phone || '',
+          dob: rawDob,
+          ageYears: rawAge,
+          gender: editingPatient.gender || 'MALE',
+          address: editingPatient.address || '',
+          referringDoctor: editingPatient.referring_doctor || '',
+          notes: editingPatient.notes || ''
+        })
+        setNoAllergies(isNkda)
+        setAllergiesList(parsedTags)
+        setAllergyInput('')
+      } else {
+        setForm({
+          fullName: '',
+          phone: '',
+          dob: '',
+          ageYears: '',
+          gender: 'MALE',
+          address: '',
+          referringDoctor: '',
+          notes: ''
+        })
+        setNoAllergies(false)
+        setAllergiesList([])
+        setAllergyInput('')
+      }
+
+      // Auto-focus Full Name input on open
+      setTimeout(() => {
+        fullNameInputRef.current?.focus()
+      }, 100)
+    }
+  }, [isOpen, editingPatient])
+
+  if (!isOpen) return null
+
+  // Bi-directional DOB <-> Age Sync Handlers
+  const handleDobChange = (newDob: string) => {
+    const calcAge = calculateAgeFromDob(newDob)
+    setForm((prev) => ({
+      ...prev,
+      dob: newDob,
+      ageYears: calcAge || prev.ageYears
+    }))
+  }
+
+  const handleAgeChange = (newAge: string) => {
+    const calcDob = calculateDobFromAge(newAge, form.dob)
+    setForm((prev) => ({
+      ...prev,
+      ageYears: newAge,
+      dob: calcDob || prev.dob
+    }))
+  }
+
+  // Allergy Chips Handlers
+  const addAllergyTag = (tag: string) => {
+    const trimmed = tag.trim()
+    if (!trimmed) return
+    if (!allergiesList.includes(trimmed)) {
+      setAllergiesList([...allergiesList, trimmed])
+    }
+    setNoAllergies(false)
+    setAllergyInput('')
+  }
+
+  const removeAllergyTag = (index: number) => {
+    setAllergiesList(allergiesList.filter((_, i) => i !== index))
+  }
+
+  const commonAllergies = ['Penicillin', 'Sulfa Drugs', 'Aspirin', 'NSAIDS', 'Latex', 'Peanuts']
+
+  // Doctor Autocomplete Options
+  const doctorOptions = Array.from(
+    new Set(existingPatients.map((p) => p.referring_doctor).filter(Boolean) as string[])
+  ).map((doc) => ({ value: doc }))
+
+  // Validations
+  const isNameValid = Boolean(form.fullName.trim())
+  const cleanPhone = form.phone.replace(/\s+/g, '')
+  const isPhoneValid = cleanPhone.length === 10 && (/^\d{10}$/.test(cleanPhone) || /^[6-9]\d{9}$/.test(cleanPhone))
+  const isGenderValid = Boolean(form.gender)
+
+  const isValid = isNameValid && isPhoneValid && isGenderValid
+
+  // Duplicate Patient Check (Matching Name AND Phone)
+  const trimmedName = form.fullName.trim().toLowerCase()
+  const duplicateMatch = (trimmedName.length >= 3 && cleanPhone.length === 10)
+    ? existingPatients.find(
+        (p) =>
+          p.id !== editingPatient?.id &&
+          p.full_name.toLowerCase() === trimmedName &&
+          p.phone.replace(/\s+/g, '') === cleanPhone
+      )
+    : null
+
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault()
+    if (!isValid || submitting) return
+
+    let serializedAllergies = ''
+    if (noAllergies) {
+      serializedAllergies = 'No known allergies (NKDA)'
+    } else if (allergiesList.length > 0) {
+      serializedAllergies = allergiesList.join(', ')
+    }
+
+    setSubmitting(true)
+    try {
+      await onSubmit({
+        fullName: form.fullName.trim(),
+        phone: cleanPhone,
+        dob: form.dob || null,
+        ageYears: form.ageYears ? parseInt(form.ageYears, 10) : null,
+        gender: form.gender,
+        address: form.address,
+        referringDoctor: form.referringDoctor,
+        allergiesNotes: serializedAllergies,
+        notes: form.notes
+      })
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const handleFormKeyDown = (e: React.KeyboardEvent) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault()
+      handleSubmit()
+    } else if (e.key === 'Escape') {
+      e.preventDefault()
+      onClose()
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+      <div 
+        onKeyDown={handleFormKeyDown}
+        className="bg-white rounded-2xl shadow-2xl max-w-xl w-full border border-slate-100 overflow-hidden flex flex-col max-h-[90vh]"
+      >
+        {/* MODAL HEADER */}
+        <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between shadow-md shrink-0">
+          <div className="flex items-center gap-2.5">
+            <UserPlus className="w-5 h-5 text-teal-400" />
+            <h3 className="text-md font-bold">
+              {editingPatient ? 'Edit Patient Profile' : 'Register New Patient'}
+            </h3>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-[11px] text-slate-400 font-mono hidden sm:inline">Ctrl+Enter to Save</span>
+            <button
+              type="button"
+              onClick={onClose}
+              className="text-slate-400 hover:text-white transition-colors cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        {/* MODAL FORM BODY */}
+        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-6 text-slate-800 flex-1">
+          
+          {/* SECTION 1: IDENTITY & DEMOGRAPHICS */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 border-b border-slate-100 pb-2 text-xs font-bold uppercase tracking-wider text-teal-700">
+              <User className="w-4 h-4 text-teal-500" /> 1. Patient Identity & Demographics
+            </div>
+
+            <div className="space-y-3">
+              {/* Full Name & Phone Number */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-600 uppercase mb-1">
+                    Full Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    ref={fullNameInputRef}
+                    type="text"
+                    placeholder="e.g. Ramesh Kumar"
+                    value={form.fullName}
+                    onChange={(e) => setForm({ ...form, fullName: e.target.value })}
+                    className={`w-full py-2 px-3 rounded-xl border text-sm focus:outline-none focus:ring-2 font-semibold ${
+                      !isNameValid && form.fullName !== ''
+                        ? 'border-red-300 bg-red-50/20 focus:ring-red-500'
+                        : 'border-slate-200 focus:ring-teal-500'
+                    }`}
+                  />
+                  {!isNameValid && (
+                    <p className="text-[11px] text-red-500 mt-1 font-medium">Full name is required.</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-600 uppercase mb-1 flex justify-between">
+                    <span>Phone Number <span className="text-red-500">*</span></span>
+                    <span className="text-[11px] text-slate-400 font-normal">10-digit mobile</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 9876543210"
+                    value={form.phone}
+                    onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/\s+/g, '') })}
+                    className={`w-full py-2 px-3 rounded-xl border text-sm focus:outline-none focus:ring-2 font-mono font-semibold ${
+                      !isPhoneValid && form.phone !== ''
+                        ? 'border-red-300 bg-red-50/20 focus:ring-red-500'
+                        : 'border-slate-200 focus:ring-teal-500'
+                    }`}
+                  />
+                  {!isPhoneValid && form.phone !== '' && (
+                    <p className="text-[11px] text-red-500 mt-1 font-medium">Must be a valid 10-digit phone number.</p>
+                  )}
+                </div>
+              </div>
+
+              {/* DUPLICATE PATIENT WARNING */}
+              {duplicateMatch && (
+                <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-xs flex items-start gap-2 text-amber-900 animate-fade-in">
+                  <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-bold">Notice: Matching Patient Already Exists!</span>
+                    <div className="text-[11px] text-amber-800 mt-0.5">
+                      <strong className="text-amber-950">{duplicateMatch.full_name}</strong> (Ph: {duplicateMatch.phone}, Code: <code className="font-mono">{duplicateMatch.patient_code}</code>)
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* DOB ↔ AGE SYNC & GENDER */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {/* Date of Birth */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-600 uppercase mb-1">
+                    Date of Birth
+                  </label>
+                  <input
+                    type="date"
+                    value={form.dob}
+                    onChange={(e) => handleDobChange(e.target.value)}
+                    className="w-full py-2 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 font-medium"
+                  />
+                </div>
+
+                {/* Age (Years) */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-600 uppercase mb-1 flex justify-between">
+                    <span>Age (Years)</span>
+                    <span className="text-[10px] text-teal-600 font-bold">LIVE SYNC</span>
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="e.g. 35"
+                    value={form.ageYears}
+                    onChange={(e) => handleAgeChange(e.target.value)}
+                    className="w-full py-2 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 font-mono font-bold text-slate-900"
+                  />
+                </div>
+
+                {/* Gender */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-600 uppercase mb-1">
+                    Gender <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={form.gender}
+                    onChange={(e) => setForm({ ...form, gender: e.target.value })}
+                    className="w-full py-2 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 font-semibold bg-white"
+                  >
+                    <option value="MALE">MALE</option>
+                    <option value="FEMALE">FEMALE</option>
+                    <option value="OTHER">OTHER</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* SECTION 2: CONTACT & REFERRAL */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 border-b border-slate-100 pb-2 text-xs font-bold uppercase tracking-wider text-teal-700">
+              <MapPin className="w-4 h-4 text-teal-500" /> 2. Contact Location & Referral Info
+            </div>
+
+            <div className="space-y-3">
+              {/* Address */}
+              <div>
+                <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Full Postal Address</label>
+                <textarea
+                  rows={2}
+                  placeholder="Patient residence or city address..."
+                  value={form.address}
+                  onChange={(e) => setForm({ ...form, address: e.target.value })}
+                  className="w-full py-2 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+
+              {/* Referring Doctor (Typeahead) */}
+              <div>
+                <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Referring Doctor (if any)</label>
+                <FreeTextCombobox
+                  value={form.referringDoctor}
+                  onChange={(val) => setForm({ ...form, referringDoctor: val })}
+                  options={doctorOptions}
+                  placeholder="e.g. Dr. A. K. Sharma"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* SECTION 3: CLINICAL ALERTS & NOTES (SAFETY FORWARD TINTED CARD) */}
+          <div className="p-4 bg-amber-50/60 border border-amber-200/80 rounded-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-amber-200/70 pb-2">
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-amber-900">
+                <AlertOctagon className="w-4 h-4 text-amber-600" /> 3. Medical Allergies & Clinical Alerts
+              </div>
+
+              {/* NKDA Checkbox Toggle */}
+              <label className="flex items-center gap-1.5 cursor-pointer text-xs font-semibold text-amber-950 bg-white px-2.5 py-1 rounded-lg border border-amber-300 shadow-xs hover:bg-amber-100/50 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={noAllergies}
+                  onChange={(e) => {
+                    setNoAllergies(e.target.checked)
+                    if (e.target.checked) {
+                      setAllergiesList([])
+                      setAllergyInput('')
+                    }
+                  }}
+                  className="rounded text-teal-600 focus:ring-teal-500"
+                />
+                <span>No known allergies (NKDA)</span>
+              </label>
+            </div>
+
+            {/* ALLERGY CHIPS INPUT PANEL */}
+            <div className="space-y-2">
+              <label className="block text-xs font-bold text-amber-900 uppercase">
+                Known Drug / Substance Allergies
+              </label>
+
+              {noAllergies ? (
+                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs font-medium text-emerald-900 flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  <span>Confirmed: Patient has <strong>No Known Drug Allergies (NKDA)</strong>.</span>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {/* Active Chips List */}
+                  <div className="flex flex-wrap items-center gap-1.5 min-h-[38px] p-2 bg-white border border-amber-300 rounded-xl">
+                    {allergiesList.map((allergy, idx) => (
+                      <span
+                        key={idx}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 bg-red-100 text-red-900 border border-red-200 rounded-lg text-xs font-bold shadow-2xs"
+                      >
+                        <span>{allergy}</span>
+                        <button
+                          type="button"
+                          onClick={() => removeAllergyTag(idx)}
+                          className="text-red-500 hover:text-red-800 cursor-pointer"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </span>
+                    ))}
+
+                    <input
+                      type="text"
+                      placeholder={allergiesList.length === 0 ? "Type allergy & press Enter..." : "Add another allergy..."}
+                      value={allergyInput}
+                      onChange={(e) => setAllergyInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ',') {
+                          e.preventDefault()
+                          addAllergyTag(allergyInput)
+                        }
+                      }}
+                      className="flex-1 min-w-[140px] border-none text-xs text-slate-800 placeholder-amber-700/50 focus:outline-none bg-transparent"
+                    />
+                  </div>
+
+                  {/* Common Quick-Add Allergy Chips */}
+                  <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                    <span className="text-[11px] text-amber-800 font-medium">Quick add:</span>
+                    {commonAllergies.map((item) => (
+                      <button
+                        key={item}
+                        type="button"
+                        onClick={() => addAllergyTag(item)}
+                        className="px-2 py-0.5 bg-amber-100/80 hover:bg-amber-200 text-amber-950 border border-amber-300/80 rounded-md text-[11px] font-semibold transition-all cursor-pointer"
+                      >
+                        + {item}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* General Notes */}
+            <div>
+              <label className="block text-xs font-bold text-amber-900 uppercase mb-1">General Clinical Notes</label>
+              <textarea
+                rows={2}
+                placeholder="Clinical history, chronic conditions, or comments..."
+                value={form.notes}
+                onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                className="w-full py-2 px-3 rounded-xl border border-amber-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+              />
+            </div>
+          </div>
+
+          {/* FOOTER ACTIONS */}
+          <div className="flex items-center justify-end space-x-3 pt-4 border-t border-slate-100 shrink-0">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-5 py-2.5 border border-slate-200 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
+            >
+              Cancel (Esc)
+            </button>
+
+            <div className="relative group">
+              <button
+                type="submit"
+                disabled={!isValid || submitting}
+                className="px-6 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-md shadow-teal-600/20 transition-all disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none cursor-pointer flex items-center gap-1.5"
+              >
+                {submitting ? (
+                  <span>Saving...</span>
+                ) : (
+                  <>
+                    <Check className="w-4 h-4" /> Register Patient
+                  </>
+                )}
+              </button>
+
+              {/* Disabled tooltip */}
+              {!isValid && (
+                <div className="absolute bottom-full right-0 mb-2 hidden group-hover:block w-56 p-2 bg-slate-900 text-slate-200 text-xs rounded-lg shadow-xl z-50">
+                  <p className="font-semibold text-amber-400 mb-1">Cannot save yet:</p>
+                  <ul className="list-disc pl-4 space-y-0.5 text-[11px]">
+                    {!isNameValid && <li>Full name required</li>}
+                    {!isPhoneValid && <li>Phone number must be 10 digits</li>}
+                    {!isGenderValid && <li>Gender selection required</li>}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
 
 export default function Patients() {
   const patients = usePatientsStore((state) => state.patients)
@@ -26,41 +727,20 @@ export default function Patients() {
   const createPatient = usePatientsStore((state) => state.createPatient)
   const updatePatient = usePatientsStore((state) => state.updatePatient)
   const deletePatient = usePatientsStore((state) => state.deletePatient)
-  const checkDuplicate = usePatientsStore((state) => state.checkDuplicate)
 
   const currentUser = useAuthStore((state) => state.user)
 
   const [searchQuery, setSearchQuery] = useState('')
 
+  // Toast feedback state
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null)
+  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    setToast({ message, type })
+  }
+
   // Modals state
   const [showAddModal, setShowAddModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
-
-  // Form state
-  const [formData, setFormData] = useState({
-    fullName: '',
-    dob: '',
-    ageYears: '',
-    gender: 'MALE',
-    phone: '',
-    address: '',
-    referringDoctor: '',
-    allergiesNotes: '',
-    notes: ''
-  })
-
-  const [editFormData, setEditFormData] = useState({
-    id: '',
-    fullName: '',
-    dob: '',
-    ageYears: '',
-    gender: 'MALE',
-    phone: '',
-    address: '',
-    referringDoctor: '',
-    allergiesNotes: '',
-    notes: ''
-  })
 
   // Load patients list on start
   useEffect(() => {
@@ -76,98 +756,49 @@ export default function Patients() {
   }, [searchQuery])
 
   // Handle Create Patient Submit
-  const handleAddSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!formData.fullName || !formData.phone) {
-      alert('Name and Phone number are required.')
-      return
-    }
-
-    // Duplicate Check
-    try {
-      const dup = await checkDuplicate(formData.phone, formData.fullName)
-      if (dup.duplicate) {
-        const proceed = confirm(`A patient with similar name (${dup.patient?.full_name}) and same phone number exists. Do you still want to register this patient?`)
-        if (!proceed) return
-      }
-    } catch (e) {
-      console.error('Duplicate check failed:', e)
-    }
-
+  const handleAddSubmit = async (formData: any) => {
     try {
       await createPatient({
         full_name: formData.fullName,
         dob: formData.dob || null,
-        age_years: formData.ageYears ? parseInt(formData.ageYears) : null,
+        age_years: formData.ageYears || null,
         gender: formData.gender,
         phone: formData.phone,
-        address: formData.address,
-        referring_doctor: formData.referringDoctor,
-        allergies_notes: formData.allergiesNotes,
-        notes: formData.notes
+        address: formData.address || null,
+        referring_doctor: formData.referringDoctor || null,
+        allergies_notes: formData.allergiesNotes || null,
+        notes: formData.notes || null
       }, currentUser?.id || '')
 
+      showToast('Patient registered successfully!', 'success')
       setShowAddModal(false)
-      // Reset form
-      setFormData({
-        fullName: '',
-        dob: '',
-        ageYears: '',
-        gender: 'MALE',
-        phone: '',
-        address: '',
-        referringDoctor: '',
-        allergiesNotes: '',
-        notes: ''
-      })
-    } catch (e) {
-      console.error('Failed to register patient:', e)
-      alert('Error creating patient records')
+    } catch (e: any) {
+      showToast(e.message || 'Error registering patient', 'error')
+      throw e
     }
-  }
-
-  // Open Edit Modal
-  const openEditModal = () => {
-    if (!selectedPatient) return
-    setEditFormData({
-      id: selectedPatient.id,
-      fullName: selectedPatient.full_name,
-      dob: selectedPatient.dob ? new Date(selectedPatient.dob).toISOString().split('T')[0] : '',
-      ageYears: selectedPatient.age_years ? selectedPatient.age_years.toString() : '',
-      gender: selectedPatient.gender,
-      phone: selectedPatient.phone,
-      address: selectedPatient.address || '',
-      referringDoctor: selectedPatient.referring_doctor || '',
-      allergiesNotes: selectedPatient.allergies_notes || '',
-      notes: selectedPatient.notes || ''
-    })
-    setShowEditModal(true)
   }
 
   // Handle Update Patient Submit
-  const handleEditSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!editFormData.fullName || !editFormData.phone) {
-      alert('Name and Phone are required.')
-      return
-    }
-
+  const handleEditSubmit = async (formData: any) => {
+    if (!selectedPatient) return
     try {
-      await updatePatient(editFormData.id, {
-        full_name: editFormData.fullName,
-        dob: editFormData.dob || null,
-        age_years: editFormData.ageYears ? parseInt(editFormData.ageYears) : null,
-        gender: editFormData.gender,
-        phone: editFormData.phone,
-        address: editFormData.address,
-        referring_doctor: editFormData.referringDoctor,
-        allergies_notes: editFormData.allergiesNotes,
-        notes: editFormData.notes
+      await updatePatient(selectedPatient.id, {
+        full_name: formData.fullName,
+        dob: formData.dob || null,
+        age_years: formData.ageYears || null,
+        gender: formData.gender,
+        phone: formData.phone,
+        address: formData.address || null,
+        referring_doctor: formData.referringDoctor || null,
+        allergies_notes: formData.allergiesNotes || null,
+        notes: formData.notes || null
       }, currentUser?.id || '')
+
+      showToast('Patient profile updated!', 'success')
       setShowEditModal(false)
-    } catch (e) {
-      console.error('Failed to update patient profile:', e)
-      alert('Error updating patient details')
+    } catch (e: any) {
+      showToast(e.message || 'Error updating patient details', 'error')
+      throw e
     }
   }
 
@@ -176,9 +807,9 @@ export default function Patients() {
     if (!confirm('Are you sure you want to delete this patient record? This will soft-delete their profile.')) return
     try {
       await deletePatient(id, currentUser?.id || '')
-      alert('Patient record soft-deleted')
+      showToast('Patient record soft-deleted', 'info')
     } catch (e: any) {
-      alert(e.message || 'Failed to delete patient')
+      showToast(e.message || 'Failed to delete patient', 'error')
     }
   }
 
@@ -197,8 +828,17 @@ export default function Patients() {
   const { totalBilled, outstanding } = getPatientStats()
 
   return (
-    <div className="h-full flex gap-8">
+    <div className="h-full flex gap-8 animate-fade-in">
       
+      {/* Toast Notification Popup */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+
       {/* LEFT COLUMN: List & Search */}
       <div className="w-1/3 min-w-[320px] bg-white rounded-2xl border border-slate-200/80 shadow-sm flex flex-col overflow-hidden">
         
@@ -290,7 +930,7 @@ export default function Patients() {
               </div>
               <div className="flex space-x-2">
                 <button
-                  onClick={openEditModal}
+                  onClick={() => setShowEditModal(true)}
                   className="flex items-center bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-4 py-2 rounded-xl text-sm transition cursor-pointer"
                 >
                   <Edit2 className="h-4 w-4 mr-2" />
@@ -463,318 +1103,23 @@ export default function Patients() {
         )}
       </div>
 
-      {/* MODAL: Add Patient */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden border border-slate-100">
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 flex-shrink-0">
-              <h3 className="font-bold text-slate-800 text-lg flex items-center">
-                <UserPlus className="h-5 w-5 text-teal-600 mr-2" /> Register New Patient
-              </h3>
-              <button 
-                onClick={() => setShowAddModal(false)}
-                className="text-slate-400 hover:text-slate-500 p-1 transition cursor-pointer"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            
-            <form onSubmit={handleAddSubmit} className="flex-1 overflow-y-auto p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
-                    Full Name *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.fullName}
-                    onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
-                    placeholder="Enter patient full name"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
-                    Phone Number *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
-                    placeholder="Enter 10-digit number"
-                  />
-                </div>
-              </div>
+      {/* --- REDESIGNED ADD PATIENT MODAL --- */}
+      <RedesignedPatientModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSubmit={handleAddSubmit}
+        editingPatient={null}
+        existingPatients={patients}
+      />
 
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
-                    Date of Birth
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.dob}
-                    onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
-                    Age (Years)
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.ageYears}
-                    onChange={(e) => setFormData({ ...formData, ageYears: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
-                    placeholder="or enter age"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
-                    Gender *
-                  </label>
-                  <select
-                    value={formData.gender}
-                    onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
-                  >
-                    <option value="MALE">Male</option>
-                    <option value="FEMALE">Female</option>
-                    <option value="OTHER">Other</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
-                  Address
-                </label>
-                <textarea
-                  rows={2}
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm resize-none"
-                  placeholder="Enter full postal address"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
-                    Referring Doctor (if any)
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.referringDoctor}
-                    onChange={(e) => setFormData({ ...formData, referringDoctor: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
-                    placeholder="Dr. Name"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 text-red-500">
-                  Known Allergies
-                </label>
-                <input
-                  type="text"
-                  value={formData.allergiesNotes}
-                  onChange={(e) => setFormData({ ...formData, allergiesNotes: e.target.value })}
-                  className="w-full px-3 py-2 border border-red-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-sm bg-red-50/10 placeholder-red-300"
-                  placeholder="e.g. Penicillin, Peanuts (leave blank if none)"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
-                  General Notes
-                </label>
-                <textarea
-                  rows={3}
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm resize-none"
-                  placeholder="Clinical history, comments, or general instructions..."
-                />
-              </div>
-
-              <div className="pt-4 border-t border-slate-100 flex items-center justify-end space-x-3 flex-shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 font-medium text-sm transition cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl font-medium text-sm transition shadow-sm cursor-pointer"
-                >
-                  Register Patient
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL: Edit Patient */}
-      {showEditModal && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden border border-slate-100">
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 flex-shrink-0">
-              <h3 className="font-bold text-slate-800 text-lg flex items-center">
-                <Edit2 className="h-5 w-5 text-teal-600 mr-2" /> Edit Patient Profile
-              </h3>
-              <button 
-                onClick={() => setShowEditModal(false)}
-                className="text-slate-400 hover:text-slate-500 p-1 transition cursor-pointer"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            
-            <form onSubmit={handleEditSubmit} className="flex-1 overflow-y-auto p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
-                    Full Name *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={editFormData.fullName}
-                    onChange={(e) => setEditFormData({ ...editFormData, fullName: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
-                    Phone Number *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={editFormData.phone}
-                    onChange={(e) => setEditFormData({ ...editFormData, phone: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
-                    Date of Birth
-                  </label>
-                  <input
-                    type="date"
-                    value={editFormData.dob}
-                    onChange={(e) => setEditFormData({ ...editFormData, dob: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
-                    Age (Years)
-                  </label>
-                  <input
-                    type="number"
-                    value={editFormData.ageYears}
-                    onChange={(e) => setEditFormData({ ...editFormData, ageYears: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
-                    Gender *
-                  </label>
-                  <select
-                    value={editFormData.gender}
-                    onChange={(e) => setEditFormData({ ...editFormData, gender: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
-                  >
-                    <option value="MALE">Male</option>
-                    <option value="FEMALE">Female</option>
-                    <option value="OTHER">Other</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
-                  Address
-                </label>
-                <textarea
-                  rows={2}
-                  value={editFormData.address}
-                  onChange={(e) => setEditFormData({ ...editFormData, address: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm resize-none"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
-                    Referring Doctor
-                  </label>
-                  <input
-                    type="text"
-                    value={editFormData.referringDoctor}
-                    onChange={(e) => setEditFormData({ ...editFormData, referringDoctor: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 text-red-500">
-                  Known Allergies
-                </label>
-                <input
-                  type="text"
-                  value={editFormData.allergiesNotes}
-                  onChange={(e) => setEditFormData({ ...editFormData, allergiesNotes: e.target.value })}
-                  className="w-full px-3 py-2 border border-red-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-sm bg-red-50/10 text-red-950"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
-                  General Notes
-                </label>
-                <textarea
-                  rows={3}
-                  value={editFormData.notes}
-                  onChange={(e) => setEditFormData({ ...editFormData, notes: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm resize-none"
-                />
-              </div>
-
-              <div className="pt-4 border-t border-slate-100 flex items-center justify-end space-x-3 flex-shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setShowEditModal(false)}
-                  className="px-4 py-2 border border-slate-200 rounded-xl text-slate-650 hover:bg-slate-50 font-medium text-sm transition cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 bg-teal-655 hover:bg-teal-700 text-white rounded-xl font-medium text-sm transition shadow-sm cursor-pointer"
-                >
-                  Save Changes
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* --- REDESIGNED EDIT PATIENT MODAL --- */}
+      <RedesignedPatientModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        onSubmit={handleEditSubmit}
+        editingPatient={selectedPatient}
+        existingPatients={patients}
+      />
 
     </div>
   )

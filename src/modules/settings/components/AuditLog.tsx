@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { Search, ShieldAlert } from 'lucide-react'
+import { ShieldCheck, RefreshCw, Lock } from 'lucide-react'
 import { useSettingsStore } from '../store'
+import { AuditLogEntry } from '../../../types'
+import { DataTable, ColumnDef } from '../../../components/common/DataTable'
 
 function formatDetails(jsonStr: string | null): string {
   if (!jsonStr) return 'N/A'
@@ -19,133 +21,173 @@ export default function AuditLog() {
   const loading = useSettingsStore((state) => state.loading)
   const fetchAuditLogs = useSettingsStore((state) => state.fetchAuditLogs)
   const [searchQuery, setSearchQuery] = useState('')
-  const [debouncedQuery, setDebouncedQuery] = useState('')
 
   useEffect(() => {
     fetchAuditLogs()
   }, [])
 
-  // Debounce search input so filtering doesn't run on every keystroke
-  useEffect(() => {
-    const t = setTimeout(() => setDebouncedQuery(searchQuery), 200)
-    return () => clearTimeout(t)
-  }, [searchQuery])
-
-  // Pre-format each log's details once per fetch, not once per render
   const rows = useMemo(() => {
-    return logs.map(log => ({
-      log,
-      username: log.user?.username.toLowerCase() || 'system',
-      action: log.action.toLowerCase(),
-      entity: log.entity.toLowerCase(),
-      details: log.details_json?.toLowerCase() || '',
+    return logs.map((log) => ({
+      ...log,
+      username: log.user?.username || 'SYSTEM',
       formattedDetails: formatDetails(log.details_json)
     }))
   }, [logs])
 
-  // Filter logs based on debounced search query
-  const filteredLogs = useMemo(() => {
-    const query = debouncedQuery.toLowerCase()
-    if (!query) return rows
-    return rows.filter(row =>
-      row.username.includes(query) ||
-      row.action.includes(query) ||
-      row.entity.includes(query) ||
-      row.details.includes(query)
-    )
-  }, [rows, debouncedQuery])
+  const columns: ColumnDef<any>[] = [
+    {
+      key: 'timestamp',
+      header: 'Timestamp',
+      sortable: true,
+      sortValue: (row) => new Date(row.timestamp).getTime(),
+      render: (row) => (
+        <span className="font-mono text-xs text-slate-600 font-semibold">
+          {new Date(row.timestamp).toLocaleString('en-IN', {
+            dateStyle: 'medium',
+            timeStyle: 'short'
+          })}
+        </span>
+      )
+    },
+    {
+      key: 'username',
+      header: 'User',
+      sortable: true,
+      render: (row) => (
+        <span className="inline-flex items-center gap-1.5 font-bold text-slate-800">
+          <ShieldCheck className="w-3.5 h-3.5 text-teal-600" />
+          {row.username}
+        </span>
+      )
+    },
+    {
+      key: 'action',
+      header: 'Action',
+      sortable: true,
+      render: (row) => (
+        <span className={`inline-block px-2.5 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wider ${
+          row.action.includes('DELETE') || row.action.includes('CANCEL')
+            ? 'bg-red-100 text-red-800 border border-red-200'
+            : row.action.includes('CREATE') || row.action.includes('ADD')
+            ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+            : 'bg-indigo-100 text-indigo-800 border border-indigo-200'
+        }`}>
+          {row.action}
+        </span>
+      )
+    },
+    {
+      key: 'entity',
+      header: 'Entity',
+      sortable: true,
+      render: (row) => (
+        <span className="font-mono text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md">
+          {row.entity}
+        </span>
+      )
+    },
+    {
+      key: 'entity_id',
+      header: 'Record ID',
+      sortable: true,
+      render: (row) => (
+        <span className="font-mono text-xs text-slate-500">
+          {row.entity_id || 'N/A'}
+        </span>
+      )
+    },
+    {
+      key: 'formattedDetails',
+      header: 'Audit Trail Details',
+      render: (row) => (
+        <span className="text-xs text-slate-600 truncate max-w-xs block font-sans" title={row.formattedDetails}>
+          {row.formattedDetails}
+        </span>
+      )
+    }
+  ]
+
+  const [actionFilter, setActionFilter] = useState('')
+  const [entityFilter, setEntityFilter] = useState('')
+
+  const filteredRows = useMemo(() => {
+    return rows.filter((r) => {
+      if (actionFilter && !r.action.toLowerCase().includes(actionFilter.toLowerCase())) return false
+      if (entityFilter && !r.entity.toLowerCase().includes(entityFilter.toLowerCase())) return false
+      return true
+    })
+  }, [rows, actionFilter, entityFilter])
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      {/* Search Bar */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row gap-4 justify-between items-center">
-        <div className="relative w-full sm:w-80">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Search logs by user, action, or details..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 pr-4 py-2 w-full text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
-          />
+    <div className="space-y-6 animate-fade-in pb-12">
+      
+      {/* HEADER BANNER */}
+      <div className="bg-slate-900 text-white p-5 rounded-2xl border border-slate-800 shadow-md flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-bold flex items-center gap-2">
+            <Lock className="w-5 h-5 text-teal-400" /> Immutable Security Audit Logs
+          </h2>
+          <p className="text-xs text-slate-400 mt-0.5">
+            Read-only system log tracking all user actions, logins, billing updates, and records.
+          </p>
         </div>
 
         <button
           onClick={fetchAuditLogs}
-          className="px-4 py-2 bg-slate-950 text-white rounded-lg text-sm font-semibold hover:bg-slate-800 shadow-md transition-all cursor-pointer"
+          className="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-slate-950 font-bold rounded-xl text-xs uppercase tracking-wider transition cursor-pointer flex items-center gap-1.5 shadow-sm"
         >
-          Refresh Logs
+          <RefreshCw className="w-3.5 h-3.5" /> Refresh Logs
         </button>
       </div>
 
-      {/* Audit Log Table */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                <th className="px-6 py-4">Timestamp</th>
-                <th className="px-6 py-4">User</th>
-                <th className="px-6 py-4">Action</th>
-                <th className="px-6 py-4">Entity</th>
-                <th className="px-6 py-4">Record ID</th>
-                <th className="px-6 py-4">Details</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 text-sm">
-              {loading ? (
-                <tr>
-                  <td colSpan={6} className="px-6 py-10 text-center text-slate-400">
-                    <div className="flex items-center justify-center space-x-2">
-                      <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-teal-500"></div>
-                      <span>Loading logs...</span>
-                    </div>
-                  </td>
-                </tr>
-              ) : filteredLogs.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-6 py-10 text-center text-slate-400">
-                    <div className="flex flex-col items-center justify-center space-y-2">
-                      <ShieldAlert className="h-8 w-8 text-slate-300" />
-                      <span>No audit logs found</span>
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                filteredLogs.map(({ log, formattedDetails }) => (
-                  <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap text-slate-500 text-xs font-mono">
-                      {new Date(log.at).toLocaleString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap font-medium text-slate-800">
-                      {log.user?.username || 'System'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-xs font-bold">
-                      <span className={`px-2 py-1 rounded-full ${
-                        log.action.includes('CREATE') ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' :
-                        log.action.includes('UPDATE') ? 'bg-amber-50 text-amber-700 border border-amber-100' :
-                        log.action.includes('DELETE') || log.action.includes('CANCEL') ? 'bg-red-50 text-red-700 border border-red-100' :
-                        'bg-blue-50 text-blue-700 border border-blue-100'
-                      }`}>
-                        {log.action}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-slate-600 font-medium">
-                      {log.entity}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-xs font-mono text-slate-400 max-w-[120px] truncate" title={log.entity_id || ''}>
-                      {log.entity_id || 'N/A'}
-                    </td>
-                    <td className="px-6 py-4 text-slate-500 text-xs max-w-xs sm:max-w-md truncate" title={formattedDetails}>
-                      {formattedDetails}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      {/* REUSABLE DATA TABLE WITH FILTER BAR */}
+      <DataTable
+        columns={columns}
+        data={filteredRows}
+        loading={loading}
+        rowKey={(row) => row.id}
+        searchPlaceholder="Search logs by user, action, entity, or details..."
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        filterFields={[
+          {
+            id: 'action',
+            label: 'Action Type',
+            type: 'select',
+            options: [
+              { label: 'CREATE', value: 'CREATE' },
+              { label: 'UPDATE', value: 'UPDATE' },
+              { label: 'DELETE', value: 'DELETE' },
+              { label: 'LOGIN', value: 'LOGIN' }
+            ],
+            placeholder: 'All Actions'
+          },
+          {
+            id: 'entity',
+            label: 'Entity',
+            type: 'select',
+            options: [
+              { label: 'PATIENT', value: 'PATIENT' },
+              { label: 'BILL', value: 'BILL' },
+              { label: 'MEDICINE', value: 'MEDICINE' },
+              { label: 'PURCHASE', value: 'PURCHASE' },
+              { label: 'SETTINGS', value: 'SETTINGS' }
+            ],
+            placeholder: 'All Entities'
+          }
+        ]}
+        activeFilterValues={{ action: actionFilter, entity: entityFilter }}
+        onFilterChange={(fId, val) => {
+          if (fId === 'action') setActionFilter(val)
+          if (fId === 'entity') setEntityFilter(val)
+        }}
+        onClearAllFilters={() => {
+          setActionFilter('')
+          setEntityFilter('')
+        }}
+        emptyMessage="No audit logs recorded"
+        emptySubtext="System events will automatically appear here as operations occur."
+      />
     </div>
   )
 }
