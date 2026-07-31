@@ -55,15 +55,15 @@ function Toast({
   }, [onClose])
 
   const bgColors = {
-    success: 'bg-emerald-950 text-emerald-100 border-emerald-800/60',
+    success: 'bg-cyan-950 text-cyan-100 border-cyan-800/60',
     error: 'bg-red-950 text-red-100 border-red-800/60',
     info: 'bg-slate-900 text-white border-slate-700'
   }
 
   const icons = {
-    success: <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />,
+    success: <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0" />,
     error: <XCircle className="w-4 h-4 text-red-400 shrink-0" />,
-    info: <Info className="w-4 h-4 text-teal-400 shrink-0" />
+    info: <Info className="w-4 h-4 text-cyan-400 shrink-0" />
   }
 
   return (
@@ -129,8 +129,8 @@ function getPasswordStrength(password: string): { label: string; score: number; 
 
   if (score <= 1) return { label: 'Weak (min 6 chars)', score: 1, color: 'bg-red-500' }
   if (score === 2) return { label: 'Fair', score: 2, color: 'bg-amber-500' }
-  if (score === 3) return { label: 'Good', score: 3, color: 'bg-teal-500' }
-  return { label: 'Strong', score: 4, color: 'bg-emerald-600' }
+  if (score === 3) return { label: 'Good', score: 3, color: 'bg-cyan-500' }
+  return { label: 'Strong', score: 4, color: 'bg-cyan-600' }
 }
 
 // Random Password Generator Helper
@@ -220,7 +220,7 @@ function FreeTextCombobox({
           className={`w-full py-2 pl-3 pr-8 text-sm rounded-xl border transition-all ${
             error
               ? 'border-red-300 bg-red-50/30 focus:ring-red-500'
-              : 'border-slate-200 focus:ring-teal-500'
+              : 'border-slate-200 focus:ring-cyan-500'
           } focus:outline-none focus:ring-2 bg-white`}
         />
         {options.length > 0 && (
@@ -244,7 +244,7 @@ function FreeTextCombobox({
                 setIsOpen(false)
               }}
               className={`px-3 py-2 cursor-pointer flex justify-between items-center transition-colors ${
-                idx === highlightedIndex ? 'bg-teal-50 text-teal-900 font-semibold' : 'text-slate-700 hover:bg-slate-50'
+                idx === highlightedIndex ? 'bg-cyan-50 text-cyan-900 font-semibold' : 'text-slate-700 hover:bg-slate-50'
               }`}
             >
               <div>
@@ -373,7 +373,7 @@ function RedesignedServiceModal({
         {/* MODAL HEADER */}
         <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between shadow-md shrink-0">
           <div className="flex items-center gap-2.5">
-            <Layers className="w-5 h-5 text-teal-400" />
+            <Layers className="w-5 h-5 text-cyan-400" />
             <h3 className="text-md font-bold">
               {editingService ? 'Edit Price List Item' : 'Add Price List Item'}
             </h3>
@@ -407,7 +407,7 @@ function RedesignedServiceModal({
               className={`w-full py-2 px-3.5 rounded-xl border text-sm focus:outline-none focus:ring-2 font-semibold ${
                 !isNameValid && form.name !== ''
                   ? 'border-red-300 bg-red-50/20 focus:ring-red-500'
-                  : 'border-slate-200 focus:ring-teal-500 bg-white'
+                  : 'border-slate-200 focus:ring-cyan-500 bg-white'
               }`}
             />
             {!isNameValid && (
@@ -448,7 +448,7 @@ function RedesignedServiceModal({
                 className={`w-full pl-9 pr-3.5 py-2 rounded-xl border text-sm font-bold font-mono focus:outline-none focus:ring-2 ${
                   !isPriceValid && form.price !== ''
                     ? 'border-red-300 bg-red-50/20 focus:ring-red-500'
-                    : 'border-slate-200 focus:ring-teal-500 bg-white'
+                    : 'border-slate-200 focus:ring-cyan-500 bg-white'
                 }`}
               />
             </div>
@@ -485,7 +485,7 @@ function RedesignedServiceModal({
               <button
                 type="submit"
                 disabled={!isValid || submitting}
-                className="px-5 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-md shadow-teal-600/20 transition-all disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none cursor-pointer flex items-center gap-1.5"
+                className="px-5 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-md shadow-cyan-600/20 transition-all disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none cursor-pointer flex items-center gap-1.5"
               >
                 {submitting ? (
                   <span>Saving...</span>
@@ -959,7 +959,7 @@ export default function Settings() {
           onClick={() => handleTabSwitch('profile')}
           className={`w-full text-left px-3.5 py-2.5 text-xs font-bold uppercase rounded-xl transition-all cursor-pointer whitespace-nowrap flex items-center justify-between ${
             activeSubTab === 'profile' 
-              ? 'bg-teal-600 text-white shadow-md shadow-teal-600/20' 
+              ? 'bg-cyan-600 text-white shadow-md shadow-cyan-600/20' 
               : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
           }`}
         >
@@ -975,7 +975,7 @@ export default function Settings() {
           onClick={() => handleTabSwitch('services')}
           className={`w-full text-left px-3.5 py-2.5 text-xs font-bold uppercase rounded-xl transition-all cursor-pointer whitespace-nowrap flex items-center gap-2 ${
             activeSubTab === 'services' 
-              ? 'bg-teal-600 text-white shadow-md shadow-teal-600/20' 
+              ? 'bg-cyan-600 text-white shadow-md shadow-cyan-600/20' 
               : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
           }`}
         >
@@ -987,7 +987,7 @@ export default function Settings() {
             onClick={() => handleTabSwitch('users')}
             className={`w-full text-left px-3.5 py-2.5 text-xs font-bold uppercase rounded-xl transition-all cursor-pointer whitespace-nowrap flex items-center gap-2 ${
               activeSubTab === 'users' 
-                ? 'bg-teal-600 text-white shadow-md shadow-teal-600/20' 
+                ? 'bg-cyan-600 text-white shadow-md shadow-cyan-600/20' 
                 : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
             }`}
           >
@@ -999,7 +999,7 @@ export default function Settings() {
           onClick={() => handleTabSwitch('database')}
           className={`w-full text-left px-3.5 py-2.5 text-xs font-bold uppercase rounded-xl transition-all cursor-pointer whitespace-nowrap flex items-center gap-2 ${
             activeSubTab === 'database' 
-              ? 'bg-teal-600 text-white shadow-md shadow-teal-600/20' 
+              ? 'bg-cyan-600 text-white shadow-md shadow-cyan-600/20' 
               : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
           }`}
         >
@@ -1015,7 +1015,7 @@ export default function Settings() {
           <div className="space-y-6 max-w-3xl">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <Building2 className="h-5 w-5 text-teal-600" /> Clinic Settings & Invoicing Rules
+                <Building2 className="h-5 w-5 text-cyan-600" /> Clinic Settings & Invoicing Rules
               </h3>
 
               {isDirty && (
@@ -1029,8 +1029,8 @@ export default function Settings() {
               
               {/* SECTION 1: CLINIC IDENTITY */}
               <div className="p-5 bg-slate-50/50 border border-slate-200/80 rounded-2xl space-y-4">
-                <div className="flex items-center gap-2 border-b border-slate-200/60 pb-2 text-xs font-bold uppercase tracking-wider text-teal-700">
-                  <Building2 className="w-4 h-4 text-teal-500" /> 1. Clinic Identity & Location
+                <div className="flex items-center gap-2 border-b border-slate-200/60 pb-2 text-xs font-bold uppercase tracking-wider text-cyan-700">
+                  <Building2 className="w-4 h-4 text-cyan-500" /> 1. Clinic Identity & Location
                 </div>
 
                 <div className="space-y-3">
@@ -1048,7 +1048,7 @@ export default function Settings() {
                         className={`w-full px-3.5 py-2 border text-sm rounded-xl focus:outline-none focus:ring-2 font-semibold ${
                           !isNameValid
                             ? 'border-red-300 bg-red-50/20 focus:ring-red-500'
-                            : 'border-slate-200 focus:ring-teal-500 bg-white'
+                            : 'border-slate-200 focus:ring-cyan-500 bg-white'
                         }`}
                       />
                       <p className="text-[11px] text-slate-400 mt-1 font-sans">Printed at top of all receipts & invoice PDFs.</p>
@@ -1068,15 +1068,15 @@ export default function Settings() {
                         className={`w-full px-3.5 py-2 border text-sm rounded-xl focus:outline-none focus:ring-2 font-mono font-semibold uppercase ${
                           !isGstinValid
                             ? 'border-red-300 bg-red-50/20 focus:ring-red-500'
-                            : 'border-slate-200 focus:ring-teal-500 bg-white'
+                            : 'border-slate-200 focus:ring-cyan-500 bg-white'
                         }`}
                       />
                       {!isGstinValid && (
                         <p className="text-[11px] text-red-500 mt-1 font-medium">Invalid 15-character GSTIN format.</p>
                       )}
                       {detectedState && isGstinValid && (
-                        <div className="mt-1.5 p-1.5 bg-teal-50 border border-teal-200/80 rounded-lg text-xs font-medium text-teal-900 flex items-center gap-1.5">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-teal-600" />
+                        <div className="mt-1.5 p-1.5 bg-cyan-50 border border-cyan-200/80 rounded-lg text-xs font-medium text-cyan-900 flex items-center gap-1.5">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-cyan-600" />
                           <span>Detected State: <strong>{detectedState}</strong> (Code {gstinStateCode})</span>
                         </div>
                       )}
@@ -1096,7 +1096,7 @@ export default function Settings() {
                       className={`w-full px-3.5 py-2 border text-sm rounded-xl focus:outline-none focus:ring-2 ${
                         !isAddressValid
                           ? 'border-red-300 bg-red-50/20 focus:ring-red-500'
-                          : 'border-slate-200 focus:ring-teal-500 bg-white'
+                          : 'border-slate-200 focus:ring-cyan-500 bg-white'
                       }`}
                     />
                   </div>
@@ -1116,7 +1116,7 @@ export default function Settings() {
                         className={`w-full px-3.5 py-2 border text-sm rounded-xl focus:outline-none focus:ring-2 font-mono ${
                           !isPhoneValid && profileForm.phone !== ''
                             ? 'border-red-300 bg-red-50/20 focus:ring-red-500'
-                            : 'border-slate-200 focus:ring-teal-500 bg-white'
+                            : 'border-slate-200 focus:ring-cyan-500 bg-white'
                         }`}
                       />
                       {!isPhoneValid && profileForm.phone !== '' && (
@@ -1134,7 +1134,7 @@ export default function Settings() {
                         className={`w-full px-3.5 py-2 border text-sm rounded-xl focus:outline-none focus:ring-2 ${
                           !isEmailValid
                             ? 'border-red-300 bg-red-50/20 focus:ring-red-500'
-                            : 'border-slate-200 focus:ring-teal-500 bg-white'
+                            : 'border-slate-200 focus:ring-cyan-500 bg-white'
                         }`}
                       />
                       {!isEmailValid && (
@@ -1147,8 +1147,8 @@ export default function Settings() {
 
               {/* SECTION 2: INVOICING RULES */}
               <div className="p-5 bg-slate-50/50 border border-slate-200/80 rounded-2xl space-y-4">
-                <div className="flex items-center gap-2 border-b border-slate-200/60 pb-2 text-xs font-bold uppercase tracking-wider text-teal-700">
-                  <Receipt className="w-4 h-4 text-teal-500" /> 2. Invoicing Rules & Tax Defaults
+                <div className="flex items-center gap-2 border-b border-slate-200/60 pb-2 text-xs font-bold uppercase tracking-wider text-cyan-700">
+                  <Receipt className="w-4 h-4 text-cyan-500" /> 2. Invoicing Rules & Tax Defaults
                 </div>
 
                 <div className="space-y-4">
@@ -1167,7 +1167,7 @@ export default function Settings() {
                           onClick={() => setProfileForm({ ...profileForm, defaultTaxRate: slab })}
                           className={`px-3 py-1 rounded-lg text-xs font-bold border transition-all cursor-pointer ${
                             profileForm.defaultTaxRate === slab
-                              ? 'bg-teal-600 text-white border-teal-600 shadow-sm'
+                              ? 'bg-cyan-600 text-white border-cyan-600 shadow-sm'
                               : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
                           }`}
                         >
@@ -1182,7 +1182,7 @@ export default function Settings() {
                       placeholder="18"
                       value={profileForm.defaultTaxRate}
                       onChange={(e) => setProfileForm({ ...profileForm, defaultTaxRate: e.target.value })}
-                      className="w-full px-3.5 py-2 border border-slate-200 bg-white rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm font-mono font-bold"
+                      className="w-full px-3.5 py-2 border border-slate-200 bg-white rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm font-mono font-bold"
                     />
                     <p className="text-[11px] text-slate-400 mt-1 font-sans">
                       Helper: This GST rate will be pre-filled automatically when adding new items on the billing screen.
@@ -1198,7 +1198,7 @@ export default function Settings() {
                         placeholder="e.g. INV"
                         value={profileForm.invoicePrefix}
                         onChange={(e) => setProfileForm({ ...profileForm, invoicePrefix: e.target.value.toUpperCase() })}
-                        className="w-full px-3.5 py-2 border border-slate-200 bg-white rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm font-mono font-bold uppercase"
+                        className="w-full px-3.5 py-2 border border-slate-200 bg-white rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm font-mono font-bold uppercase"
                       />
                       
                       <label className="flex items-center mt-3 text-xs font-medium text-slate-800 cursor-pointer">
@@ -1206,18 +1206,18 @@ export default function Settings() {
                           type="checkbox"
                           checked={profileForm.fyReset}
                           onChange={(e) => setProfileForm({ ...profileForm, fyReset: e.target.checked })}
-                          className="rounded border-slate-300 text-teal-600 focus:ring-teal-500 mr-2 h-4 w-4"
+                          className="rounded border-slate-300 text-cyan-600 focus:ring-cyan-500 mr-2 h-4 w-4"
                         />
                         <span>Reset sequence at Financial Year (April 1)</span>
                       </label>
                     </div>
 
                     {/* Live Invoice Prefix Preview Card */}
-                    <div className="p-3.5 bg-white border border-teal-200/80 rounded-xl space-y-1.5">
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-teal-800 flex items-center gap-1">
-                        <Receipt className="w-3.5 h-3.5 text-teal-600" /> Invoice Number Live Preview
+                    <div className="p-3.5 bg-white border border-cyan-200/80 rounded-xl space-y-1.5">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-cyan-800 flex items-center gap-1">
+                        <Receipt className="w-3.5 h-3.5 text-cyan-600" /> Invoice Number Live Preview
                       </span>
-                      <div className="font-mono text-base font-extrabold text-teal-950 bg-teal-50/60 px-3 py-1.5 rounded-lg border border-teal-100">
+                      <div className="font-mono text-base font-extrabold text-cyan-950 bg-cyan-50/60 px-3 py-1.5 rounded-lg border border-cyan-100">
                         #{previewInvoiceNo}
                       </div>
                       <p className="text-[10px] text-slate-500 font-sans">
@@ -1230,8 +1230,8 @@ export default function Settings() {
 
               {/* SECTION 3: SYSTEM & SECURITY */}
               <div className="p-5 bg-slate-50/50 border border-slate-200/80 rounded-2xl space-y-4">
-                <div className="flex items-center gap-2 border-b border-slate-200/60 pb-2 text-xs font-bold uppercase tracking-wider text-teal-700">
-                  <ShieldCheck className="w-4 h-4 text-teal-500" /> 3. System Administration & Backup Path
+                <div className="flex items-center gap-2 border-b border-slate-200/60 pb-2 text-xs font-bold uppercase tracking-wider text-cyan-700">
+                  <ShieldCheck className="w-4 h-4 text-cyan-500" /> 3. System Administration & Backup Path
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1250,7 +1250,7 @@ export default function Settings() {
                       className={`w-full px-3.5 py-2 border rounded-xl text-sm font-mono font-bold bg-white focus:outline-none focus:ring-2 ${
                         !isAutoLockValid
                           ? 'border-red-300 bg-red-50/20 focus:ring-red-500'
-                          : 'border-slate-200 focus:ring-teal-500'
+                          : 'border-slate-200 focus:ring-cyan-500'
                       }`}
                     />
                     {!isAutoLockValid && (
@@ -1271,7 +1271,7 @@ export default function Settings() {
                       placeholder="e.g. C:\ClinicBackups"
                       value={profileForm.backupDir}
                       onChange={(e) => setProfileForm({ ...profileForm, backupDir: e.target.value })}
-                      className="w-full px-3.5 py-2 border border-slate-200 bg-white rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 text-xs font-mono"
+                      className="w-full px-3.5 py-2 border border-slate-200 bg-white rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 text-xs font-mono"
                     />
                     <p className="text-[11px] text-slate-400 mt-1 font-sans">
                       Folder location for saving local SQLite database backups.
@@ -1296,7 +1296,7 @@ export default function Settings() {
                   <button
                     type="submit"
                     disabled={!canSaveProfile}
-                    className="px-6 py-2.5 bg-teal-500 hover:bg-teal-400 text-slate-950 rounded-xl text-xs font-bold uppercase tracking-wider shadow-md shadow-teal-500/20 transition-all disabled:bg-slate-800 disabled:text-slate-500 disabled:shadow-none cursor-pointer flex items-center gap-1.5"
+                    className="px-6 py-2.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 rounded-xl text-xs font-bold uppercase tracking-wider shadow-md shadow-cyan-500/20 transition-all disabled:bg-slate-800 disabled:text-slate-500 disabled:shadow-none cursor-pointer flex items-center gap-1.5"
                   >
                     {savingProfile ? (
                       <span>Saving...</span>
@@ -1332,7 +1332,7 @@ export default function Settings() {
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-3">
               <div className="flex items-center gap-3">
-                <Percent className="h-5 w-5 text-teal-600" />
+                <Percent className="h-5 w-5 text-cyan-600" />
                 <h3 className="text-base font-bold text-slate-900">
                   Price List (Clinic Services & Procedures)
                 </h3>
@@ -1347,7 +1347,7 @@ export default function Settings() {
                     value={serviceSearchQuery}
                     onChange={(e) => setServiceSearchQuery(e.target.value)}
                     placeholder="Search by name or category..."
-                    className="w-full pl-8 pr-3 py-1.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
+                    className="w-full pl-8 pr-3 py-1.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-cyan-500 bg-white"
                   />
                 </div>
 
@@ -1356,7 +1356,7 @@ export default function Settings() {
                     setEditingService(null)
                     setShowServiceModal(true)
                   }}
-                  className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-sm transition cursor-pointer shrink-0 flex items-center gap-1.5"
+                  className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-sm transition cursor-pointer shrink-0 flex items-center gap-1.5"
                 >
                   <Layers className="w-4 h-4" /> Add Item
                 </button>
@@ -1386,7 +1386,7 @@ export default function Settings() {
                         )}
                       </td>
                       <td className="px-6 py-4 font-bold text-slate-900">{service.name}</td>
-                      <td className="px-6 py-4 text-right font-extrabold text-teal-900 font-mono">
+                      <td className="px-6 py-4 text-right font-extrabold text-cyan-900 font-mono">
                         ₹{(service?.price ?? service?.default_price ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                       </td>
                       <td className="px-6 py-4 text-center space-x-1.5">
@@ -1425,7 +1425,7 @@ export default function Settings() {
           <div className="space-y-6">
             <h3 className="text-base font-bold text-slate-900 border-b border-slate-100 pb-3 flex items-center justify-between">
               <span className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-teal-600" /> Staff Accounts & Credential Privileges
+                <Users className="h-5 w-5 text-cyan-600" /> Staff Accounts & Credential Privileges
               </span>
               <span className="text-xs font-normal text-slate-500 font-mono">
                 {users.length} staff registered ({activeAdminCount} Admins)
@@ -1436,8 +1436,8 @@ export default function Settings() {
               
               {/* LEFT COLUMN: Register Staff Form */}
               <div className="lg:col-span-5 bg-slate-50/60 p-5 rounded-2xl border border-slate-200/80 space-y-4">
-                <h4 className="text-xs font-bold text-teal-700 uppercase tracking-wider flex items-center gap-2 border-b border-slate-200/60 pb-2">
-                  <UserPlus className="h-4 w-4 text-teal-500" /> Register Staff Account
+                <h4 className="text-xs font-bold text-cyan-700 uppercase tracking-wider flex items-center gap-2 border-b border-slate-200/60 pb-2">
+                  <UserPlus className="h-4 w-4 text-cyan-500" /> Register Staff Account
                 </h4>
 
                 {userError && (
@@ -1465,7 +1465,7 @@ export default function Settings() {
                           ? 'border-amber-300 bg-amber-50/30 focus:ring-amber-500'
                           : !isUsernameFormatValid && userForm.username !== ''
                           ? 'border-red-300 bg-red-50/20 focus:ring-red-500'
-                          : 'border-slate-200 focus:ring-teal-500 bg-white'
+                          : 'border-slate-200 focus:ring-cyan-500 bg-white'
                       }`}
                     />
 
@@ -1497,7 +1497,7 @@ export default function Settings() {
                         className={`w-full pl-3.5 pr-10 py-2 border text-sm rounded-xl focus:outline-none focus:ring-2 font-mono ${
                           !isRegisterPassValid && userForm.password !== ''
                             ? 'border-red-300 bg-red-50/20 focus:ring-red-500'
-                            : 'border-slate-200 focus:ring-teal-500 bg-white'
+                            : 'border-slate-200 focus:ring-cyan-500 bg-white'
                         }`}
                       />
                       <button
@@ -1534,7 +1534,7 @@ export default function Settings() {
                     <select
                       value={userForm.role}
                       onChange={(e) => setUserForm({ ...userForm, role: e.target.value })}
-                      className="w-full px-3.5 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm font-semibold bg-white"
+                      className="w-full px-3.5 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm font-semibold bg-white"
                     >
                       <option value="RECEPTIONIST">RECEPTIONIST</option>
                       <option value="ADMIN">ADMIN</option>
@@ -1554,7 +1554,7 @@ export default function Settings() {
                       ) : (
                         <>
                           <div className="font-bold text-slate-900 flex items-center gap-1">
-                            <UserCheck className="w-3.5 h-3.5 text-teal-600" /> Receptionist Privilege Access
+                            <UserCheck className="w-3.5 h-3.5 text-cyan-600" /> Receptionist Privilege Access
                           </div>
                           <p className="text-[11px] text-slate-500">
                             Access to Patient Profiles, Billing Invoices, and Inventory Stock.
@@ -1610,7 +1610,7 @@ export default function Settings() {
                       placeholder="Search user or role..."
                       value={userSearchQuery}
                       onChange={(e) => setUserSearchQuery(e.target.value)}
-                      className="w-full pl-8 pr-3 py-1.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
+                      className="w-full pl-8 pr-3 py-1.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-cyan-500 bg-white"
                     />
                   </div>
                 </div>
@@ -1636,7 +1636,7 @@ export default function Settings() {
                             key={u.id} 
                             className={`transition-colors duration-500 ${
                               isRecentlyCreated 
-                                ? 'bg-teal-50/90 font-medium' 
+                                ? 'bg-cyan-50/90 font-medium' 
                                 : 'hover:bg-slate-50/50'
                             }`}
                           >
@@ -1644,7 +1644,7 @@ export default function Settings() {
                               <div className="flex items-center gap-1.5">
                                 <span>{u.username}</span>
                                 {isSelf && (
-                                  <span className="text-[10px] bg-teal-100 text-teal-800 px-1.5 py-0.5 rounded font-extrabold">
+                                  <span className="text-[10px] bg-cyan-100 text-cyan-800 px-1.5 py-0.5 rounded font-extrabold">
                                     YOU
                                   </span>
                                 )}
@@ -1663,8 +1663,8 @@ export default function Settings() {
 
                             <td className="px-4 py-3.5">
                               {u.is_active ? (
-                                <span className="inline-flex items-center gap-1 text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 text-[11px]">
-                                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> Active
+                                <span className="inline-flex items-center gap-1 text-cyan-700 font-bold bg-cyan-50 px-2 py-0.5 rounded-md border border-cyan-200 text-[11px]">
+                                  <CheckCircle2 className="h-3.5 w-3.5 text-cyan-600" /> Active
                                 </span>
                               ) : (
                                 <span className="inline-flex items-center gap-1 text-slate-500 font-medium bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200 text-[11px]">
@@ -1700,7 +1700,7 @@ export default function Settings() {
                                     className={`text-xs font-bold transition-colors cursor-pointer ${
                                       u.is_active 
                                         ? 'text-red-500 hover:text-red-700' 
-                                        : 'text-emerald-600 hover:text-emerald-800'
+                                        : 'text-cyan-600 hover:text-cyan-800'
                                     }`}
                                   >
                                     {u.is_active ? 'Deactivate' : 'Activate'}
@@ -1731,7 +1731,7 @@ export default function Settings() {
         {activeSubTab === 'database' && (
           <div className="space-y-6">
             <h3 className="text-base font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center">
-              <Database className="h-5 w-5 text-teal-600 mr-2" /> Database Backups & Administration
+              <Database className="h-5 w-5 text-cyan-600 mr-2" /> Database Backups & Administration
             </h3>
 
             <div className="max-w-md space-y-6">
@@ -1743,7 +1743,7 @@ export default function Settings() {
                   Because this application runs **100% offline**, all patient records and invoices are saved exclusively on this computer. 
                   In case of system failure, having backups saved to an external USB or shared drive is the only way to safeguard your data.
                 </p>
-                <p className="leading-relaxed text-xs font-semibold text-teal-700">
+                <p className="leading-relaxed text-xs font-semibold text-cyan-700">
                   Recommended: Perform a backup export at the end of every working day.
                 </p>
               </div>
@@ -1753,9 +1753,9 @@ export default function Settings() {
                 {/* Backup Button */}
                 <button
                   onClick={handleBackup}
-                  className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-slate-200 hover:border-teal-500 rounded-2xl hover:bg-teal-50/10 transition group cursor-pointer"
+                  className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-slate-200 hover:border-cyan-500 rounded-2xl hover:bg-cyan-50/10 transition group cursor-pointer"
                 >
-                  <Download className="h-8 w-8 text-slate-400 group-hover:text-teal-600 transition" />
+                  <Download className="h-8 w-8 text-slate-400 group-hover:text-cyan-600 transition" />
                   <span className="text-sm font-bold text-slate-800 mt-2.5">Backup Database</span>
                   <span className="text-[10px] text-slate-400 mt-0.5 text-center px-2">Export a database copy (.db)</span>
                 </button>
@@ -1804,7 +1804,7 @@ export default function Settings() {
                   setShowUnsavedModal(false)
                   if (pendingTab) setActiveSubTab(pendingTab)
                 }}
-                className="w-full py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl text-xs uppercase tracking-wider cursor-pointer"
+                className="w-full py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-bold rounded-xl text-xs uppercase tracking-wider cursor-pointer"
               >
                 Save Changes & Switch Tab
               </button>
@@ -1836,7 +1836,7 @@ export default function Settings() {
         <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
           <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 border border-slate-100 text-slate-800 space-y-4">
             <div className="flex items-center gap-2.5 text-slate-900 font-bold text-md">
-              <ShieldAlert className={`w-5 h-5 ${selectedUserToToggle.is_active ? 'text-red-500' : 'text-emerald-600'}`} />
+              <ShieldAlert className={`w-5 h-5 ${selectedUserToToggle.is_active ? 'text-red-500' : 'text-cyan-600'}`} />
               <h3>{selectedUserToToggle.is_active ? 'Deactivate Staff Account' : 'Activate Staff Account'}</h3>
             </div>
             
@@ -1868,7 +1868,7 @@ export default function Settings() {
                 className={`px-5 py-2 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-md transition-all cursor-pointer ${
                   selectedUserToToggle.is_active
                     ? 'bg-red-600 hover:bg-red-700 shadow-red-600/20'
-                    : 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20'
+                    : 'bg-cyan-600 hover:bg-cyan-700 shadow-cyan-600/20'
                 }`}
               >
                 {togglingUser ? 'Updating...' : selectedUserToToggle.is_active ? 'Deactivate Account' : 'Activate Account'}
@@ -1938,7 +1938,7 @@ export default function Settings() {
                   onClick={handleCopyResetCredentials}
                   className="flex-1 py-1.5 px-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 transition-colors cursor-pointer border border-indigo-200"
                 >
-                  {resetCopied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 text-indigo-600" />}
+                  {resetCopied ? <Check className="w-3.5 h-3.5 text-cyan-600" /> : <Copy className="w-3.5 h-3.5 text-indigo-600" />}
                   <span>{resetCopied ? 'Copied!' : 'Copy Info'}</span>
                 </button>
               </div>

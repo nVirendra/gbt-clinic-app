@@ -199,7 +199,7 @@ export default function Invoices() {
       render: (b) => (
         <span className="font-bold font-mono">
           {b.bill_no ? (
-            <span className="text-teal-900 bg-teal-50 px-2 py-1 rounded-lg border border-teal-200/80">{b.bill_no}</span>
+            <span className="text-cyan-900 bg-cyan-50 px-2 py-1 rounded-lg border border-cyan-200/80">{b.bill_no}</span>
           ) : (
             <span className="text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md text-xs font-semibold">
               {b.status === 'DRAFT' ? 'DRAFT' : `#${b.id.substring(0, 8)}`}
@@ -242,7 +242,7 @@ export default function Invoices() {
       header: 'Paid Amount',
       sortable: true,
       align: 'right',
-      render: (b) => <span className="font-semibold text-emerald-700 font-mono">₹{b.amount_paid.toFixed(2)}</span>
+      render: (b) => <span className="font-semibold text-cyan-700 font-mono">₹{b.amount_paid.toFixed(2)}</span>
     },
     {
       key: 'balance_due',
@@ -270,7 +270,7 @@ export default function Invoices() {
               : b.status === 'DRAFT'
               ? 'bg-slate-100 text-slate-700 border border-slate-200'
               : isPaid
-              ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+              ? 'bg-cyan-100 text-cyan-800 border border-cyan-200'
               : 'bg-amber-100 text-amber-800 border border-amber-200'
           }`}>
             {isPaid ? 'PAID' : isPartial ? 'PARTIAL' : b.status}
@@ -303,7 +303,7 @@ export default function Invoices() {
           <button
             onClick={() => handlePrint(b.id)}
             title="Print Invoice"
-            className="p-1.5 rounded-lg text-teal-600 hover:bg-teal-50 transition cursor-pointer"
+            className="p-1.5 rounded-lg text-cyan-600 hover:bg-cyan-50 transition cursor-pointer"
           >
             <Printer className="h-4 w-4" />
           </button>
@@ -368,7 +368,7 @@ export default function Invoices() {
             {/* Header controls */}
             <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 flex-shrink-0">
               <h3 className="font-bold text-slate-800 text-lg flex items-center">
-                <FileCheck2 className="h-5 w-5 text-teal-650 mr-2" /> Invoice View
+                <FileCheck2 className="h-5 w-5 text-cyan-600 mr-2" /> Invoice View
               </h3>
               <div className="flex items-center space-x-3">
                 {selectedBill.status === 'DRAFT' && (
@@ -379,7 +379,7 @@ export default function Invoices() {
                       setFinalizeTransactionId('')
                       setShowFinalizeModal(true)
                     }}
-                    className="flex items-center bg-teal-600 hover:bg-teal-700 text-white font-semibold px-4 py-2 rounded-xl text-sm transition shadow-sm cursor-pointer"
+                    className="flex items-center bg-cyan-600 hover:bg-cyan-700 text-white font-semibold px-4 py-2 rounded-xl text-sm transition shadow-sm cursor-pointer"
                   >
                     Finalize Draft Invoice
                   </button>
@@ -421,7 +421,7 @@ export default function Invoices() {
               <div className="flex justify-between items-start border-b border-slate-200 pb-5">
                 <div>
                   <div className="flex items-center space-x-2.5">
-                    <Building2 className="h-6 w-6 text-teal-600" />
+                    <Building2 className="h-6 w-6 text-cyan-600" />
                     <h2 className="text-xl font-bold text-slate-900">{profile?.name}</h2>
                   </div>
                   <p className="text-xs text-slate-500 mt-1.5 max-w-sm leading-relaxed">{profile?.address}</p>
@@ -523,7 +523,7 @@ export default function Invoices() {
                     <span>Grand Total</span>
                     <span className="font-mono">₹{selectedBill.grand_total.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between text-teal-650 font-bold">
+                  <div className="flex justify-between text-cyan-600 font-bold">
                     <span>Total Paid</span>
                     <span className="font-mono">₹{selectedBill.amount_paid.toFixed(2)}</span>
                   </div>
@@ -581,7 +581,7 @@ export default function Invoices() {
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden border border-slate-100">
             <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
               <h3 className="font-bold text-slate-800 text-lg flex items-center">
-                <Coins className="h-5 w-5 text-teal-600 mr-2" /> Record Due Payment
+                <Coins className="h-5 w-5 text-cyan-600 mr-2" /> Record Due Payment
               </h3>
               <button 
                 onClick={() => setShowPaymentModal(false)}
@@ -624,7 +624,7 @@ export default function Invoices() {
                     max={selectedBill.balance_due}
                     min="1"
                     placeholder="Enter amount collected"
-                    className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm font-bold bg-slate-50/50 font-mono"
+                    className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm font-bold bg-slate-50/50 font-mono"
                   />
                 </div>
               </div>
@@ -637,7 +637,7 @@ export default function Invoices() {
                   <select
                     value={paymentMode}
                     onChange={(e) => setPaymentMode(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm"
                   >
                     <option value="CASH">Cash</option>
                     <option value="UPI">UPI</option>
@@ -654,7 +654,7 @@ export default function Invoices() {
                     value={transactionId}
                     onChange={(e) => setTransactionId(e.target.value)}
                     placeholder="Reference No."
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm font-mono"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm font-mono"
                   />
                 </div>
               </div>
@@ -670,7 +670,7 @@ export default function Invoices() {
                 <button
                   type="submit"
                   disabled={submittingPayment}
-                  className="px-5 py-2 bg-teal-650 hover:bg-teal-700 text-white rounded-xl font-bold text-sm transition shadow-sm cursor-pointer disabled:opacity-50"
+                  className="px-5 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl font-bold text-sm transition shadow-sm cursor-pointer disabled:opacity-50"
                 >
                   {submittingPayment ? 'Logging...' : 'Log Payment'}
                 </button>
@@ -711,7 +711,7 @@ export default function Invoices() {
                   required
                   value={finalizePaidAmount}
                   onChange={(e) => setFinalizePaidAmount(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm font-bold font-mono"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm font-bold font-mono"
                 />
               </div>
 
@@ -721,7 +721,7 @@ export default function Invoices() {
                   <select
                     value={finalizePaymentMode}
                     onChange={(e) => setFinalizePaymentMode(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm"
                   >
                     <option value="CASH">Cash</option>
                     <option value="UPI">UPI</option>
@@ -736,7 +736,7 @@ export default function Invoices() {
                     placeholder="UPI id / card ref"
                     value={finalizeTransactionId}
                     onChange={(e) => setFinalizeTransactionId(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm font-mono"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm font-mono"
                   />
                 </div>
               </div>
@@ -752,7 +752,7 @@ export default function Invoices() {
                 <button
                   type="submit"
                   disabled={submittingFinalize}
-                  className="px-5 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl font-bold text-sm transition shadow-sm cursor-pointer disabled:opacity-50"
+                  className="px-5 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl font-bold text-sm transition shadow-sm cursor-pointer disabled:opacity-50"
                 >
                   {submittingFinalize ? 'Finalizing...' : 'Finalize & Print'}
                 </button>
@@ -820,7 +820,7 @@ export default function Invoices() {
                         required
                         value={adminUsername}
                         onChange={(e) => setAdminUsername(e.target.value)}
-                        className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-teal-500 bg-white"
+                        className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-cyan-500 bg-white"
                       />
                     </div>
                     <div>
@@ -830,7 +830,7 @@ export default function Invoices() {
                         required
                         value={adminPassword}
                         onChange={(e) => setAdminPassword(e.target.value)}
-                        className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-teal-500 bg-white"
+                        className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-cyan-500 bg-white"
                       />
                     </div>
                   </div>

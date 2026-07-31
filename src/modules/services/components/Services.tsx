@@ -35,15 +35,15 @@ function Toast({
   }, [onClose])
 
   const bgColors = {
-    success: 'bg-emerald-950 text-emerald-100 border-emerald-800/60',
+    success: 'bg-cyan-950 text-cyan-100 border-cyan-800/60',
     error: 'bg-red-950 text-red-100 border-red-800/60',
     info: 'bg-slate-900 text-white border-slate-700'
   }
 
   const icons = {
-    success: <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />,
+    success: <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0" />,
     error: <XCircle className="w-4 h-4 text-red-400 shrink-0" />,
-    info: <Info className="w-4 h-4 text-teal-400 shrink-0" />
+    info: <Info className="w-4 h-4 text-cyan-400 shrink-0" />
   }
 
   return (
@@ -134,7 +134,7 @@ function FreeTextCombobox({
           className={`w-full py-2 pl-3 pr-8 text-sm rounded-xl border transition-all ${
             error
               ? 'border-red-300 bg-red-50/30 focus:ring-red-500'
-              : 'border-slate-200 focus:ring-teal-500'
+              : 'border-slate-200 focus:ring-cyan-500'
           } focus:outline-none focus:ring-2`}
         />
         {options.length > 0 && (
@@ -158,7 +158,7 @@ function FreeTextCombobox({
                 setIsOpen(false)
               }}
               className={`px-3 py-2 cursor-pointer flex justify-between items-center transition-colors ${
-                idx === highlightedIndex ? 'bg-teal-50 text-teal-900 font-semibold' : 'text-slate-700 hover:bg-slate-50'
+                idx === highlightedIndex ? 'bg-cyan-50 text-cyan-900 font-semibold' : 'text-slate-700 hover:bg-slate-50'
               }`}
             >
               <div>
@@ -287,7 +287,7 @@ function RedesignedServiceModal({
         {/* MODAL HEADER */}
         <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between shadow-md shrink-0">
           <div className="flex items-center gap-2.5">
-            <Layers className="w-5 h-5 text-teal-400" />
+            <Layers className="w-5 h-5 text-cyan-400" />
             <h3 className="text-md font-bold">
               {editingService ? 'Edit Price List Item' : 'Add Price List Item'}
             </h3>
@@ -321,7 +321,7 @@ function RedesignedServiceModal({
               className={`w-full py-2 px-3.5 rounded-xl border text-sm focus:outline-none focus:ring-2 font-semibold ${
                 !isNameValid && form.name !== ''
                   ? 'border-red-300 bg-red-50/20 focus:ring-red-500'
-                  : 'border-slate-200 focus:ring-teal-500'
+                  : 'border-slate-200 focus:ring-cyan-500'
               }`}
             />
             {!isNameValid && (
@@ -362,7 +362,7 @@ function RedesignedServiceModal({
                 className={`w-full pl-9 pr-3.5 py-2 rounded-xl border text-sm font-bold font-mono focus:outline-none focus:ring-2 ${
                   !isPriceValid && form.price !== ''
                     ? 'border-red-300 bg-red-50/20 focus:ring-red-500'
-                    : 'border-slate-200 focus:ring-teal-500'
+                    : 'border-slate-200 focus:ring-cyan-500'
                 }`}
               />
             </div>
@@ -399,7 +399,7 @@ function RedesignedServiceModal({
               <button
                 type="submit"
                 disabled={!isValid || submitting}
-                className="px-5 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-md shadow-teal-600/20 transition-all disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none cursor-pointer flex items-center gap-1.5"
+                className="px-5 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-md shadow-cyan-600/20 transition-all disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none cursor-pointer flex items-center gap-1.5"
               >
                 {submitting ? (
                   <span>Saving...</span>
@@ -550,7 +550,7 @@ export default function Services() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search price list by item name or category..."
-            className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm bg-white"
+            className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm bg-white"
           />
         </div>
 
@@ -560,7 +560,7 @@ export default function Services() {
             setEditingService(null)
             setShowAddModal(true)
           }}
-          className="flex items-center justify-center bg-teal-600 hover:bg-teal-700 text-white font-semibold px-4 py-2 rounded-xl text-sm transition shadow-sm cursor-pointer"
+          className="flex items-center justify-center bg-cyan-600 hover:bg-cyan-700 text-white font-semibold px-4 py-2 rounded-xl text-sm transition shadow-sm cursor-pointer"
         >
           <Plus className="h-4 w-4 mr-2" />
           Add Service / Procedure
@@ -597,7 +597,7 @@ export default function Services() {
                     )}
                   </td>
                   <td className="px-6 py-4 font-bold text-slate-900">{service.name}</td>
-                  <td className="px-6 py-4 text-right font-extrabold text-teal-900 font-mono">
+                  <td className="px-6 py-4 text-right font-extrabold text-cyan-900 font-mono">
                     ₹{(service?.price ?? service?.default_price ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                   </td>
                   <td className="px-6 py-4 text-center space-x-1.5">

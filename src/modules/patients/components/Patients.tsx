@@ -42,15 +42,15 @@ function Toast({
   }, [onClose])
 
   const bgColors = {
-    success: 'bg-emerald-950 text-emerald-100 border-emerald-800/60',
+    success: 'bg-cyan-950 text-cyan-100 border-cyan-800/60',
     error: 'bg-red-950 text-red-100 border-red-800/60',
     info: 'bg-slate-900 text-white border-slate-700'
   }
 
   const icons = {
-    success: <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />,
+    success: <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0" />,
     error: <XCircle className="w-4 h-4 text-red-400 shrink-0" />,
-    info: <Info className="w-4 h-4 text-teal-400 shrink-0" />
+    info: <Info className="w-4 h-4 text-cyan-400 shrink-0" />
   }
 
   return (
@@ -141,7 +141,7 @@ function FreeTextCombobox({
           className={`w-full py-2 pl-3 pr-8 text-sm rounded-xl border transition-all ${
             error
               ? 'border-red-300 bg-red-50/30 focus:ring-red-500'
-              : 'border-slate-200 focus:ring-teal-500'
+              : 'border-slate-200 focus:ring-cyan-500'
           } focus:outline-none focus:ring-2`}
         />
         {options.length > 0 && (
@@ -165,7 +165,7 @@ function FreeTextCombobox({
                 setIsOpen(false)
               }}
               className={`px-3 py-2 cursor-pointer flex justify-between items-center transition-colors ${
-                idx === highlightedIndex ? 'bg-teal-50 text-teal-900 font-semibold' : 'text-slate-700 hover:bg-slate-50'
+                idx === highlightedIndex ? 'bg-cyan-50 text-cyan-900 font-semibold' : 'text-slate-700 hover:bg-slate-50'
               }`}
             >
               <div>
@@ -406,7 +406,7 @@ function RedesignedPatientModal({
         {/* MODAL HEADER */}
         <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between shadow-md shrink-0">
           <div className="flex items-center gap-2.5">
-            <UserPlus className="w-5 h-5 text-teal-400" />
+            <UserPlus className="w-5 h-5 text-cyan-400" />
             <h3 className="text-md font-bold">
               {editingPatient ? 'Edit Patient Profile' : 'Register New Patient'}
             </h3>
@@ -428,8 +428,8 @@ function RedesignedPatientModal({
           
           {/* SECTION 1: IDENTITY & DEMOGRAPHICS */}
           <div className="space-y-4">
-            <div className="flex items-center gap-2 border-b border-slate-100 pb-2 text-xs font-bold uppercase tracking-wider text-teal-700">
-              <User className="w-4 h-4 text-teal-500" /> 1. Patient Identity & Demographics
+            <div className="flex items-center gap-2 border-b border-slate-100 pb-2 text-xs font-bold uppercase tracking-wider text-cyan-700">
+              <User className="w-4 h-4 text-cyan-500" /> 1. Patient Identity & Demographics
             </div>
 
             <div className="space-y-3">
@@ -448,7 +448,7 @@ function RedesignedPatientModal({
                     className={`w-full py-2 px-3 rounded-xl border text-sm focus:outline-none focus:ring-2 font-semibold ${
                       !isNameValid && form.fullName !== ''
                         ? 'border-red-300 bg-red-50/20 focus:ring-red-500'
-                        : 'border-slate-200 focus:ring-teal-500'
+                        : 'border-slate-200 focus:ring-cyan-500'
                     }`}
                   />
                   {!isNameValid && (
@@ -469,7 +469,7 @@ function RedesignedPatientModal({
                     className={`w-full py-2 px-3 rounded-xl border text-sm focus:outline-none focus:ring-2 font-mono font-semibold ${
                       !isPhoneValid && form.phone !== ''
                         ? 'border-red-300 bg-red-50/20 focus:ring-red-500'
-                        : 'border-slate-200 focus:ring-teal-500'
+                        : 'border-slate-200 focus:ring-cyan-500'
                     }`}
                   />
                   {!isPhoneValid && form.phone !== '' && (
@@ -502,7 +502,7 @@ function RedesignedPatientModal({
                     type="date"
                     value={form.dob}
                     onChange={(e) => handleDobChange(e.target.value)}
-                    className="w-full py-2 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 font-medium"
+                    className="w-full py-2 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 font-medium"
                   />
                 </div>
 
@@ -510,14 +510,14 @@ function RedesignedPatientModal({
                 <div>
                   <label className="block text-xs font-bold text-slate-600 uppercase mb-1 flex justify-between">
                     <span>Age (Years)</span>
-                    <span className="text-[10px] text-teal-600 font-bold">LIVE SYNC</span>
+                    <span className="text-[10px] text-cyan-600 font-bold">LIVE SYNC</span>
                   </label>
                   <input
                     type="number"
                     placeholder="e.g. 35"
                     value={form.ageYears}
                     onChange={(e) => handleAgeChange(e.target.value)}
-                    className="w-full py-2 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 font-mono font-bold text-slate-900"
+                    className="w-full py-2 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 font-mono font-bold text-slate-900"
                   />
                 </div>
 
@@ -529,7 +529,7 @@ function RedesignedPatientModal({
                   <select
                     value={form.gender}
                     onChange={(e) => setForm({ ...form, gender: e.target.value })}
-                    className="w-full py-2 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 font-semibold bg-white"
+                    className="w-full py-2 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 font-semibold bg-white"
                   >
                     <option value="MALE">MALE</option>
                     <option value="FEMALE">FEMALE</option>
@@ -542,8 +542,8 @@ function RedesignedPatientModal({
 
           {/* SECTION 2: CONTACT & REFERRAL */}
           <div className="space-y-4">
-            <div className="flex items-center gap-2 border-b border-slate-100 pb-2 text-xs font-bold uppercase tracking-wider text-teal-700">
-              <MapPin className="w-4 h-4 text-teal-500" /> 2. Contact Location & Referral Info
+            <div className="flex items-center gap-2 border-b border-slate-100 pb-2 text-xs font-bold uppercase tracking-wider text-cyan-700">
+              <MapPin className="w-4 h-4 text-cyan-500" /> 2. Contact Location & Referral Info
             </div>
 
             <div className="space-y-3">
@@ -555,7 +555,7 @@ function RedesignedPatientModal({
                   placeholder="Patient residence or city address..."
                   value={form.address}
                   onChange={(e) => setForm({ ...form, address: e.target.value })}
-                  className="w-full py-2 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full py-2 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
                 />
               </div>
 
@@ -591,7 +591,7 @@ function RedesignedPatientModal({
                       setAllergyInput('')
                     }
                   }}
-                  className="rounded text-teal-600 focus:ring-teal-500"
+                  className="rounded text-cyan-600 focus:ring-cyan-500"
                 />
                 <span>No known allergies (NKDA)</span>
               </label>
@@ -604,8 +604,8 @@ function RedesignedPatientModal({
               </label>
 
               {noAllergies ? (
-                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs font-medium text-emerald-900 flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <div className="p-3 bg-cyan-50 border border-cyan-200 rounded-xl text-xs font-medium text-cyan-900 flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-cyan-600" />
                   <span>Confirmed: Patient has <strong>No Known Drug Allergies (NKDA)</strong>.</span>
                 </div>
               ) : (
@@ -688,7 +688,7 @@ function RedesignedPatientModal({
               <button
                 type="submit"
                 disabled={!isValid || submitting}
-                className="px-6 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-md shadow-teal-600/20 transition-all disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none cursor-pointer flex items-center gap-1.5"
+                className="px-6 py-2.5 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-md shadow-cyan-600/20 transition-all disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none cursor-pointer flex items-center gap-1.5"
               >
                 {submitting ? (
                   <span>Saving...</span>
@@ -848,12 +848,12 @@ export default function Patients() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by Name, Code, Phone..."
-              className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm bg-white"
+              className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm bg-white"
             />
           </div>
           <button
             onClick={() => setShowAddModal(true)}
-            className="w-full flex items-center justify-center bg-teal-600 hover:bg-teal-700 text-white font-medium py-2 rounded-xl text-sm transition shadow-sm cursor-pointer"
+            className="w-full flex items-center justify-center bg-cyan-600 hover:bg-cyan-700 text-white font-medium py-2 rounded-xl text-sm transition shadow-sm cursor-pointer"
           >
             <UserPlus className="h-4 w-4 mr-2" />
             Register Patient
@@ -873,7 +873,7 @@ export default function Patients() {
                 onClick={() => selectPatient(pat.id)}
                 className={`w-full text-left p-4.5 transition flex items-center justify-between border-l-4 ${
                   selectedPatient?.id === pat.id
-                    ? 'bg-teal-50/40 border-teal-500'
+                    ? 'bg-cyan-50/40 border-cyan-500'
                     : 'border-transparent hover:bg-slate-50/50'
                 }`}
               >
@@ -895,7 +895,7 @@ export default function Patients() {
       <div className="flex-1 bg-white rounded-2xl border border-slate-200/80 shadow-sm flex flex-col overflow-hidden">
         {detailLoading ? (
           <div className="flex-1 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-teal-500"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-cyan-500"></div>
           </div>
         ) : selectedPatient ? (
           <div className="flex-1 flex flex-col overflow-hidden">
@@ -903,7 +903,7 @@ export default function Patients() {
             {/* Detail Header */}
             <div className="p-6 border-b border-slate-100 flex items-start justify-between flex-shrink-0 bg-slate-50/20">
               <div className="flex space-x-4">
-                <div className="h-16 w-16 rounded-2xl bg-teal-50 flex items-center justify-center text-teal-600 font-bold text-xl uppercase">
+                <div className="h-16 w-16 rounded-2xl bg-cyan-50 flex items-center justify-center text-cyan-600 font-bold text-xl uppercase">
                   {selectedPatient.full_name.slice(0, 2)}
                 </div>
                 <div>
@@ -952,9 +952,9 @@ export default function Patients() {
                   <p className="text-xs font-bold text-slate-500 uppercase">Total Invoiced Amount</p>
                   <p className="text-xl font-bold text-slate-900 mt-1">₹{totalBilled.toFixed(2)}</p>
                 </div>
-                <div className={`border p-4 rounded-xl ${outstanding > 0 ? 'bg-red-50/50 border-red-200' : 'bg-green-50/50 border-green-200'}`}>
+                <div className={`border p-4 rounded-xl ${outstanding > 0 ? 'bg-red-50/50 border-red-200' : 'bg-cyan-50/50 border-cyan-200'}`}>
                   <p className="text-xs font-bold text-slate-500 uppercase">Outstanding Dues</p>
-                  <p className={`text-xl font-bold mt-1 ${outstanding > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                  <p className={`text-xl font-bold mt-1 ${outstanding > 0 ? 'text-red-600' : 'text-cyan-600'}`}>
                     ₹{outstanding.toFixed(2)}
                   </p>
                 </div>
@@ -1065,7 +1065,7 @@ export default function Patients() {
                               {bill.balance_due > 0 ? (
                                 <span className="text-red-500">₹{bill.balance_due.toFixed(2)}</span>
                               ) : (
-                                <span className="text-green-500">₹0.00</span>
+                                <span className="text-cyan-500">₹0.00</span>
                               )}
                             </td>
                             <td className="px-6 py-4 text-center">
@@ -1075,7 +1075,7 @@ export default function Patients() {
                                   : bill.status === 'DRAFT'
                                   ? 'bg-slate-100 text-slate-700 border border-slate-200'
                                   : bill.balance_due === 0
-                                  ? 'bg-teal-50 text-teal-700 border border-teal-200' 
+                                  ? 'bg-cyan-50 text-cyan-700 border border-cyan-200' 
                                   : 'bg-amber-50 text-amber-700 border border-amber-200'
                               }`}>
                                 {bill.status === 'FINALIZED' && bill.balance_due > 0 && bill.amount_paid > 0 ? 'PARTIAL' : bill.status === 'FINALIZED' && bill.balance_due === 0 ? 'PAID' : bill.status}

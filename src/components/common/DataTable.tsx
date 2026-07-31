@@ -205,7 +205,7 @@ export function DataTable<T extends Record<string, any>>({
         <div className="overflow-x-auto min-w-full">
           <table className="w-full text-left border-collapse min-w-max">
             <thead>
-              <tr className="bg-[#0B132B] border-b border-[#162244] text-[#00E5FF] font-black uppercase text-[11px] tracking-wider sticky top-0 z-10">
+              <tr className="bg-[#0B132B] border-b border-[#162244] text-cyan-500 font-black uppercase text-[11px] tracking-wider sticky top-0 z-10">
                 {columns.map((col) => {
                   const isSorted = sortColumn === col.key
                   const alignClass = 
@@ -223,12 +223,12 @@ export function DataTable<T extends Record<string, any>>({
                       <div className={`inline-flex items-center gap-1.5 ${alignClass === 'text-right' ? 'justify-end' : alignClass === 'text-center' ? 'justify-center' : 'justify-start'}`}>
                         <span>{col.header}</span>
                         {col.sortable && (
-                          <span className="text-[#00E5FF]/80">
+                          <span className="text-cyan-500/80">
                             {isSorted ? (
                               sortDirection === 'asc' ? (
-                                <ArrowUp className="w-3.5 h-3.5 text-[#00E5FF] font-bold" />
+                                <ArrowUp className="w-3.5 h-3.5 text-cyan-500 font-bold" />
                               ) : (
-                                <ArrowDown className="w-3.5 h-3.5 text-[#00E5FF] font-bold" />
+                                <ArrowDown className="w-3.5 h-3.5 text-cyan-500 font-bold" />
                               )
                             ) : (
                               <ArrowUpDown className="w-3.5 h-3.5 opacity-40 hover:opacity-100" />
@@ -268,7 +268,7 @@ export function DataTable<T extends Record<string, any>>({
                         onRowClick ? 'cursor-pointer' : ''
                       } ${
                         isHighlighted 
-                          ? 'bg-[#00E5FF]/10 font-bold border-l-4 border-l-[#00E5FF]' 
+                          ? 'bg-cyan-500/10 font-bold border-l-4 border-l-cyan-500' 
                           : 'hover:bg-[#F4F5F7]'
                       }`}
                     >
@@ -300,7 +300,7 @@ export function DataTable<T extends Record<string, any>>({
                             if (onClearAllFilters) onClearAllFilters()
                             if (onDatePresetChange) onDatePresetChange('all')
                           }}
-                          className="mt-2 inline-flex items-center gap-1 px-4 py-2 bg-[#0B132B] hover:bg-[#162244] text-[#00E5FF] font-bold rounded-xl text-xs transition cursor-pointer shadow-xs border border-[#00E5FF]/40"
+                          className="mt-2 inline-flex items-center gap-1 px-4 py-2 bg-[#0B132B] hover:bg-[#162244] text-cyan-500 font-bold rounded-xl text-xs transition cursor-pointer shadow-xs border border-cyan-500/40"
                         >
                           <X className="w-3.5 h-3.5" /> Clear All Filters
                         </button>
@@ -313,7 +313,7 @@ export function DataTable<T extends Record<string, any>>({
                         {emptyActionLabel && onEmptyAction && (
                           <button
                             onClick={onEmptyAction}
-                            className="mt-2 inline-flex items-center gap-1.5 px-4 py-2 bg-[#0B132B] hover:bg-[#162244] text-[#00E5FF] font-extrabold rounded-xl text-xs shadow-sm transition cursor-pointer border border-[#00E5FF]/40"
+                            className="mt-2 inline-flex items-center gap-1.5 px-4 py-2 bg-[#0B132B] hover:bg-[#162244] text-cyan-500 font-extrabold rounded-xl text-xs shadow-sm transition cursor-pointer border border-cyan-500/40"
                           >
                             <Plus className="w-4 h-4" /> {emptyActionLabel}
                           </button>
@@ -347,7 +347,7 @@ export function DataTable<T extends Record<string, any>>({
                     setPageSize(Number(e.target.value))
                     setCurrentPage(1)
                   }}
-                  className="px-2 py-1 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 bg-white focus:outline-none focus:ring-1 focus:ring-teal-500"
+                  className="px-2 py-1 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 bg-white focus:outline-none focus:ring-1 focus:ring-cyan-500"
                 >
                   <option value={10}>10</option>
                   <option value={25}>25</option>

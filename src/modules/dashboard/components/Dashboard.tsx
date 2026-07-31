@@ -99,7 +99,7 @@ export default function Dashboard() {
   const totalDuesAmount = outstandingBills.reduce((sum, b) => sum + (b?.balance_due ?? 0), 0)
 
   // Chart Palette Colors
-  const BAR_COLORS = ['#0d9488', '#0284c7', '#6366f1', '#8b5cf6', '#ec4899']
+  const BAR_COLORS = ['#00E5FF', '#0284c7', '#6366f1', '#8b5cf6', '#ec4899']
 
   return (
     <div className="space-y-6 animate-fade-in pb-12 text-slate-800">
@@ -111,7 +111,7 @@ export default function Dashboard() {
             <h2 className="text-xl md:text-2xl font-bold tracking-tight">
               {profile?.name || 'Clinic Manager'} Dashboard
             </h2>
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-teal-500/20 text-teal-300 border border-teal-500/30 uppercase tracking-wider">
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 uppercase tracking-wider">
               Live Overview
             </span>
           </div>
@@ -129,7 +129,7 @@ export default function Dashboard() {
                 onClick={() => setDateRange(option)}
                 className={`px-3 py-1.5 rounded-lg font-bold capitalize transition-all cursor-pointer ${
                   dateRange === option
-                    ? 'bg-teal-500 text-white shadow-md shadow-teal-500/20'
+                    ? 'bg-cyan-500 text-white shadow-md shadow-cyan-500/20'
                     : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
                 }`}
               >
@@ -141,7 +141,7 @@ export default function Dashboard() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setActiveTab('billing')}
-              className="flex items-center bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold px-3.5 py-2 rounded-xl text-xs transition shadow-md shadow-teal-500/10 cursor-pointer"
+              className="flex items-center bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold px-3.5 py-2 rounded-xl text-xs transition shadow-md shadow-cyan-500/10 cursor-pointer"
             >
               <PlusCircle className="h-4 w-4 mr-1.5" />
               New Bill
@@ -170,13 +170,13 @@ export default function Dashboard() {
           {/* Card 1: Today's Revenue */}
           <div
             onClick={() => setActiveTab('invoices')}
-            className="bg-white p-4.5 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md hover:border-teal-400 transition-all group cursor-pointer flex flex-col justify-between"
+            className="bg-white p-4.5 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md hover:border-cyan-400 transition-all group cursor-pointer flex flex-col justify-between"
           >
             <div className="flex items-center justify-between">
-              <div className="w-10 h-10 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center group-hover:scale-105 transition-transform">
+              <div className="w-10 h-10 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center group-hover:scale-105 transition-transform">
                 <IndianRupee className="w-5 h-5" />
               </div>
-              <ArrowUpRight className="w-4 h-4 text-slate-300 group-hover:text-teal-600 transition-colors" />
+              <ArrowUpRight className="w-4 h-4 text-slate-300 group-hover:text-cyan-600 transition-colors" />
             </div>
             <div className="mt-3">
               <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
@@ -185,7 +185,7 @@ export default function Dashboard() {
               <h3 className="text-xl font-extrabold text-slate-900 font-mono mt-0.5">
                 ₹{totalRevenue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
               </h3>
-              <p className="text-[10px] text-teal-600 font-semibold mt-1 flex items-center gap-1">
+              <p className="text-[10px] text-cyan-600 font-semibold mt-1 flex items-center gap-1">
                 <TrendingUp className="w-3 h-3" /> {paymentCount} payments logged
               </p>
             </div>
@@ -357,7 +357,7 @@ export default function Dashboard() {
               <div className="space-y-3">
                 {outstandingBills.length === 0 ? (
                   <div className="p-8 text-center space-y-2">
-                    <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto" />
+                    <CheckCircle2 className="w-10 h-10 text-cyan-500 mx-auto" />
                     <p className="font-bold text-slate-800 text-sm">No overdue payments — all clear! 🎉</p>
                     <p className="text-xs text-slate-400">All customer invoices have been settled in full.</p>
                   </div>
@@ -401,7 +401,7 @@ export default function Dashboard() {
               <div className="space-y-3">
                 {lowStockList.length === 0 ? (
                   <div className="p-8 text-center space-y-2">
-                    <CheckCircle2 className="w-10 h-10 text-teal-500 mx-auto" />
+                    <CheckCircle2 className="w-10 h-10 text-cyan-500 mx-auto" />
                     <p className="font-bold text-slate-800 text-sm">Inventory Stock Healthy! 📦</p>
                     <p className="text-xs text-slate-400">All medicine batches are above reorder thresholds.</p>
                   </div>
@@ -421,7 +421,7 @@ export default function Dashboard() {
                           </span>
                           <button
                             onClick={() => setActiveTab('inventory')}
-                            className="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold cursor-pointer transition shadow-sm"
+                            className="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl text-xs font-bold cursor-pointer transition shadow-sm"
                           >
                             + Purchase Stock
                           </button>
@@ -484,7 +484,7 @@ export default function Dashboard() {
           <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-3">
             <div className="flex items-center justify-between border-b border-slate-100 pb-2">
               <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-teal-600" /> Revenue & Invoices Trend
+                <TrendingUp className="w-4 h-4 text-cyan-600" /> Revenue & Invoices Trend
               </h3>
               <span className="text-[10px] font-bold text-slate-400 uppercase font-mono">
                 {dateRange === 'month' ? '14 Days' : '7 Days'}
@@ -496,8 +496,8 @@ export default function Dashboard() {
                 <AreaChart data={revenueTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#0d9488" stopOpacity={0.4} />
-                      <stop offset="95%" stopColor="#0d9488" stopOpacity={0.0} />
+                      <stop offset="5%" stopColor="#00E5FF" stopOpacity={0.4} />
+                      <stop offset="95%" stopColor="#00E5FF" stopOpacity={0.0} />
                     </linearGradient>
                   </defs>
                   <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#64748b' }} axisLine={false} tickLine={false} />
@@ -506,7 +506,7 @@ export default function Dashboard() {
                     contentStyle={{ backgroundColor: '#0f172a', borderColor: '#1e293b', borderRadius: '12px', color: '#fff', fontSize: '12px' }}
                     formatter={(val: any) => [`₹${val}`, 'Revenue']}
                   />
-                  <Area type="monotone" dataKey="revenue" stroke="#0d9488" strokeWidth={3} fillOpacity={1} fill="url(#colorRevenue)" />
+                  <Area type="monotone" dataKey="revenue" stroke="#00E5FF" strokeWidth={3} fillOpacity={1} fill="url(#colorRevenue)" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -516,7 +516,7 @@ export default function Dashboard() {
           <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-3">
             <div className="flex items-center justify-between border-b border-slate-100 pb-2">
               <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
-                <Layers className="w-4 h-4 text-teal-600" /> Revenue Category Split
+                <Layers className="w-4 h-4 text-cyan-600" /> Revenue Category Split
               </h3>
               <span className="text-[10px] font-bold text-slate-400 uppercase font-mono">Revenue Distribution</span>
             </div>
@@ -552,9 +552,9 @@ export default function Dashboard() {
           <div>
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
-                <FileText className="w-4 h-4 text-teal-600" /> Recent Billing Invoices
+                <FileText className="w-4 h-4 text-cyan-600" /> Recent Billing Invoices
               </h4>
-              <button onClick={() => setActiveTab('invoices')} className="text-xs text-teal-600 hover:text-teal-700 font-bold cursor-pointer">
+              <button onClick={() => setActiveTab('invoices')} className="text-xs text-cyan-600 hover:text-cyan-700 font-bold cursor-pointer">
                 View All
               </button>
             </div>
@@ -568,7 +568,7 @@ export default function Dashboard() {
                   </div>
                   <div className="text-right">
                     <p className="font-bold font-mono text-slate-900">₹{(b.grand_total || 0).toFixed(2)}</p>
-                    <span className="text-[9px] font-bold text-emerald-700 uppercase bg-emerald-50 px-1.5 py-0.5 rounded">
+                    <span className="text-[9px] font-bold text-cyan-700 uppercase bg-cyan-50 px-1.5 py-0.5 rounded">
                       {b.status}
                     </span>
                   </div>
@@ -588,7 +588,7 @@ export default function Dashboard() {
               <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
                 <ShoppingBag className="w-4 h-4 text-indigo-600" /> Recent Stock Purchases
               </h4>
-              <button onClick={() => setActiveTab('inventory')} className="text-xs text-teal-600 hover:text-teal-700 font-bold cursor-pointer">
+              <button onClick={() => setActiveTab('inventory')} className="text-xs text-cyan-600 hover:text-cyan-700 font-bold cursor-pointer">
                 View Stock
               </button>
             </div>
@@ -622,7 +622,7 @@ export default function Dashboard() {
               <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
                 <Users className="w-4 h-4 text-cyan-600" /> Registered Patients
               </h4>
-              <button onClick={() => setActiveTab('patients')} className="text-xs text-teal-600 hover:text-teal-700 font-bold cursor-pointer">
+              <button onClick={() => setActiveTab('patients')} className="text-xs text-cyan-600 hover:text-cyan-700 font-bold cursor-pointer">
                 Directory
               </button>
             </div>

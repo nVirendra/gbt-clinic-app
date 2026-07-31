@@ -64,15 +64,15 @@ function Toast({
   }, [onClose])
 
   const bgColors = {
-    success: 'bg-emerald-950 text-emerald-100 border-emerald-800/60',
+    success: 'bg-cyan-950 text-cyan-100 border-cyan-800/60',
     error: 'bg-red-950 text-red-100 border-red-800/60',
     info: 'bg-slate-900 text-white border-slate-700'
   }
 
   const icons = {
-    success: <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />,
+    success: <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0" />,
     error: <XCircle className="w-4 h-4 text-red-400 shrink-0" />,
-    info: <Info className="w-4 h-4 text-teal-400 shrink-0" />
+    info: <Info className="w-4 h-4 text-cyan-400 shrink-0" />
   }
 
   return (
@@ -167,9 +167,9 @@ function PatientTypeahead({
 
   if (selectedPatient) {
     return (
-      <div className="flex items-center justify-between border border-teal-300 bg-teal-50/50 px-3.5 py-2 rounded-xl text-sm font-semibold text-slate-900 shadow-2xs">
+      <div className="flex items-center justify-between border border-cyan-300 bg-cyan-50/50 px-3.5 py-2 rounded-xl text-sm font-semibold text-slate-900 shadow-2xs">
         <div className="flex items-center gap-2">
-          <UserCheck className="w-4 h-4 text-teal-600 shrink-0" />
+          <UserCheck className="w-4 h-4 text-cyan-600 shrink-0" />
           <span>{selectedPatient.full_name}</span>
           <span className="text-xs font-mono text-slate-500 font-normal">({selectedPatient.patient_code})</span>
           <span className="text-xs font-mono text-slate-500 font-normal ml-2">Ph: {selectedPatient.phone}</span>
@@ -202,7 +202,7 @@ function PatientTypeahead({
           placeholder="Search by Patient Name, Phone, or Code..."
           aria-label="Patient search"
           aria-expanded={isOpen}
-          className="w-full pl-9 pr-8 py-2 text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
+          className="w-full pl-9 pr-8 py-2 text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-500 bg-white"
         />
         <ChevronDown
           onClick={() => setIsOpen(!isOpen)}
@@ -225,7 +225,7 @@ function PatientTypeahead({
                   setIsOpen(false)
                 }}
                 className={`px-4 py-2.5 cursor-pointer flex justify-between items-center transition-colors ${
-                  idx === highlightedIndex ? 'bg-teal-50 text-teal-900 font-semibold' : 'text-slate-700 hover:bg-slate-50'
+                  idx === highlightedIndex ? 'bg-cyan-50 text-cyan-900 font-semibold' : 'text-slate-700 hover:bg-slate-50'
                 }`}
               >
                 <div>
@@ -347,7 +347,7 @@ function ItemTypeahead({
               ? 'Search medicine by name or generic...'
               : 'Enter custom charge description'
           }
-          className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 font-medium bg-white"
+          className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 font-medium bg-white"
         />
         {itemType !== 'MISC' && (
           <ChevronDown
@@ -369,14 +369,14 @@ function ItemTypeahead({
                   setIsOpen(false)
                 }}
                 className={`px-4 py-2.5 cursor-pointer flex justify-between items-center transition-colors ${
-                  idx === highlightedIndex ? 'bg-teal-50 text-teal-900 font-semibold' : 'text-slate-700 hover:bg-slate-50'
+                  idx === highlightedIndex ? 'bg-cyan-50 text-cyan-900 font-semibold' : 'text-slate-700 hover:bg-slate-50'
                 }`}
               >
                 <div>
                   <span className="font-semibold text-slate-900">{s.name}</span>
                   {s.category && <span className="ml-2 text-xs text-slate-500">({s.category})</span>}
                 </div>
-                <span className="font-mono text-xs font-bold text-teal-700">₹{s.default_price.toFixed(2)}</span>
+                <span className="font-mono text-xs font-bold text-cyan-700">₹{s.default_price.toFixed(2)}</span>
               </li>
             ))}
 
@@ -390,7 +390,7 @@ function ItemTypeahead({
                   setIsOpen(false)
                 }}
                 className={`px-4 py-2.5 cursor-pointer flex justify-between items-center transition-colors ${
-                  idx === highlightedIndex ? 'bg-teal-50 text-teal-900 font-semibold' : 'text-slate-700 hover:bg-slate-50'
+                  idx === highlightedIndex ? 'bg-cyan-50 text-cyan-900 font-semibold' : 'text-slate-700 hover:bg-slate-50'
                 }`}
               >
                 <div>
@@ -839,14 +839,14 @@ export default function Billing({ onSuccess }: BillingProps) {
       <div className="flex-1 bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 flex flex-col overflow-hidden">
         <div className="flex items-center justify-between mb-5 flex-shrink-0">
           <h2 className="text-lg font-bold text-slate-900 flex items-center">
-            <ClipboardList className="h-5 w-5 text-teal-600 mr-2" /> Invoice Specifications
+            <ClipboardList className="h-5 w-5 text-cyan-600 mr-2" /> Invoice Specifications
           </h2>
           
           {/* Keyboard shortcuts hints */}
           <div className="flex items-center space-x-3 text-xs text-slate-500 font-medium bg-slate-50 px-3.5 py-1.5 rounded-xl border border-slate-200/70">
             <span><kbd className="px-1.5 py-0.5 bg-white border border-slate-300 rounded shadow-2xs font-mono font-bold text-slate-700">F2</kbd> Reset</span>
             <span><kbd className="px-1.5 py-0.5 bg-white border border-slate-300 rounded shadow-2xs font-mono font-bold text-slate-700">F4</kbd> Search Item</span>
-            <span><kbd className="px-1.5 py-0.5 bg-white border border-slate-300 rounded shadow-2xs font-mono font-bold text-teal-700">Ctrl+P</kbd> Finalize</span>
+            <span><kbd className="px-1.5 py-0.5 bg-white border border-slate-300 rounded shadow-2xs font-mono font-bold text-cyan-700">Ctrl+P</kbd> Finalize</span>
           </div>
         </div>
 
@@ -859,7 +859,7 @@ export default function Billing({ onSuccess }: BillingProps) {
               <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider">
                 Select Patient <span className="text-red-500">*</span>
               </label>
-              <label className="inline-flex items-center text-xs text-teal-700 font-bold cursor-pointer hover:text-teal-900 transition-colors">
+              <label className="inline-flex items-center text-xs text-cyan-700 font-bold cursor-pointer hover:text-cyan-900 transition-colors">
                 <input
                   type="checkbox"
                   checked={isWalkin}
@@ -867,7 +867,7 @@ export default function Billing({ onSuccess }: BillingProps) {
                     setIsWalkin(e.target.checked)
                     setSelectedPatient(null)
                   }}
-                  className="mr-1.5 rounded text-teal-600 focus:ring-teal-500"
+                  className="mr-1.5 rounded text-cyan-600 focus:ring-cyan-500"
                 />
                 Walk-in Patient
               </label>
@@ -879,7 +879,7 @@ export default function Billing({ onSuccess }: BillingProps) {
                 placeholder="Enter Walk-in Patient Full Name..."
                 value={walkinName}
                 onChange={(e) => setWalkinName(e.target.value)}
-                className="w-full px-3.5 py-2 border border-teal-300 bg-teal-50/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm font-semibold text-slate-900"
+                className="w-full px-3.5 py-2 border border-cyan-300 bg-cyan-50/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm font-semibold text-slate-900"
               />
             ) : (
               <PatientTypeahead
@@ -900,7 +900,7 @@ export default function Billing({ onSuccess }: BillingProps) {
               type="date"
               value={billDate}
               onChange={(e) => setBillDate(e.target.value)}
-              className="w-full px-3.5 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm font-medium"
+              className="w-full px-3.5 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm font-medium"
             />
           </div>
         </div>
@@ -933,7 +933,7 @@ export default function Billing({ onSuccess }: BillingProps) {
                   }}
                   className={`pb-1.5 text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer ${
                     itemType === t.id 
-                      ? 'border-b-2 border-teal-600 text-teal-700' 
+                      ? 'border-b-2 border-cyan-600 text-cyan-700' 
                       : 'text-slate-400 hover:text-slate-600'
                   }`}
                 >
@@ -958,7 +958,7 @@ export default function Billing({ onSuccess }: BillingProps) {
                     <AlertTriangle className="h-3.5 w-3.5 text-amber-600" /> Low Stock ({selectedBatch.qty_available} units avail)
                   </span>
                 ) : (
-                  <span className="bg-emerald-50 text-emerald-800 px-2.5 py-0.5 rounded-lg font-bold border border-emerald-200">
+                  <span className="bg-cyan-50 text-cyan-800 px-2.5 py-0.5 rounded-lg font-bold border border-cyan-200">
                     Active Stock ({selectedBatch.qty_available} units avail)
                   </span>
                 )}
@@ -1005,7 +1005,7 @@ export default function Billing({ onSuccess }: BillingProps) {
                       setItemForm((prev) => ({ ...prev, price: b.selling_price_per_unit.toString() }))
                     }
                   }}
-                  className="w-full px-2.5 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white font-mono font-semibold"
+                  className="w-full px-2.5 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-cyan-500 bg-white font-mono font-semibold"
                 >
                   {medicineBatches.map((b) => (
                     <option key={b.id} value={b.id}>
@@ -1028,7 +1028,7 @@ export default function Billing({ onSuccess }: BillingProps) {
                 value={itemForm.price}
                 onChange={(e) => setItemForm({ ...itemForm, price: e.target.value })}
                 placeholder="0.00"
-                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white text-right font-mono font-bold"
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 bg-white text-right font-mono font-bold"
               />
             </div>
 
@@ -1041,7 +1041,7 @@ export default function Billing({ onSuccess }: BillingProps) {
                 onChange={(e) => setItemForm({ ...itemForm, quantity: e.target.value })}
                 placeholder="1"
                 min="1"
-                className="w-full px-2 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white text-center font-bold"
+                className="w-full px-2 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 bg-white text-center font-bold"
               />
             </div>
 
@@ -1054,7 +1054,7 @@ export default function Billing({ onSuccess }: BillingProps) {
                 value={itemForm.discount}
                 onChange={(e) => setItemForm({ ...itemForm, discount: e.target.value })}
                 placeholder="0"
-                className="w-full px-2 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white text-right text-red-600 font-mono font-medium"
+                className="w-full px-2 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 bg-white text-right text-red-600 font-mono font-medium"
               />
             </div>
 
@@ -1066,7 +1066,7 @@ export default function Billing({ onSuccess }: BillingProps) {
                 value={itemForm.gstPercent}
                 onChange={(e) => setItemForm({ ...itemForm, gstPercent: e.target.value })}
                 placeholder="18"
-                className="w-full px-2 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white text-right font-mono font-semibold"
+                className="w-full px-2 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 bg-white text-right font-mono font-semibold"
               />
             </div>
 
@@ -1075,7 +1075,7 @@ export default function Billing({ onSuccess }: BillingProps) {
               <button
                 type="button"
                 onClick={addLineItem}
-                className="w-full flex items-center justify-center gap-1 bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 rounded-xl text-xs uppercase tracking-wider transition-all shadow-sm cursor-pointer"
+                className="w-full flex items-center justify-center gap-1 bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 rounded-xl text-xs uppercase tracking-wider transition-all shadow-sm cursor-pointer"
               >
                 <Plus className="h-4 w-4" /> Add Item
               </button>
@@ -1119,12 +1119,12 @@ export default function Billing({ onSuccess }: BillingProps) {
                       <tr 
                         key={index} 
                         className={`transition-colors duration-500 ${
-                          isRecentlyAdded ? 'bg-teal-50/90 font-medium' : 'hover:bg-slate-50/60'
+                          isRecentlyAdded ? 'bg-cyan-50/90 font-medium' : 'hover:bg-slate-50/60'
                         }`}
                       >
                         <td className="px-4 py-3">
                           {item.itemType === 'MEDICINE' ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-emerald-100 text-emerald-800 border border-emerald-200">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-cyan-100 text-cyan-800 border border-cyan-200">
                               <Package className="w-3 h-3" /> Stock Item
                             </span>
                           ) : (
@@ -1143,7 +1143,7 @@ export default function Billing({ onSuccess }: BillingProps) {
                             min="1"
                             value={item.quantity}
                             onChange={(e) => updateLineItemInline(index, 'quantity', e.target.value)}
-                            className="w-16 py-1 px-2 border border-slate-200 rounded-lg text-center font-bold text-xs focus:outline-none focus:ring-2 focus:ring-teal-500"
+                            className="w-16 py-1 px-2 border border-slate-200 rounded-lg text-center font-bold text-xs focus:outline-none focus:ring-2 focus:ring-cyan-500"
                           />
                         </td>
 
@@ -1154,7 +1154,7 @@ export default function Billing({ onSuccess }: BillingProps) {
                             step="0.01"
                             value={item.discount}
                             onChange={(e) => updateLineItemInline(index, 'discount', e.target.value)}
-                            className="w-20 py-1 px-2 border border-slate-200 rounded-lg text-right font-mono font-medium text-xs text-red-600 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                            className="w-20 py-1 px-2 border border-slate-200 rounded-lg text-right font-mono font-medium text-xs text-red-600 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                           />
                         </td>
 
@@ -1164,11 +1164,11 @@ export default function Billing({ onSuccess }: BillingProps) {
                             type="number"
                             value={item.gstPercent}
                             onChange={(e) => updateLineItemInline(index, 'gstPercent', e.target.value)}
-                            className="w-16 py-1 px-2 border border-slate-200 rounded-lg text-right font-mono text-xs focus:outline-none focus:ring-2 focus:ring-teal-500"
+                            className="w-16 py-1 px-2 border border-slate-200 rounded-lg text-right font-mono text-xs focus:outline-none focus:ring-2 focus:ring-cyan-500"
                           />
                         </td>
 
-                        <td className="px-5 py-3 text-right font-extrabold text-teal-900 font-mono">
+                        <td className="px-5 py-3 text-right font-extrabold text-cyan-900 font-mono">
                           ₹{item.lineTotal.toFixed(2)}
                         </td>
                         <td className="px-4 py-3 text-center">
@@ -1196,7 +1196,7 @@ export default function Billing({ onSuccess }: BillingProps) {
         
         <div className="space-y-6">
           <h2 className="text-lg font-bold text-slate-900 flex items-center">
-            <FileText className="h-5 w-5 text-teal-600 mr-2" /> Payment Summary
+            <FileText className="h-5 w-5 text-cyan-600 mr-2" /> Payment Summary
           </h2>
 
           {/* COMPUTED CALCULATIONS STRIP WITH LOCK BADGES */}
@@ -1204,7 +1204,7 @@ export default function Billing({ onSuccess }: BillingProps) {
             {/* Items Subtotal */}
             <div className="flex justify-between items-center text-slate-600 font-medium">
               <span className="flex items-center gap-1">
-                Items Total <Lock className="w-3 h-3 text-teal-600" />
+                Items Total <Lock className="w-3 h-3 text-cyan-600" />
               </span>
               <span className="font-mono font-bold text-slate-900">₹{subtotal.toFixed(2)}</span>
             </div>
@@ -1219,7 +1219,7 @@ export default function Billing({ onSuccess }: BillingProps) {
                   step="0.01"
                   value={generalDiscount}
                   onChange={(e) => setGeneralDiscount(e.target.value)}
-                  className="w-full pl-6 pr-2.5 py-1 border border-slate-200 rounded-lg text-right text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 font-bold font-mono text-red-600 bg-white"
+                  className="w-full pl-6 pr-2.5 py-1 border border-slate-200 rounded-lg text-right text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 font-bold font-mono text-red-600 bg-white"
                 />
               </div>
             </div>
@@ -1227,20 +1227,20 @@ export default function Billing({ onSuccess }: BillingProps) {
             {/* CGST / SGST split calculation */}
             <div className="flex justify-between items-center text-slate-500 text-xs font-medium">
               <span className="flex items-center gap-1">
-                CGST Split (Half) <Lock className="w-2.5 h-2.5 text-teal-500" />
+                CGST Split (Half) <Lock className="w-2.5 h-2.5 text-cyan-500" />
               </span>
               <span className="font-mono">₹{(taxTotal / 2).toFixed(2)}</span>
             </div>
             <div className="flex justify-between items-center text-slate-500 text-xs font-medium">
               <span className="flex items-center gap-1">
-                SGST Split (Half) <Lock className="w-2.5 h-2.5 text-teal-500" />
+                SGST Split (Half) <Lock className="w-2.5 h-2.5 text-cyan-500" />
               </span>
               <span className="font-mono">₹{(taxTotal / 2).toFixed(2)}</span>
             </div>
 
             <div className="flex justify-between items-center text-slate-600 font-semibold border-t border-dashed border-slate-200 pt-2 text-xs">
               <span className="flex items-center gap-1">
-                Total Tax (GST) <Lock className="w-3 h-3 text-teal-600" />
+                Total Tax (GST) <Lock className="w-3 h-3 text-cyan-600" />
               </span>
               <span className="font-mono font-bold text-slate-900">₹{taxTotal.toFixed(2)}</span>
             </div>
@@ -1256,12 +1256,12 @@ export default function Billing({ onSuccess }: BillingProps) {
           <div className="bg-slate-900 text-white p-4 rounded-xl shadow-md flex justify-between items-center border border-slate-800">
             <div>
               <span className="font-bold text-slate-400 text-xs uppercase tracking-wider block">Grand Total</span>
-              <span className="text-[10px] text-teal-400 font-extrabold flex items-center gap-1">
+              <span className="text-[10px] text-cyan-400 font-extrabold flex items-center gap-1">
                 <Lock className="w-2.5 h-2.5" /> AUTO CALCULATED
               </span>
             </div>
-            <span className="text-2xl font-black text-teal-400 flex items-center font-mono">
-              <IndianRupee className="h-5 w-5 mt-0.5 text-teal-400 mr-0.5" />
+            <span className="text-2xl font-black text-cyan-400 flex items-center font-mono">
+              <IndianRupee className="h-5 w-5 mt-0.5 text-cyan-400 mr-0.5" />
               {grandTotal.toFixed(2)}
             </span>
           </div>
@@ -1277,7 +1277,7 @@ export default function Billing({ onSuccess }: BillingProps) {
                 <button
                   type="button"
                   onClick={handlePaidInFull}
-                  className="text-[11px] font-extrabold text-teal-700 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-lg hover:bg-teal-100 transition-colors cursor-pointer"
+                  className="text-[11px] font-extrabold text-cyan-700 bg-cyan-50 border border-cyan-200 px-2 py-0.5 rounded-lg hover:bg-cyan-100 transition-colors cursor-pointer"
                 >
                   ⚡ Paid in Full
                 </button>
@@ -1293,7 +1293,7 @@ export default function Billing({ onSuccess }: BillingProps) {
                   value={paidAmount}
                   onChange={(e) => setPaidAmount(e.target.value)}
                   placeholder="Enter amount paid"
-                  className="w-full pl-8 pr-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm font-bold font-mono text-slate-900 bg-white"
+                  className="w-full pl-8 pr-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm font-bold font-mono text-slate-900 bg-white"
                 />
               </div>
             </div>
@@ -1307,7 +1307,7 @@ export default function Billing({ onSuccess }: BillingProps) {
                 <select
                   value={paymentMode}
                   onChange={(e) => setPaymentMode(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm font-semibold bg-white"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm font-semibold bg-white"
                 >
                   <option value="CASH">CASH</option>
                   <option value="UPI">UPI</option>
@@ -1330,8 +1330,8 @@ export default function Billing({ onSuccess }: BillingProps) {
                     isPaymentModeNonCash
                       ? !transactionId.trim()
                         ? 'border border-red-300 bg-red-50/20 focus:ring-2 focus:ring-red-500'
-                        : 'border border-slate-200 focus:ring-2 focus:ring-teal-500 bg-white'
-                      : 'border border-slate-200 bg-slate-50/50 text-slate-500 focus:ring-2 focus:ring-teal-500'
+                        : 'border border-slate-200 focus:ring-2 focus:ring-cyan-500 bg-white'
+                      : 'border border-slate-200 bg-slate-50/50 text-slate-500 focus:ring-2 focus:ring-cyan-500'
                   }`}
                 />
               </div>
@@ -1341,8 +1341,8 @@ export default function Billing({ onSuccess }: BillingProps) {
             <div className="p-3 rounded-xl border flex items-center justify-between text-xs font-bold transition-all">
               <span className="text-slate-600 uppercase">Balance Due</span>
               {balanceDue <= 0 ? (
-                <span className="inline-flex items-center gap-1 text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 font-mono text-sm">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" /> ₹0.00 (Fully Paid)
+                <span className="inline-flex items-center gap-1 text-cyan-700 bg-cyan-50 px-2.5 py-1 rounded-lg border border-cyan-200 font-mono text-sm">
+                  <CheckCircle2 className="w-4 h-4 text-cyan-600" /> ₹0.00 (Fully Paid)
                 </span>
               ) : (
                 <span className="inline-flex items-center gap-1 text-amber-800 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200 font-mono text-sm">
@@ -1361,7 +1361,7 @@ export default function Billing({ onSuccess }: BillingProps) {
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Any invoice remarks or payment comments..."
-                className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm"
               />
             </div>
           </div>
@@ -1383,7 +1383,7 @@ export default function Billing({ onSuccess }: BillingProps) {
               type="button"
               onClick={() => handleSubmitBill('FINALIZED')}
               disabled={!canFinalize}
-              className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-teal-600/20 text-xs uppercase tracking-wider cursor-pointer disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none flex items-center justify-center gap-1.5"
+              className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-cyan-600/20 text-xs uppercase tracking-wider cursor-pointer disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none flex items-center justify-center gap-1.5"
             >
               <span>Finalize & Print</span>
               <ArrowRight className="w-4 h-4" />

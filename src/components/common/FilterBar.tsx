@@ -213,10 +213,10 @@ export function FilterBar({
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               placeholder={searchPlaceholder}
-              className="w-full pl-9 pr-8 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#00E5FF] bg-white text-[#0B132B]"
+              className="w-full pl-9 pr-8 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-cyan-500 bg-white text-[#0B132B]"
             />
             {isTyping ? (
-              <Loader2 className="absolute right-2.5 top-2.5 h-4 w-4 text-[#00E5FF] animate-spin" />
+              <Loader2 className="absolute right-2.5 top-2.5 h-4 w-4 text-cyan-500 animate-spin" />
             ) : inputValue ? (
               <button
                 type="button"
@@ -248,7 +248,7 @@ export function FilterBar({
                   }}
                   className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
                     (datePreset || 'all') === p.id
-                      ? 'bg-[#0B132B] text-[#00E5FF] font-black border border-[#00E5FF]/40 shadow-xs'
+                      ? 'bg-[#0B132B] text-cyan-500 font-black border border-cyan-500/40 shadow-xs'
                       : 'text-slate-600 hover:text-[#0B132B] hover:bg-slate-200/60 font-semibold'
                   }`}
                 >
@@ -268,8 +268,8 @@ export function FilterBar({
                   <select
                     value={currentValue}
                     onChange={(e) => onFilterChange && onFilterChange(field.id, e.target.value)}
-                    className={`px-3 py-2 border rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#00E5FF] bg-white transition-all ${
-                      currentValue ? 'border-[#00E5FF] text-[#0B132B] bg-cyan-50/40 font-bold' : 'border-slate-200 text-slate-700'
+                    className={`px-3 py-2 border rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-cyan-500 bg-white transition-all ${
+                      currentValue ? 'border-cyan-500 text-[#0B132B] bg-cyan-50/40 font-bold' : 'border-slate-200 text-slate-700'
                     }`}
                   >
                     <option value="">{field.placeholder || `All ${field.label}s`}</option>
@@ -291,11 +291,11 @@ export function FilterBar({
                   onClick={() => onFilterChange && onFilterChange(field.id, !currentValue)}
                   className={`px-3 py-2 border rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
                     currentValue
-                      ? 'bg-[#0B132B] text-[#00E5FF] border-[#00E5FF]/40 shadow-xs'
+                      ? 'bg-[#0B132B] text-cyan-500 border-cyan-500/40 shadow-xs'
                       : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
                   }`}
                 >
-                  {currentValue && <Check className="w-3.5 h-3.5 text-[#00E5FF]" />}
+                  {currentValue && <Check className="w-3.5 h-3.5 text-cyan-500" />}
                   {field.label}
                 </button>
               )
@@ -332,7 +332,7 @@ export function FilterBar({
           </span>
 
           {searchQuery && (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#0B132B] text-white border border-[#00E5FF]/40 rounded-lg text-xs font-bold shadow-2xs">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#0B132B] text-white border border-cyan-500/40 rounded-lg text-xs font-bold shadow-2xs">
               <span>Search: "{searchQuery}"</span>
               <button
                 type="button"
@@ -340,7 +340,7 @@ export function FilterBar({
                   setInputValue('')
                   onSearchChange('')
                 }}
-                className="text-slate-400 hover:text-[#00E5FF] cursor-pointer"
+                className="text-slate-400 hover:text-cyan-500 cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -350,7 +350,7 @@ export function FilterBar({
           {activeChips.map((chip) => (
             <span
               key={chip.id}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-cyan-50 text-[#0B132B] border border-[#00E5FF]/60 rounded-lg text-xs font-bold shadow-2xs"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-cyan-50 text-[#0B132B] border border-cyan-500/60 rounded-lg text-xs font-bold shadow-2xs"
             >
               <span className="text-[#0B132B] font-semibold">{chip.label}:</span>
               <span className="text-[#0B132B] font-extrabold">{chip.displayValue}</span>

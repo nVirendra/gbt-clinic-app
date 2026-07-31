@@ -51,7 +51,7 @@ export default function Login({
   const isFormValid = username.trim().length > 0 && password.trim().length > 0
 
   return (
-    <div className="min-h-screen w-screen flex flex-col justify-between items-center bg-gradient-to-br from-[#0B132B] via-[#0D1B3E] to-[#070D1F] p-6 text-slate-100 font-sans selection:bg-[#00E5FF] selection:text-[#0B132B]">
+    <div className="min-h-screen w-screen flex flex-col justify-between items-center bg-gradient-to-br from-[#0B132B] via-[#0D1B3E] to-[#070D1F] p-6 text-slate-100 font-sans selection:bg-cyan-500 selection:text-[#0B132B]">
       
       {/* Top Spacer for Vertical Balance */}
       <div className="hidden sm:block h-6" />
@@ -70,7 +70,7 @@ export default function Login({
                 className="h-14 w-auto object-contain drop-shadow-sm transition-transform hover:scale-105"
               />
             ) : (
-              <div className="h-12 w-12 rounded-2xl bg-[#0B132B] text-[#00E5FF] flex items-center justify-center shadow-lg shadow-[#00E5FF]/20 border border-[#00E5FF]/30">
+              <div className="h-12 w-12 rounded-2xl bg-[#0B132B] text-cyan-500 flex items-center justify-center shadow-lg shadow-cyan-500/20 border border-cyan-500/30">
                 <Building2 className="h-6 w-6" />
               </div>
             )}
@@ -115,7 +115,7 @@ export default function Login({
                   if (error) setError('')
                 }}
                 placeholder="Enter your username"
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#00E5FF] focus:border-transparent text-sm bg-[#F4F5F7]/60 text-[#0B132B] placeholder:text-slate-400 font-semibold transition-all"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-sm bg-[#F4F5F7]/60 text-[#0B132B] placeholder:text-slate-400 font-semibold transition-all"
                 disabled={loading}
                 autoComplete="username"
               />
@@ -140,7 +140,7 @@ export default function Login({
                   if (error) setError('')
                 }}
                 placeholder="Enter your password"
-                className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#00E5FF] focus:border-transparent text-sm bg-[#F4F5F7]/60 text-[#0B132B] placeholder:text-slate-400 font-semibold transition-all"
+                className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-sm bg-[#F4F5F7]/60 text-[#0B132B] placeholder:text-slate-400 font-semibold transition-all"
                 disabled={loading}
                 autoComplete="current-password"
               />
@@ -159,11 +159,11 @@ export default function Login({
           <button
             type="submit"
             disabled={loading || !isFormValid}
-            className="w-full bg-[#0B132B] hover:bg-[#162244] text-[#00E5FF] font-black py-3 rounded-xl transition-all shadow-md shadow-[#00E5FF]/10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#00E5FF] disabled:opacity-50 disabled:cursor-not-allowed text-xs uppercase tracking-wider cursor-pointer flex items-center justify-center gap-2 mt-2 border border-[#00E5FF]/30"
+            className="w-full bg-[#0B132B] hover:bg-[#162244] text-cyan-500 font-black py-3 rounded-xl transition-all shadow-md shadow-cyan-500/10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed text-xs uppercase tracking-wider cursor-pointer flex items-center justify-center gap-2 mt-2 border border-cyan-500/30"
           >
             {loading ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin text-[#00E5FF]" />
+                <Loader2 className="h-4 w-4 animate-spin text-cyan-500" />
                 <span>Authenticating...</span>
               </>
             ) : (
@@ -177,7 +177,7 @@ export default function Login({
       <footer className="py-4 text-center space-y-1">
         <p className="text-xs text-slate-400 flex items-center justify-center gap-1.5 font-medium">
           <span>Developed by</span>
-          <strong className="text-[#00E5FF] tracking-tight font-extrabold">{developerName}</strong>
+          <strong className="text-cyan-500 tracking-tight font-extrabold">{developerName}</strong>
         </p>
         <p className="text-[11px] text-slate-400/80 font-mono">
           {copyrightText}

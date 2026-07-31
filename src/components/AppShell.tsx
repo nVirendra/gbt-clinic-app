@@ -91,7 +91,7 @@ export default function AppShell({ children, activeTab }: AppShellProps) {
     return (
       <div className="h-screen w-screen flex items-center justify-center bg-slate-900 text-slate-100">
         <div className="flex flex-col items-center space-y-3">
-          <div className="h-9 w-9 border-3 border-teal-500 border-t-transparent rounded-full animate-spin" />
+          <div className="h-9 w-9 border-3 border-cyan-500 border-t-transparent rounded-full animate-spin" />
           <p className="text-sm font-medium text-slate-400">Verifying session...</p>
         </div>
       </div>
@@ -116,12 +116,12 @@ export default function AppShell({ children, activeTab }: AppShellProps) {
   ]
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-[#F4F5F7] text-[#0B132B] font-sans selection:bg-[#00E5FF] selection:text-[#0B132B]">
+    <div className="flex h-screen w-screen overflow-hidden bg-[#F4F5F7] text-[#0B132B] font-sans selection:bg-cyan-500 selection:text-[#0B132B]">
       {/* Sidebar */}
       <aside className="w-64 bg-[#0B132B] text-slate-100 flex flex-col flex-shrink-0 border-r border-[#162244]">
         {/* Clinic Header */}
         <div className="h-16 flex items-center px-6 border-b border-[#162244] space-x-3">
-          <Building2 className="h-6 w-6 text-[#00E5FF]" />
+          <Building2 className="h-6 w-6 text-cyan-500" />
           <div className="truncate font-bold text-lg text-white tracking-tight">
             {profile?.name || 'Clinic Manager'}
           </div>
@@ -138,11 +138,11 @@ export default function AppShell({ children, activeTab }: AppShellProps) {
                 href={item.href}
                 className={`w-full flex items-center px-4 py-3 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
                   isActive
-                    ? 'bg-[#00E5FF] text-[#0B132B] shadow-md shadow-[#00E5FF]/20 font-black'
-                    : 'text-slate-300 hover:bg-[#162244] hover:text-[#00E5FF]'
+                    ? 'bg-cyan-500 text-[#0B132B] shadow-md shadow-cyan-500/20 font-black'
+                    : 'text-slate-300 hover:bg-[#162244] hover:text-cyan-500'
                 }`}
               >
-                <Icon className={`mr-3 h-5 w-5 ${isActive ? 'text-[#0B132B]' : 'text-slate-400 group-hover:text-[#00E5FF]'}`} />
+                <Icon className={`mr-3 h-5 w-5 ${isActive ? 'text-[#0B132B]' : 'text-slate-400 group-hover:text-cyan-500'}`} />
                 {item.name}
               </Link>
             )
@@ -152,18 +152,18 @@ export default function AppShell({ children, activeTab }: AppShellProps) {
         {/* User profile footer */}
         <div className="p-4 border-t border-[#162244] flex items-center justify-between">
           <div className="flex items-center space-x-3 overflow-hidden">
-            <div className="h-8 w-8 rounded-full bg-[#00E5FF] text-[#0B132B] flex items-center justify-center text-sm font-extrabold uppercase flex-shrink-0">
+            <div className="h-8 w-8 rounded-full bg-cyan-500 text-[#0B132B] flex items-center justify-center text-sm font-extrabold uppercase flex-shrink-0">
               {user.username.slice(0, 2)}
             </div>
             <div className="overflow-hidden">
               <p className="text-sm font-bold text-slate-200 truncate">{user.username}</p>
-              <p className="text-xs text-[#00E5FF] capitalize truncate font-semibold">{user.role.toLowerCase()}</p>
+              <p className="text-xs text-cyan-500 capitalize truncate font-semibold">{user.role.toLowerCase()}</p>
             </div>
           </div>
           <button
             onClick={logout}
             title="Logout"
-            className="p-1.5 rounded-lg text-slate-400 hover:bg-[#162244] hover:text-[#00E5FF] transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg text-slate-400 hover:bg-[#162244] hover:text-cyan-500 transition-colors cursor-pointer"
           >
             <LogOut className="h-5 w-5" />
           </button>
@@ -179,9 +179,9 @@ export default function AppShell({ children, activeTab }: AppShellProps) {
           </h1>
           <div className="flex items-center space-x-4">
             <div className={`text-xs px-3.5 py-1.5 rounded-full font-bold flex items-center space-x-1.5 ${
-              isApiConnected ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-amber-50 text-amber-800 border border-amber-200'
+              isApiConnected ? 'bg-cyan-50 text-cyan-800 border border-cyan-200' : 'bg-amber-50 text-amber-800 border border-amber-200'
             }`}>
-              <span className={`h-2 w-2 rounded-full ${isApiConnected ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
+              <span className={`h-2 w-2 rounded-full ${isApiConnected ? 'bg-cyan-500 animate-pulse' : 'bg-amber-500'}`} />
               <span>{isApiConnected ? 'Backend API Connected (v1)' : 'Backend Offline / Disconnected'}</span>
             </div>
           </div>

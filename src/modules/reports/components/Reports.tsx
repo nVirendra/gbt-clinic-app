@@ -170,7 +170,7 @@ export default function Reports() {
               onClick={() => setActiveReportTab(tab.id)}
               className={`flex items-center px-5 py-3 font-medium text-sm border-b-2 transition-all cursor-pointer ${
                 activeReportTab === tab.id
-                  ? 'border-teal-500 text-teal-600 font-semibold'
+                  ? 'border-cyan-500 text-cyan-600 font-semibold'
                   : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
               }`}
             >
@@ -191,7 +191,7 @@ export default function Reports() {
                 type="date"
                 value={startDate}
                 onChange={(e) => setDates(e.target.value, endDate)}
-                className="px-2.5 py-1 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-500 text-xs font-semibold bg-slate-50/50"
+                className="px-2.5 py-1 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-cyan-500 text-xs font-semibold bg-slate-50/50"
               />
             </div>
             <span className="text-slate-400 text-sm">to</span>
@@ -201,7 +201,7 @@ export default function Reports() {
                 type="date"
                 value={endDate}
                 onChange={(e) => setDates(startDate, e.target.value)}
-                className="px-2.5 py-1 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-500 text-xs font-semibold bg-slate-50/50"
+                className="px-2.5 py-1 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-cyan-500 text-xs font-semibold bg-slate-50/50"
               />
             </div>
           </div>
@@ -220,7 +220,7 @@ export default function Reports() {
         <div className="space-y-6">
           {statsLoading ? (
             <div className="h-28 flex items-center justify-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-teal-500"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-cyan-500"></div>
             </div>
           ) : stats ? (
             <div className="space-y-6 animate-fade-in">
@@ -228,13 +228,13 @@ export default function Reports() {
                 
                 <div className="bg-slate-900 p-6 rounded-2xl text-slate-100 shadow-sm border border-slate-800 flex items-center justify-between">
                   <div>
-                    <p className="text-[10px] font-bold text-teal-400 uppercase tracking-widest">Total Collections</p>
+                    <p className="text-[10px] font-bold text-cyan-400 uppercase tracking-widest">Total Collections</p>
                     <h3 className="text-3xl font-black text-white mt-1 flex items-center font-mono">
                       ₹{(stats?.totalCollected ?? 0).toFixed(2)}
                     </h3>
                     <p className="text-[10px] text-slate-400 mt-1">Logged over {stats?.paymentCount ?? 0} payments</p>
                   </div>
-                  <div className="h-10 w-10 bg-teal-500/10 rounded-xl flex items-center justify-center text-teal-400">
+                  <div className="h-10 w-10 bg-cyan-500/10 rounded-xl flex items-center justify-center text-cyan-400">
                     <Coins className="h-5 w-5" />
                   </div>
                 </div>
@@ -302,7 +302,7 @@ export default function Reports() {
               <button
                 onClick={exportOutstandingDues}
                 disabled={duesLoading || dues.length === 0}
-                className="text-xs text-teal-655 hover:text-teal-800 font-semibold underline cursor-pointer"
+                className="text-xs text-cyan-600 hover:text-cyan-800 font-semibold underline cursor-pointer"
               >
                 Export Dues List CSV
               </button>
@@ -389,14 +389,14 @@ export default function Reports() {
         <div className="space-y-6">
           {inventoryLoading ? (
             <div className="h-28 flex items-center justify-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-teal-500"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-cyan-500"></div>
             </div>
           ) : (
             <div className="space-y-6 animate-fade-in">
               {/* Valuation cards */}
               <div className="grid grid-cols-2 gap-6">
                 <div className="bg-slate-900 p-6 rounded-2xl text-slate-100 shadow-sm border border-slate-800">
-                  <p className="text-[10px] font-bold text-teal-400 uppercase tracking-widest">Inventory Valuation (Purchase Cost)</p>
+                  <p className="text-[10px] font-bold text-cyan-400 uppercase tracking-widest">Inventory Valuation (Purchase Cost)</p>
                   <h3 className="text-3xl font-black text-white mt-1 font-mono">
                     ₹{inventoryValuation.purchaseValuation.toFixed(2)}
                   </h3>
@@ -489,7 +489,7 @@ export default function Reports() {
             <select
               value={selectedBatchId}
               onChange={(e) => setSelectedBatchId(e.target.value)}
-              className="py-1.5 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 w-80 bg-white"
+              className="py-1.5 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 w-80 bg-white"
             >
               <option value="">Select Batch...</option>
               {batches.map(b => (
@@ -525,7 +525,7 @@ export default function Reports() {
                       </td>
                       <td className="px-6 py-3.5">
                         <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                          log.type === 'IN' || log.type === 'RETURN' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                          log.type === 'IN' || log.type === 'RETURN' ? 'bg-cyan-100 text-cyan-700' : 'bg-red-100 text-red-700'
                         }`}>
                           {log.type}
                         </span>

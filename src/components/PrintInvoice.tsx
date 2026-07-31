@@ -286,7 +286,7 @@ export default function PrintInvoice({ billId }: PrintInvoiceProps) {
               <span>Grand Total:</span>
               <span className="font-mono">₹{bill.grand_total.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between font-bold text-teal-800 border-t border-dashed border-black/30 pt-1">
+            <div className="flex justify-between font-bold text-cyan-800 border-t border-dashed border-black/30 pt-1">
               <span>Total Paid:</span>
               <span className="font-mono">₹{bill.amount_paid.toFixed(2)}</span>
             </div>
@@ -421,7 +421,7 @@ export default function PrintInvoice({ billId }: PrintInvoiceProps) {
           <button
             onClick={() => setLayout('A4')}
             className={`px-4 py-2 rounded-lg font-bold text-xs transition cursor-pointer ${
-              layout === 'A4' ? 'bg-teal-500 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+              layout === 'A4' ? 'bg-cyan-500 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
             }`}
           >
             A4 / A5 Layout
@@ -429,7 +429,7 @@ export default function PrintInvoice({ billId }: PrintInvoiceProps) {
           <button
             onClick={() => setLayout('THERMAL')}
             className={`px-4 py-2 rounded-lg font-bold text-xs transition cursor-pointer ${
-              layout === 'THERMAL' ? 'bg-teal-500 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+              layout === 'THERMAL' ? 'bg-cyan-500 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
             }`}
           >
             80mm Thermal Layout

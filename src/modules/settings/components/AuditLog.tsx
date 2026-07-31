@@ -55,7 +55,7 @@ export default function AuditLog() {
       sortable: true,
       render: (row) => (
         <span className="inline-flex items-center gap-1.5 font-bold text-slate-800">
-          <ShieldCheck className="w-3.5 h-3.5 text-teal-600" />
+          <ShieldCheck className="w-3.5 h-3.5 text-cyan-600" />
           {row.username}
         </span>
       )
@@ -69,7 +69,7 @@ export default function AuditLog() {
           row.action.includes('DELETE') || row.action.includes('CANCEL')
             ? 'bg-red-100 text-red-800 border border-red-200'
             : row.action.includes('CREATE') || row.action.includes('ADD')
-            ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+            ? 'bg-cyan-100 text-cyan-800 border border-cyan-200'
             : 'bg-indigo-100 text-indigo-800 border border-indigo-200'
         }`}>
           {row.action}
@@ -125,7 +125,7 @@ export default function AuditLog() {
       <div className="bg-slate-900 text-white p-5 rounded-2xl border border-slate-800 shadow-md flex items-center justify-between">
         <div>
           <h2 className="text-lg font-bold flex items-center gap-2">
-            <Lock className="w-5 h-5 text-teal-400" /> Immutable Security Audit Logs
+            <Lock className="w-5 h-5 text-cyan-400" /> Immutable Security Audit Logs
           </h2>
           <p className="text-xs text-slate-400 mt-0.5">
             Read-only system log tracking all user actions, logins, billing updates, and records.
@@ -134,7 +134,7 @@ export default function AuditLog() {
 
         <button
           onClick={fetchAuditLogs}
-          className="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-slate-950 font-bold rounded-xl text-xs uppercase tracking-wider transition cursor-pointer flex items-center gap-1.5 shadow-sm"
+          className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold rounded-xl text-xs uppercase tracking-wider transition cursor-pointer flex items-center gap-1.5 shadow-sm"
         >
           <RefreshCw className="w-3.5 h-3.5" /> Refresh Logs
         </button>

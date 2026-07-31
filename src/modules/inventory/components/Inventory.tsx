@@ -55,15 +55,15 @@ function Toast({
   }, [onClose])
 
   const bgColors = {
-    success: 'bg-emerald-950 text-emerald-100 border-emerald-800/60',
+    success: 'bg-cyan-950 text-cyan-100 border-cyan-800/60',
     error: 'bg-red-950 text-red-100 border-red-800/60',
     info: 'bg-slate-900 text-white border-slate-700'
   }
 
   const icons = {
-    success: <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />,
+    success: <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0" />,
     error: <XCircle className="w-4 h-4 text-red-400 shrink-0" />,
-    info: <Info className="w-4 h-4 text-teal-400 shrink-0" />
+    info: <Info className="w-4 h-4 text-cyan-400 shrink-0" />
   }
 
   return (
@@ -174,8 +174,8 @@ function VendorTypeahead({
             error
               ? 'border-red-300 bg-red-50/30 focus:ring-red-500'
               : value
-              ? 'border-teal-500 bg-teal-50/20 font-semibold text-slate-900 focus:ring-teal-500'
-              : 'border-slate-200 focus:ring-teal-500'
+              ? 'border-cyan-500 bg-cyan-50/20 font-semibold text-slate-900 focus:ring-cyan-500'
+              : 'border-slate-200 focus:ring-cyan-500'
           } focus:outline-none focus:ring-2`}
         />
         <ChevronDown
@@ -201,7 +201,7 @@ function VendorTypeahead({
                   setIsOpen(false)
                 }}
                 className={`px-4 py-2.5 cursor-pointer flex justify-between items-center transition-colors ${
-                  idx === highlightedIndex ? 'bg-teal-50 text-teal-900 font-semibold' : 'text-slate-700 hover:bg-slate-50'
+                  idx === highlightedIndex ? 'bg-cyan-50 text-cyan-900 font-semibold' : 'text-slate-700 hover:bg-slate-50'
                 }`}
               >
                 <div>
@@ -211,7 +211,7 @@ function VendorTypeahead({
                     {v.gstin && <span>GSTIN: {v.gstin}</span>}
                   </div>
                 </div>
-                {v.id === value && <Check className="w-4 h-4 text-teal-600 shrink-0" />}
+                {v.id === value && <Check className="w-4 h-4 text-cyan-600 shrink-0" />}
               </li>
             ))
           )}
@@ -325,8 +325,8 @@ function MedicineTypeahead({
             error
               ? 'border-red-300 bg-red-50/30 focus:ring-red-500'
               : value
-              ? 'border-teal-500 bg-teal-50/20 font-semibold text-slate-900 focus:ring-teal-500'
-              : 'border-slate-200 focus:ring-teal-500'
+              ? 'border-cyan-500 bg-cyan-50/20 font-semibold text-slate-900 focus:ring-cyan-500'
+              : 'border-slate-200 focus:ring-cyan-500'
           } focus:outline-none focus:ring-2`}
         />
         <ChevronDown
@@ -352,7 +352,7 @@ function MedicineTypeahead({
                   setIsOpen(false)
                 }}
                 className={`px-4 py-2.5 cursor-pointer border-b border-slate-100 last:border-0 transition-colors ${
-                  idx === highlightedIndex ? 'bg-teal-50 text-teal-950 font-medium' : 'text-slate-700 hover:bg-slate-50'
+                  idx === highlightedIndex ? 'bg-cyan-50 text-cyan-950 font-medium' : 'text-slate-700 hover:bg-slate-50'
                 }`}
               >
                 <div className="flex justify-between items-start">
@@ -361,7 +361,7 @@ function MedicineTypeahead({
                     {m.pack && <span className="ml-2 text-xs font-mono text-slate-500">[{m.pack}]</span>}
                     <span className="ml-2 text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-mono uppercase">{m.type}</span>
                   </div>
-                  <span className="text-[11px] font-bold bg-teal-100 text-teal-800 px-2 py-0.5 rounded-full shrink-0">
+                  <span className="text-[11px] font-bold bg-cyan-100 text-cyan-800 px-2 py-0.5 rounded-full shrink-0">
                     GST {m.default_gst_percent}%
                   </span>
                 </div>
@@ -458,7 +458,7 @@ function FreeTextCombobox({
           className={`w-full py-2 pl-3 pr-8 text-sm rounded-xl border transition-all ${
             error
               ? 'border-red-300 bg-red-50/30 focus:ring-red-500'
-              : 'border-slate-200 focus:ring-teal-500'
+              : 'border-slate-200 focus:ring-cyan-500'
           } focus:outline-none focus:ring-2`}
         />
         {options.length > 0 && (
@@ -483,7 +483,7 @@ function FreeTextCombobox({
                 setIsOpen(false)
               }}
               className={`px-3 py-2 cursor-pointer flex justify-between items-center transition-colors ${
-                idx === highlightedIndex ? 'bg-teal-50 text-teal-900 font-semibold' : 'text-slate-700 hover:bg-slate-50'
+                idx === highlightedIndex ? 'bg-cyan-50 text-cyan-900 font-semibold' : 'text-slate-700 hover:bg-slate-50'
               }`}
             >
               <div>
@@ -734,7 +734,7 @@ function RedesignedMedicineModal({
         {/* MODAL HEADER */}
         <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between shadow-md">
           <div className="flex items-center gap-2.5">
-            <Pill className="w-5 h-5 text-teal-400" />
+            <Pill className="w-5 h-5 text-cyan-400" />
             <h3 className="text-md font-bold">
               {editingMed ? 'Edit Medicine Master' : 'Add New Medicine Master'}
             </h3>
@@ -756,8 +756,8 @@ function RedesignedMedicineModal({
           
           {/* SECTION 1: MEDICINE IDENTITY */}
           <div className="space-y-4">
-            <div className="flex items-center gap-2 border-b border-slate-100 pb-2 text-xs font-bold uppercase tracking-wider text-teal-700">
-              <Tag className="w-4 h-4 text-teal-500" /> 1. Medicine Identification
+            <div className="flex items-center gap-2 border-b border-slate-100 pb-2 text-xs font-bold uppercase tracking-wider text-cyan-700">
+              <Tag className="w-4 h-4 text-cyan-500" /> 1. Medicine Identification
             </div>
 
             <div className="space-y-3">
@@ -775,7 +775,7 @@ function RedesignedMedicineModal({
                   className={`w-full py-2 px-3 rounded-xl border text-sm focus:outline-none focus:ring-2 font-semibold ${
                     !isNameValid && form.name !== ''
                       ? 'border-red-300 bg-red-50/20 focus:ring-red-500'
-                      : 'border-slate-200 focus:ring-teal-500'
+                      : 'border-slate-200 focus:ring-cyan-500'
                   }`}
                 />
                 {!isNameValid && (
@@ -823,8 +823,8 @@ function RedesignedMedicineModal({
 
           {/* SECTION 2: PACKAGING & TYPE */}
           <div className="space-y-4">
-            <div className="flex items-center gap-2 border-b border-slate-100 pb-2 text-xs font-bold uppercase tracking-wider text-teal-700">
-              <Package className="w-4 h-4 text-teal-500" /> 2. Classification & Packaging
+            <div className="flex items-center gap-2 border-b border-slate-100 pb-2 text-xs font-bold uppercase tracking-wider text-cyan-700">
+              <Package className="w-4 h-4 text-cyan-500" /> 2. Classification & Packaging
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -842,7 +842,7 @@ function RedesignedMedicineModal({
                       unitLabel: newAdaptiveUnits.includes(form.unitLabel) ? form.unitLabel : newAdaptiveUnits[0]
                     })
                   }}
-                  className="w-full py-2 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 font-semibold text-slate-900 bg-white"
+                  className="w-full py-2 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 font-semibold text-slate-900 bg-white"
                 >
                   <option value="TABLET">TABLET</option>
                   <option value="CAPSULE">CAPSULE</option>
@@ -859,7 +859,7 @@ function RedesignedMedicineModal({
                 <select
                   value={form.unitLabel}
                   onChange={(e) => setForm({ ...form, unitLabel: e.target.value })}
-                  className="w-full py-2 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 capitalize bg-white"
+                  className="w-full py-2 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 capitalize bg-white"
                 >
                   {currentUnitOptions.map((unit) => (
                     <option key={unit} value={unit}>
@@ -877,7 +877,7 @@ function RedesignedMedicineModal({
                   placeholder="e.g. 10x10 / 100ml"
                   value={form.pack}
                   onChange={(e) => setForm({ ...form, pack: e.target.value })}
-                  className="w-full py-2 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 font-mono"
+                  className="w-full py-2 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 font-mono"
                 />
               </div>
             </div>
@@ -885,8 +885,8 @@ function RedesignedMedicineModal({
 
           {/* SECTION 3: TAX & INVENTORY SETTINGS */}
           <div className="space-y-4">
-            <div className="flex items-center gap-2 border-b border-slate-100 pb-2 text-xs font-bold uppercase tracking-wider text-teal-700">
-              <Percent className="w-4 h-4 text-teal-500" /> 3. Tax & Inventory Control
+            <div className="flex items-center gap-2 border-b border-slate-100 pb-2 text-xs font-bold uppercase tracking-wider text-cyan-700">
+              <Percent className="w-4 h-4 text-cyan-500" /> 3. Tax & Inventory Control
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -917,7 +917,7 @@ function RedesignedMedicineModal({
                   className={`w-full py-2 px-3 rounded-xl border text-sm focus:outline-none focus:ring-2 font-mono ${
                     !isReorderValid
                       ? 'border-red-300 bg-red-50/20 focus:ring-red-500'
-                      : 'border-slate-200 focus:ring-teal-500'
+                      : 'border-slate-200 focus:ring-cyan-500'
                   }`}
                 />
                 {!isReorderValid && (
@@ -941,7 +941,7 @@ function RedesignedMedicineModal({
                     onClick={() => setForm({ ...form, defaultGstPercent: slab })}
                     className={`px-3 py-1 rounded-lg text-xs font-bold border transition-all cursor-pointer ${
                       form.defaultGstPercent === slab
-                        ? 'bg-teal-600 text-white border-teal-600 shadow-sm'
+                        ? 'bg-cyan-600 text-white border-cyan-600 shadow-sm'
                         : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
                     }`}
                   >
@@ -959,7 +959,7 @@ function RedesignedMedicineModal({
                 className={`w-full py-2 px-3 rounded-xl border text-sm focus:outline-none focus:ring-2 font-mono font-bold ${
                   !isGstValid
                     ? 'border-red-300 bg-red-50/20 focus:ring-red-500'
-                    : 'border-slate-200 focus:ring-teal-500'
+                    : 'border-slate-200 focus:ring-cyan-500'
                 }`}
               />
               {!isGstValid && (
@@ -982,7 +982,7 @@ function RedesignedMedicineModal({
               <button
                 type="submit"
                 disabled={!isValid || submitting}
-                className="px-6 py-2.5 bg-teal-500 hover:bg-teal-600 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-md shadow-teal-500/20 transition-all disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none cursor-pointer flex items-center gap-1.5"
+                className="px-6 py-2.5 bg-cyan-500 hover:bg-cyan-600 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-md shadow-cyan-500/20 transition-all disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none cursor-pointer flex items-center gap-1.5"
               >
                 {submitting ? (
                   <span>Saving...</span>
@@ -1154,7 +1154,7 @@ function RedesignedVendorModal({
         {/* MODAL HEADER */}
         <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between shadow-md">
           <div className="flex items-center gap-2.5">
-            <Building2 className="w-5 h-5 text-teal-400" />
+            <Building2 className="w-5 h-5 text-cyan-400" />
             <h3 className="text-md font-bold">
               {editingVendor ? 'Edit Vendor Master' : 'Add New Vendor Master'}
             </h3>
@@ -1176,8 +1176,8 @@ function RedesignedVendorModal({
           
           {/* SECTION 1: CONTACT & LOCATION */}
           <div className="space-y-4">
-            <div className="flex items-center gap-2 border-b border-slate-100 pb-2 text-xs font-bold uppercase tracking-wider text-teal-700">
-              <Building2 className="w-4 h-4 text-teal-500" /> 1. Vendor Contact & Location
+            <div className="flex items-center gap-2 border-b border-slate-100 pb-2 text-xs font-bold uppercase tracking-wider text-cyan-700">
+              <Building2 className="w-4 h-4 text-cyan-500" /> 1. Vendor Contact & Location
             </div>
 
             <div className="space-y-3">
@@ -1195,7 +1195,7 @@ function RedesignedVendorModal({
                   className={`w-full py-2 px-3 rounded-xl border text-sm focus:outline-none focus:ring-2 font-semibold ${
                     !isNameValid && form.name !== ''
                       ? 'border-red-300 bg-red-50/20 focus:ring-red-500'
-                      : 'border-slate-200 focus:ring-teal-500'
+                      : 'border-slate-200 focus:ring-cyan-500'
                   }`}
                 />
                 {!isNameValid && (
@@ -1230,7 +1230,7 @@ function RedesignedVendorModal({
                   className={`w-full py-2 px-3 rounded-xl border text-sm focus:outline-none focus:ring-2 font-mono ${
                     !isPhoneValid
                       ? 'border-red-300 bg-red-50/20 focus:ring-red-500'
-                      : 'border-slate-200 focus:ring-teal-500'
+                      : 'border-slate-200 focus:ring-cyan-500'
                   }`}
                 />
                 {!isPhoneValid && (
@@ -1246,7 +1246,7 @@ function RedesignedVendorModal({
                   placeholder="Vendor business address or city..."
                   value={form.address}
                   onChange={(e) => setForm({ ...form, address: e.target.value })}
-                  className="w-full py-2 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full py-2 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
                 />
               </div>
 
@@ -1258,7 +1258,7 @@ function RedesignedVendorModal({
                   placeholder="Optional payment terms, contact person, or notes..."
                   value={form.notes}
                   onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                  className="w-full py-2 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full py-2 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
                 />
               </div>
             </div>
@@ -1266,8 +1266,8 @@ function RedesignedVendorModal({
 
           {/* SECTION 2: COMPLIANCE & LICENSING */}
           <div className="space-y-4">
-            <div className="flex items-center gap-2 border-b border-slate-100 pb-2 text-xs font-bold uppercase tracking-wider text-teal-700">
-              <ShieldCheck className="w-4 h-4 text-teal-500" /> 2. Tax Compliance & Drug Licensing
+            <div className="flex items-center gap-2 border-b border-slate-100 pb-2 text-xs font-bold uppercase tracking-wider text-cyan-700">
+              <ShieldCheck className="w-4 h-4 text-cyan-500" /> 2. Tax Compliance & Drug Licensing
             </div>
 
             <div className="space-y-3">
@@ -1285,7 +1285,7 @@ function RedesignedVendorModal({
                   className={`w-full py-2 px-3 rounded-xl border text-sm focus:outline-none focus:ring-2 font-mono font-semibold uppercase ${
                     !isGstinValid
                       ? 'border-red-300 bg-red-50/20 focus:ring-red-500'
-                      : 'border-slate-200 focus:ring-teal-500'
+                      : 'border-slate-200 focus:ring-cyan-500'
                   }`}
                 />
                 {!isGstinValid && (
@@ -1296,10 +1296,10 @@ function RedesignedVendorModal({
 
                 {/* STATE AUTO-DETECTION BADGE */}
                 {detectedState && isGstinValid && (
-                  <div className="mt-2 p-2 bg-teal-50 border border-teal-200/70 rounded-lg text-xs font-medium text-teal-900 flex items-center gap-1.5">
-                    <CheckCircle2 className="w-4 h-4 text-teal-600 shrink-0" />
+                  <div className="mt-2 p-2 bg-cyan-50 border border-cyan-200/70 rounded-lg text-xs font-medium text-cyan-900 flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4 text-cyan-600 shrink-0" />
                     <span>
-                      Detected State: <strong className="text-teal-950">{detectedState}</strong> (Code {stateCode}) • Enables In-State vs Inter-State Tax
+                      Detected State: <strong className="text-cyan-950">{detectedState}</strong> (Code {stateCode}) • Enables In-State vs Inter-State Tax
                     </span>
                   </div>
                 )}
@@ -1316,7 +1316,7 @@ function RedesignedVendorModal({
                   placeholder="e.g. DL-12345/2026"
                   value={form.drug_license_no}
                   onChange={(e) => setForm({ ...form, drug_license_no: e.target.value.toUpperCase() })}
-                  className="w-full py-2 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 font-mono uppercase"
+                  className="w-full py-2 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 font-mono uppercase"
                 />
               </div>
             </div>
@@ -1336,7 +1336,7 @@ function RedesignedVendorModal({
               <button
                 type="submit"
                 disabled={!isValid || submitting}
-                className="px-6 py-2.5 bg-teal-500 hover:bg-teal-600 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-md shadow-teal-500/20 transition-all disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none cursor-pointer flex items-center gap-1.5"
+                className="px-6 py-2.5 bg-cyan-500 hover:bg-cyan-600 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-md shadow-cyan-500/20 transition-all disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none cursor-pointer flex items-center gap-1.5"
               >
                 {submitting ? (
                   <span>Saving...</span>
@@ -1945,13 +1945,13 @@ export default function Inventory() {
             }}
             className={`px-6 py-3 font-semibold text-sm border-b-2 transition-all cursor-pointer whitespace-nowrap flex items-center gap-2 ${
               localTab === tab.id 
-                ? 'border-teal-500 text-teal-600 bg-teal-50/40' 
+                ? 'border-cyan-500 text-cyan-600 bg-cyan-50/40' 
                 : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
             }`}
           >
             <span>{tab.label}</span>
             {tab.badge && (
-              <span className="text-[10px] font-bold px-2 py-0.5 bg-teal-600 text-white rounded-full">
+              <span className="text-[10px] font-bold px-2 py-0.5 bg-cyan-600 text-white rounded-full">
                 {tab.badge}
               </span>
             )}
@@ -1985,7 +1985,7 @@ export default function Inventory() {
                 ) : isNearExpiry ? (
                   <span className="inline-flex px-2.5 py-0.5 text-xs rounded-full font-bold bg-amber-100 text-amber-800">Expiring in {daysToExpiry}d</span>
                 ) : (
-                  <span className="inline-flex px-2.5 py-0.5 text-xs rounded-full font-bold bg-emerald-100 text-emerald-800">Active</span>
+                  <span className="inline-flex px-2.5 py-0.5 text-xs rounded-full font-bold bg-cyan-100 text-cyan-800">Active</span>
                 )
               }
             },
@@ -2001,7 +2001,7 @@ export default function Inventory() {
                     setAdjustReason('Count correction')
                     setShowAdjustModal(true)
                   }}
-                  className="text-xs text-teal-600 hover:text-teal-700 font-bold underline cursor-pointer"
+                  className="text-xs text-cyan-600 hover:text-cyan-700 font-bold underline cursor-pointer"
                 >
                   Adjust Stock
                 </button>
@@ -2075,7 +2075,7 @@ export default function Inventory() {
                 setEditingMed(null)
                 setShowMedModal(true)
               }}
-              className="flex items-center justify-center px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold transition cursor-pointer"
+              className="flex items-center justify-center px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl text-xs font-bold transition cursor-pointer"
             >
               <Plus className="h-4 w-4 mr-1.5" /> Add Medicine
             </button>
@@ -2094,26 +2094,26 @@ export default function Inventory() {
               <div className="p-4 bg-slate-900 text-white rounded-2xl flex flex-wrap items-center justify-between gap-4 shadow-md border border-slate-800">
                 <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs">
                   <div className="flex items-center gap-2">
-                    <Building2 className="w-4 h-4 text-teal-400 shrink-0" />
+                    <Building2 className="w-4 h-4 text-cyan-400 shrink-0" />
                     <span className="text-slate-400">Vendor:</span>
                     <strong className="text-white text-sm">{selectedVendorObject?.name || 'Not Selected'}</strong>
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <Receipt className="w-4 h-4 text-teal-400 shrink-0" />
+                    <Receipt className="w-4 h-4 text-cyan-400 shrink-0" />
                     <span className="text-slate-400">Invoice:</span>
-                    <strong className="font-mono text-teal-300 text-sm">#{purchaseForm.purchaseInvoiceNo || '---'}</strong>
+                    <strong className="font-mono text-cyan-300 text-sm">#{purchaseForm.purchaseInvoiceNo || '---'}</strong>
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-teal-400 shrink-0" />
+                    <Calendar className="w-4 h-4 text-cyan-400 shrink-0" />
                     <span className="text-slate-400">Date:</span>
                     <span className="font-mono">{new Date(purchaseForm.purchaseDate).toLocaleDateString('en-GB')}</span>
                   </div>
 
                   <div className="flex items-center gap-2">
                     <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold uppercase ${
-                      purchaseForm.purchaseType === 'CREDIT' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                      purchaseForm.purchaseType === 'CREDIT' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
                     }`}>
                       {purchaseForm.purchaseType}
                     </span>
@@ -2126,7 +2126,7 @@ export default function Inventory() {
                 <button
                   type="button"
                   onClick={() => setIsHeaderCollapsed(false)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-teal-300 rounded-lg text-xs font-semibold border border-slate-700 transition-colors cursor-pointer"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-cyan-300 rounded-lg text-xs font-semibold border border-slate-700 transition-colors cursor-pointer"
                 >
                   <Edit2 className="w-3.5 h-3.5" /> Edit Header
                 </button>
@@ -2136,7 +2136,7 @@ export default function Inventory() {
               <div className="p-6 space-y-4">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                   <h3 className="text-md font-bold text-slate-900 flex items-center gap-2">
-                    <FilePlus className="h-5 w-5 text-teal-500" /> Purchase Invoice Header
+                    <FilePlus className="h-5 w-5 text-cyan-500" /> Purchase Invoice Header
                   </h3>
 
                   <div className="flex items-center gap-3">
@@ -2146,7 +2146,7 @@ export default function Inventory() {
                         setEditingVendor(null)
                         setShowVendorModal(true)
                       }}
-                      className="text-xs font-bold text-teal-600 hover:text-teal-800 flex items-center gap-1 cursor-pointer bg-teal-50 px-2.5 py-1 rounded-lg border border-teal-200/60"
+                      className="text-xs font-bold text-cyan-600 hover:text-cyan-800 flex items-center gap-1 cursor-pointer bg-cyan-50 px-2.5 py-1 rounded-lg border border-cyan-200/60"
                     >
                       <Plus className="w-3.5 h-3.5" /> Quick Add Vendor
                     </button>
@@ -2189,8 +2189,8 @@ export default function Inventory() {
                       onChange={(e) => setPurchaseForm({ ...purchaseForm, purchaseInvoiceNo: e.target.value })}
                       className={`w-full py-2 px-3 rounded-lg border text-sm focus:outline-none focus:ring-2 font-mono ${
                         !purchaseForm.purchaseInvoiceNo.trim()
-                          ? 'border-slate-200 focus:ring-teal-500'
-                          : 'border-teal-500 bg-teal-50/10 font-bold focus:ring-teal-500'
+                          ? 'border-slate-200 focus:ring-cyan-500'
+                          : 'border-cyan-500 bg-cyan-50/10 font-bold focus:ring-cyan-500'
                       }`}
                     />
                   </div>
@@ -2204,7 +2204,7 @@ export default function Inventory() {
                       type="date"
                       value={purchaseForm.purchaseDate}
                       onChange={(e) => setPurchaseForm({ ...purchaseForm, purchaseDate: e.target.value })}
-                      className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 font-medium"
+                      className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 font-medium"
                     />
                   </div>
 
@@ -2221,7 +2221,7 @@ export default function Inventory() {
                           paymentStatus: pType === 'CREDIT' ? 'PENDING' : 'PAID'
                         })
                       }}
-                      className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 font-bold text-slate-800 bg-slate-50/50"
+                      className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 font-bold text-slate-800 bg-slate-50/50"
                     >
                       <option value="CASH">CASH</option>
                       <option value="CREDIT">CREDIT</option>
@@ -2234,7 +2234,7 @@ export default function Inventory() {
                     <select
                       value={purchaseForm.taxType}
                       onChange={(e) => setPurchaseForm({ ...purchaseForm, taxType: e.target.value })}
-                      className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 font-semibold text-slate-800"
+                      className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 font-semibold text-slate-800"
                     >
                       <option value="INTRASTATE">CGST + SGST (In-State)</option>
                       <option value="INTERSTATE">IGST (Out of State)</option>
@@ -2247,7 +2247,7 @@ export default function Inventory() {
                     <select
                       value={purchaseForm.paymentMode}
                       onChange={(e) => setPurchaseForm({ ...purchaseForm, paymentMode: e.target.value })}
-                      className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                      className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
                     >
                       <option value="CASH">CASH</option>
                       <option value="UPI">UPI</option>
@@ -2264,7 +2264,7 @@ export default function Inventory() {
                       placeholder="Optional notes or reference..."
                       value={purchaseForm.notes}
                       onChange={(e) => setPurchaseForm({ ...purchaseForm, notes: e.target.value })}
-                      className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                      className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
                     />
                   </div>
                 </div>
@@ -2338,7 +2338,7 @@ export default function Inventory() {
           <div className="bg-white rounded-2xl border border-slate-200 shadow-md p-5 sticky top-2 z-20 transition-all">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
               <div className="flex items-center gap-2">
-                <Package className="w-5 h-5 text-teal-600" />
+                <Package className="w-5 h-5 text-cyan-600" />
                 <h4 className="text-sm font-bold text-slate-900">
                   {editingIndex !== null ? (
                     <span className="text-indigo-600 flex items-center gap-1.5">
@@ -2357,7 +2357,7 @@ export default function Inventory() {
                     setEditingMed(null)
                     setShowMedModal(true)
                   }}
-                  className="text-xs font-bold text-teal-600 hover:text-teal-800 underline cursor-pointer mr-2 flex items-center gap-1"
+                  className="text-xs font-bold text-cyan-600 hover:text-cyan-800 underline cursor-pointer mr-2 flex items-center gap-1"
                 >
                   <Plus className="w-3.5 h-3.5" /> Quick Create Medicine
                 </button>
@@ -2406,7 +2406,7 @@ export default function Inventory() {
                   placeholder="e.g. B-9021"
                   value={stockInItem.batchNo}
                   onChange={(e) => setStockInItem({ ...stockInItem, batchNo: e.target.value })}
-                  className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 font-mono font-semibold"
+                  className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 font-mono font-semibold"
                 />
               </div>
 
@@ -2419,7 +2419,7 @@ export default function Inventory() {
                   type="date"
                   value={stockInItem.expiryDate}
                   onChange={(e) => setStockInItem({ ...stockInItem, expiryDate: e.target.value })}
-                  className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 font-medium"
+                  className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 font-medium"
                 />
               </div>
 
@@ -2433,7 +2433,7 @@ export default function Inventory() {
                   placeholder="100"
                   value={stockInItem.qtyPurchased}
                   onChange={(e) => handleQtyPurchasedChange(e.target.value)}
-                  className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 font-mono font-bold text-slate-900"
+                  className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 font-mono font-bold text-slate-900"
                 />
               </div>
 
@@ -2445,7 +2445,7 @@ export default function Inventory() {
                   placeholder="0"
                   value={stockInItem.freeQty}
                   onChange={(e) => setStockInItem({ ...stockInItem, freeQty: e.target.value })}
-                  className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 font-mono text-emerald-700"
+                  className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 font-mono text-cyan-700"
                 />
               </div>
 
@@ -2458,7 +2458,7 @@ export default function Inventory() {
                   placeholder="150"
                   value={stockInItem.mrp}
                   onChange={(e) => setStockInItem({ ...stockInItem, mrp: e.target.value })}
-                  className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 font-mono"
+                  className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 font-mono"
                 />
               </div>
 
@@ -2471,7 +2471,7 @@ export default function Inventory() {
                   placeholder="0"
                   value={stockInItem.discountPercent}
                   onChange={(e) => setStockInItem({ ...stockInItem, discountPercent: e.target.value })}
-                  className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 font-mono"
+                  className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 font-mono"
                 />
               </div>
 
@@ -2486,7 +2486,7 @@ export default function Inventory() {
                   placeholder="₹/unit"
                   value={stockInItem.purchasePricePerUnit}
                   onChange={(e) => handlePurchasePriceChange(e.target.value)}
-                  className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 font-mono font-medium"
+                  className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 font-mono font-medium"
                 />
               </div>
 
@@ -2494,7 +2494,7 @@ export default function Inventory() {
               <div className="lg:col-span-2">
                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1 flex items-center justify-between">
                   <span>Net Amount</span>
-                  <span className="text-[10px] font-extrabold text-teal-700 bg-teal-100/90 px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                  <span className="text-[10px] font-extrabold text-cyan-700 bg-cyan-100/90 px-1.5 py-0.5 rounded flex items-center gap-0.5">
                     <Lock className="w-2.5 h-2.5" /> AUTO
                   </span>
                 </label>
@@ -2505,7 +2505,7 @@ export default function Inventory() {
                     placeholder="Qty × Price"
                     value={stockInItem.amount}
                     onChange={(e) => handleAmountChange(e.target.value)}
-                    className="w-full py-2 px-3 rounded-lg border border-teal-200 bg-teal-50/70 text-sm font-extrabold text-teal-950 font-mono focus:outline-none focus:ring-0"
+                    className="w-full py-2 px-3 rounded-lg border border-cyan-200 bg-cyan-50/70 text-sm font-extrabold text-cyan-950 font-mono focus:outline-none focus:ring-0"
                   />
                 </div>
               </div>
@@ -2519,7 +2519,7 @@ export default function Inventory() {
                   placeholder="12"
                   value={stockInItem.gstPercent}
                   onChange={(e) => setStockInItem({ ...stockInItem, gstPercent: e.target.value })}
-                  className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 font-mono font-semibold"
+                  className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 font-mono font-semibold"
                 />
               </div>
 
@@ -2534,7 +2534,7 @@ export default function Inventory() {
                   placeholder="₹/unit"
                   value={stockInItem.sellingPricePerUnit}
                   onChange={(e) => setStockInItem({ ...stockInItem, sellingPricePerUnit: e.target.value })}
-                  className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 font-mono font-semibold text-slate-900"
+                  className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 font-mono font-semibold text-slate-900"
                 />
               </div>
 
@@ -2546,7 +2546,7 @@ export default function Inventory() {
                   className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-md cursor-pointer ${
                     editingIndex !== null
                       ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-500/20'
-                      : 'bg-teal-600 hover:bg-teal-700 text-white shadow-teal-500/20'
+                      : 'bg-cyan-600 hover:bg-cyan-700 text-white shadow-cyan-500/20'
                   }`}
                 >
                   {editingIndex !== null ? (
@@ -2567,7 +2567,7 @@ export default function Inventory() {
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden space-y-4 p-6">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="text-md font-bold text-slate-900 flex items-center gap-2">
-                <Layers className="h-5 w-5 text-teal-500" /> Batch Items in Invoice
+                <Layers className="h-5 w-5 text-cyan-500" /> Batch Items in Invoice
                 <span className="ml-2 text-xs font-mono font-normal bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full">
                   {purchaseForm.items.length} items
                 </span>
@@ -2608,7 +2608,7 @@ export default function Inventory() {
                         key={index} 
                         className={`transition-colors duration-500 ${
                           isRecentlyAdded
-                            ? 'bg-teal-50/90 font-medium'
+                            ? 'bg-cyan-50/90 font-medium'
                             : isBeingEdited
                             ? 'bg-indigo-50/80 border-l-4 border-l-indigo-600'
                             : 'hover:bg-slate-50/70'
@@ -2621,7 +2621,7 @@ export default function Inventory() {
                         </td>
                         <td className="px-4 py-3 text-xs font-mono">
                           <div>{med?.hsn_code || '---'}</div>
-                          <span className="text-[10px] bg-teal-50 text-teal-700 border border-teal-200/60 font-sans px-1.5 py-0.5 rounded font-bold">
+                          <span className="text-[10px] bg-cyan-50 text-cyan-700 border border-cyan-200/60 font-sans px-1.5 py-0.5 rounded font-bold">
                             GST {item.gstPercent || med?.default_gst_percent || 12}%
                           </span>
                         </td>
@@ -2630,7 +2630,7 @@ export default function Inventory() {
                           {new Date(item.expiryDate).toLocaleDateString('en-GB')}
                         </td>
                         <td className="px-4 py-3 text-right font-mono font-bold text-slate-900">{item.qtyPurchased}</td>
-                        <td className="px-4 py-3 text-right font-mono text-emerald-600 font-semibold">
+                        <td className="px-4 py-3 text-right font-mono text-cyan-600 font-semibold">
                           {item.freeQty > 0 ? `+${item.freeQty}` : '-'}
                         </td>
                         <td className="px-4 py-3 text-right font-mono text-xs text-slate-600">
@@ -2643,7 +2643,7 @@ export default function Inventory() {
                         <td className="px-4 py-3 text-right font-mono font-semibold text-slate-900">₹{item.sellingPricePerUnit.toFixed(2)}</td>
                         
                         {/* COMPUTED READ-ONLY NET TOTAL */}
-                        <td className="px-4 py-3 text-right font-mono font-extrabold text-teal-900 bg-teal-50/40">
+                        <td className="px-4 py-3 text-right font-mono font-extrabold text-cyan-900 bg-cyan-50/40">
                           ₹{itemTotal.toFixed(2)}
                         </td>
 
@@ -2675,7 +2675,7 @@ export default function Inventory() {
                     <tr>
                       <td colSpan={12} className="px-6 py-12 text-center bg-slate-50/40">
                         <div className="max-w-md mx-auto space-y-3">
-                          <div className="w-12 h-12 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center mx-auto border border-teal-100">
+                          <div className="w-12 h-12 rounded-full bg-cyan-50 text-cyan-600 flex items-center justify-center mx-auto border border-cyan-100">
                             <Package className="w-6 h-6" />
                           </div>
                           <p className="text-sm font-semibold text-slate-800">No items added to this purchase invoice yet.</p>
@@ -2710,7 +2710,7 @@ export default function Inventory() {
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 w-full md:w-auto">
                   <div className="bg-slate-800/80 px-3.5 py-2 rounded-xl border border-slate-700/60">
                     <span className="text-[11px] text-slate-400 font-semibold block flex items-center gap-1">
-                      Taxable Amount <Lock className="w-2.5 h-2.5 text-teal-400" />
+                      Taxable Amount <Lock className="w-2.5 h-2.5 text-cyan-400" />
                     </span>
                     <span className="font-bold text-white font-mono text-base">₹{taxable.toFixed(2)}</span>
                   </div>
@@ -2718,7 +2718,7 @@ export default function Inventory() {
                   {purchaseForm.taxType === 'INTERSTATE' ? (
                     <div className="bg-slate-800/80 px-3.5 py-2 rounded-xl border border-slate-700/60">
                       <span className="text-[11px] text-slate-400 font-semibold block flex items-center gap-1">
-                        IGST Total <Lock className="w-2.5 h-2.5 text-teal-400" />
+                        IGST Total <Lock className="w-2.5 h-2.5 text-cyan-400" />
                       </span>
                       <span className="font-bold text-white font-mono text-base">₹{igst.toFixed(2)}</span>
                     </div>
@@ -2726,13 +2726,13 @@ export default function Inventory() {
                     <>
                       <div className="bg-slate-800/80 px-3.5 py-2 rounded-xl border border-slate-700/60">
                         <span className="text-[11px] text-slate-400 font-semibold block flex items-center gap-1">
-                          CGST Total <Lock className="w-2.5 h-2.5 text-teal-400" />
+                          CGST Total <Lock className="w-2.5 h-2.5 text-cyan-400" />
                         </span>
                         <span className="font-bold text-white font-mono text-base">₹{cgst.toFixed(2)}</span>
                       </div>
                       <div className="bg-slate-800/80 px-3.5 py-2 rounded-xl border border-slate-700/60">
                         <span className="text-[11px] text-slate-400 font-semibold block flex items-center gap-1">
-                          SGST Total <Lock className="w-2.5 h-2.5 text-teal-400" />
+                          SGST Total <Lock className="w-2.5 h-2.5 text-cyan-400" />
                         </span>
                         <span className="font-bold text-white font-mono text-base">₹{sgst.toFixed(2)}</span>
                       </div>
@@ -2740,10 +2740,10 @@ export default function Inventory() {
                   )}
 
                   <div className="bg-slate-800/80 px-3.5 py-2 rounded-xl border border-slate-700/60">
-                    <span className="text-[11px] text-teal-400 font-semibold block flex items-center gap-1">
-                      Total GST <Lock className="w-2.5 h-2.5 text-teal-400" />
+                    <span className="text-[11px] text-cyan-400 font-semibold block flex items-center gap-1">
+                      Total GST <Lock className="w-2.5 h-2.5 text-cyan-400" />
                     </span>
-                    <span className="font-bold text-teal-300 font-mono text-base">₹{totalGst.toFixed(2)}</span>
+                    <span className="font-bold text-cyan-300 font-mono text-base">₹{totalGst.toFixed(2)}</span>
                   </div>
                 </div>
 
@@ -2751,7 +2751,7 @@ export default function Inventory() {
                 <div className="flex items-center justify-between md:justify-end gap-6 w-full md:w-auto border-t md:border-t-0 border-slate-800 pt-3 md:pt-0">
                   <div>
                     <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Grand Total Amount</p>
-                    <p className="text-2xl font-black text-teal-400 font-mono">₹{grandTotal.toFixed(2)}</p>
+                    <p className="text-2xl font-black text-cyan-400 font-mono">₹{grandTotal.toFixed(2)}</p>
                   </div>
 
                   <div className="relative group">
@@ -2759,7 +2759,7 @@ export default function Inventory() {
                       type="button"
                       onClick={handlePurchaseSubmit}
                       disabled={!canSubmit}
-                      className="px-6 py-3 bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold rounded-xl text-sm shadow-lg shadow-teal-500/20 transition-all disabled:bg-slate-800 disabled:text-slate-500 disabled:shadow-none cursor-pointer flex items-center gap-2"
+                      className="px-6 py-3 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-xl text-sm shadow-lg shadow-cyan-500/20 transition-all disabled:bg-slate-800 disabled:text-slate-500 disabled:shadow-none cursor-pointer flex items-center gap-2"
                     >
                       <span>Log Stock Purchase</span>
                       <ArrowRight className="h-4 w-4" />
@@ -2807,7 +2807,7 @@ export default function Inventory() {
               sortable: true,
               render: (p: any) => (
                 <span className={`text-[10px] px-2 py-0.5 rounded font-extrabold uppercase ${
-                  p.purchase_type === 'CREDIT' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'
+                  p.purchase_type === 'CREDIT' ? 'bg-amber-100 text-amber-800' : 'bg-cyan-100 text-cyan-800'
                 }`}>
                   {p.purchase_type || 'CASH'}
                 </span>
@@ -2821,7 +2821,7 @@ export default function Inventory() {
               align: 'right',
               render: (p: any) => {
                 const paid = p.paid_amount !== undefined ? p.paid_amount : (p.purchase_type === 'CREDIT' ? 0 : p.total_amount)
-                return <span className="font-mono font-semibold text-emerald-700">₹{paid.toFixed(2)}</span>
+                return <span className="font-mono font-semibold text-cyan-700">₹{paid.toFixed(2)}</span>
               }
             },
             {
@@ -2843,7 +2843,7 @@ export default function Inventory() {
               render: (p: any) => (
                 <span className={`text-[10px] px-2 py-0.5 rounded font-extrabold uppercase ${
                   p.payment_status === 'PENDING' ? 'bg-red-100 text-red-800' :
-                  p.payment_status === 'PARTIAL' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'
+                  p.payment_status === 'PARTIAL' ? 'bg-amber-100 text-amber-800' : 'bg-cyan-100 text-cyan-800'
                 }`}>
                   {p.payment_status || 'PAID'}
                 </span>
@@ -2925,7 +2925,7 @@ export default function Inventory() {
                 setEditingVendor(null)
                 setShowVendorModal(true)
               }}
-              className="flex items-center justify-center px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold transition cursor-pointer"
+              className="flex items-center justify-center px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl text-xs font-bold transition cursor-pointer"
             >
               <Plus className="h-4 w-4 mr-1.5" /> Add Vendor
             </button>
@@ -2984,7 +2984,7 @@ export default function Inventory() {
                   placeholder="e.g. -5 to decrease, 10 to increase"
                   value={adjustQty}
                   onChange={(e) => setAdjustQty(e.target.value)}
-                  className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 font-semibold font-mono"
+                  className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 font-semibold font-mono"
                 />
               </div>
 
@@ -2993,7 +2993,7 @@ export default function Inventory() {
                 <select
                   value={adjustReason}
                   onChange={(e) => setAdjustReason(e.target.value)}
-                  className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
                 >
                   <option value="Count correction">Count correction</option>
                   <option value="Damage">Damage</option>
@@ -3015,7 +3015,7 @@ export default function Inventory() {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-teal-500 text-white rounded-lg text-sm font-semibold hover:bg-teal-600 shadow-md shadow-teal-500/10 cursor-pointer"
+                  className="px-4 py-2 bg-cyan-500 text-white rounded-lg text-sm font-semibold hover:bg-cyan-600 shadow-md shadow-cyan-500/10 cursor-pointer"
                 >
                   Apply Stock Correction
                 </button>
