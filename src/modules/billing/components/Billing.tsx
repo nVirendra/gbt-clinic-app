@@ -976,7 +976,7 @@ export default function Billing({ onSuccess }: BillingProps) {
             className="grid grid-cols-12 gap-3 items-end"
           >
             {/* Item Autocomplete Search / Custom name input */}
-            <div className={itemType === 'MEDICINE' ? 'col-span-4' : 'col-span-5'}>
+            <div className={itemType === 'MEDICINE' ? 'col-span-3' : 'col-span-5'}>
               <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
                 {itemType === 'SERVICE' ? 'Search Service *' : itemType === 'MEDICINE' ? 'Search Medicine *' : 'Charge Name *'}
               </label>
@@ -1086,8 +1086,8 @@ export default function Billing({ onSuccess }: BillingProps) {
 
         {/* INVOICE ITEMS TABLE */}
         <div className="flex-1 border border-slate-200/80 rounded-2xl overflow-hidden flex flex-col min-h-[220px]">
-          <div className="overflow-y-auto flex-1">
-            <table className="w-full text-left text-sm border-collapse">
+          <div className="overflow-x-auto overflow-y-auto flex-1">
+            <table className="w-full min-w-[640px] text-left text-sm border-collapse">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider">
                   <th className="px-4 py-3">Type</th>

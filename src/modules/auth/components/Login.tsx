@@ -1,104 +1,189 @@
-import React, { useState } from 'react'
-import { KeyRound, ShieldAlert, User, Building2 } from 'lucide-react'
+import React, { useState, useRef, useEffect } from 'react'
+import { KeyRound, ShieldAlert, User, Eye, EyeOff, Loader2, Sparkles, Building2 } from 'lucide-react'
 import { useAuthStore } from '../store'
 
-export default function Login() {
+export interface LoginProps {
+  productName?: string
+  productTagline?: string
+  productLogoSrc?: string
+  developerName?: string
+  copyrightText?: string
+}
+
+export default function Login({
+  productName = 'Clinic Billing System',
+  productTagline = 'Sign in to manage records and invoices',
+  productLogoSrc = '/get-by-tech-logo.png',
+  developerName = 'GetBytech',
+  copyrightText = `© ${new Date().getFullYear()} GetBytech. All rights reserved.`
+}: LoginProps) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
+  const [isLogoLoaded, setIsLogoLoaded] = useState(true)
+
+  const usernameInputRef = useRef<HTMLInputElement>(null)
+
   const login = useAuthStore((state) => state.login)
   const loading = useAuthStore((state) => state.loading)
+
+  // Auto-focus username field on load
+  useEffect(() => {
+    usernameInputRef.current?.focus()
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    
     if (!username.trim() || !password.trim()) {
-      setError('Please fill in all fields')
+      setError('Please enter both your username and password.')
       return
     }
 
-    const res = await login(username, password)
+    const res = await login(username.trim(), password.trim())
     if (!res.success) {
-      setError(res.message || 'Invalid credentials')
+      setError('Invalid username or password.')
     }
   }
 
+  const isFormValid = username.trim().length > 0 && password.trim().length > 0
+
   return (
-    <div className="min-h-screen w-screen flex items-center justify-center bg-gradient-to-tr from-slate-900 via-slate-800 to-teal-950 p-6">
-      <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden border border-white/20 p-8 space-y-6">
+    <div className="min-h-screen w-screen flex flex-col justify-between items-center bg-gradient-to-br from-slate-950 via-slate-900 to-teal-950 p-6 text-slate-100 font-sans selection:bg-teal-500 selection:text-white">
+      
+      {/* Top Spacer for Vertical Balance */}
+      <div className="hidden sm:block h-6" />
+
+      {/* CENTERED LOGIN CARD */}
+      <div className="w-full max-w-md bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl overflow-hidden border border-white/20 p-8 space-y-6 text-slate-800 animate-fade-in transition-all">
         
-        {/* Brand Header */}
-        <div className="text-center space-y-2">
-          <div className="mx-auto h-12 w-12 rounded-xl bg-teal-500 flex items-center justify-center text-white shadow-lg shadow-teal-500/20">
-            <Building2 className="h-6 w-6" />
+        {/* Product Brand Header */}
+        <div className="text-center space-y-3">
+          <div className="mx-auto flex items-center justify-center">
+            {isLogoLoaded && productLogoSrc ? (
+              <img
+                src={productLogoSrc}
+                alt={productName}
+                onError={() => setIsLogoLoaded(false)}
+                className="h-14 w-auto object-contain drop-shadow-sm transition-transform hover:scale-105"
+              />
+            ) : (
+              <div className="h-12 w-12 rounded-2xl bg-teal-600 text-white flex items-center justify-center shadow-lg shadow-teal-600/20">
+                <Building2 className="h-6 w-6" />
+              </div>
+            )}
           </div>
-          <h2 className="text-2xl font-bold tracking-tight text-slate-900">Clinic Billing System</h2>
-          <p className="text-sm text-slate-500">Sign in to manage records and invoices</p>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">{productName}</h1>
+            <p className="text-xs text-slate-500 mt-1 font-medium">{productTagline}</p>
+          </div>
         </div>
 
-        {/* Error Alert */}
+        {/* Inline Error Message Area */}
         {error && (
-          <div className="flex items-center space-x-2 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-            <ShieldAlert className="h-5 w-5 flex-shrink-0 text-red-500" />
+          <div
+            role="alert"
+            aria-live="polite"
+            className="flex items-center gap-2.5 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-xs font-semibold animate-fade-in"
+          >
+            <ShieldAlert className="h-4 w-4 shrink-0 text-red-500" />
             <span>{error}</span>
           </div>
         )}
 
         {/* Login Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
+          
+          {/* Username Field */}
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">
+            <label htmlFor="username" className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
               Username
             </label>
             <div className="relative">
-              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
-                <User className="h-4.5 w-4.5" />
+              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
+                <User className="h-4 w-4" />
               </span>
               <input
+                id="username"
+                ref={usernameInputRef}
                 type="text"
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Enter username (Default: admin)"
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm bg-slate-50/50"
+                onChange={(e) => {
+                  setUsername(e.target.value)
+                  if (error) setError('')
+                }}
+                placeholder="Enter your username"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm bg-slate-50/50 text-slate-900 placeholder:text-slate-400 font-medium transition-all"
                 disabled={loading}
+                autoComplete="username"
               />
             </div>
           </div>
 
+          {/* Password Field with Mask Toggle */}
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">
+            <label htmlFor="password" className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
               Password
             </label>
             <div className="relative">
-              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
-                <KeyRound className="h-4.5 w-4.5" />
+              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
+                <KeyRound className="h-4 w-4" />
               </span>
               <input
-                type="password"
+                id="password"
+                type={showPassword ? 'text' : 'password'}
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter password (Default: admin123)"
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm bg-slate-50/50"
+                onChange={(e) => {
+                  setPassword(e.target.value)
+                  if (error) setError('')
+                }}
+                placeholder="Enter your password"
+                className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm bg-slate-50/50 text-slate-900 placeholder:text-slate-400 font-medium transition-all"
                 disabled={loading}
+                autoComplete="current-password"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
             </div>
           </div>
 
+          {/* Primary Submit Button */}
           <button
             type="submit"
-            className="w-full bg-teal-600 hover:bg-teal-700 text-white font-medium py-3 rounded-xl transition shadow-lg shadow-teal-600/10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 disabled:opacity-50 text-sm"
-            disabled={loading}
+            disabled={loading || !isFormValid}
+            className="w-full bg-teal-600 hover:bg-teal-500 text-white font-bold py-3 rounded-xl transition-all shadow-md shadow-teal-600/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 disabled:opacity-50 disabled:cursor-not-allowed text-xs uppercase tracking-wider cursor-pointer flex items-center justify-center gap-2 mt-2"
           >
-            {loading ? 'Signing in...' : 'Sign In'}
+            {loading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Authenticating...</span>
+              </>
+            ) : (
+              <span>Sign In</span>
+            )}
           </button>
         </form>
-
-        <div className="text-center">
-          <p className="text-xs text-slate-400">
-            For fresh installations, use username <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-600 font-mono">admin</code> and password <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-600 font-mono">admin123</code>.
-          </p>
-        </div>
       </div>
+
+      {/* DEVELOPER BRANDING FOOTER */}
+      <footer className="py-4 text-center space-y-1">
+        <p className="text-xs text-slate-400 flex items-center justify-center gap-1.5 font-medium">
+          <span>Developed by</span>
+          <strong className="text-teal-400 tracking-tight font-bold">{developerName}</strong>
+        </p>
+        <p className="text-[11px] text-slate-500/80 font-mono">
+          {copyrightText}
+        </p>
+      </footer>
+
     </div>
   )
 }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react'
+import { toast } from 'sonner'
 import { 
   Plus, 
   Edit2, 
@@ -439,10 +440,11 @@ export default function Services() {
 
   const [searchQuery, setSearchQuery] = useState('')
 
-  // Toast feedback state
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null)
+  // Toast feedback helper
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
-    setToast({ message, type })
+    if (type === 'error') toast.error(message)
+    else if (type === 'info') toast.info(message)
+    else toast.success(message)
   }
 
   // Modal state
@@ -533,14 +535,7 @@ export default function Services() {
   return (
     <div className="space-y-6 animate-fade-in pb-8">
       
-      {/* Toast Notification Popup */}
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
-      )}
+
 
       {/* TOP CONTROLLER */}
       <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4">

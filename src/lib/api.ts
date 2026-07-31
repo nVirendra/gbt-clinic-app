@@ -28,3 +28,7 @@ export function isUsingRealApi(): boolean {
 
 export const api: Window['api'] = realApi;
 
+if (typeof window !== 'undefined') {
+  (window as any).api = realApi;
+}
+

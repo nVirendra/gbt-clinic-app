@@ -12,6 +12,7 @@ import {
   AlertTriangle,
   Lock
 } from 'lucide-react'
+import { toast } from 'sonner'
 import { useBillingStore } from '../store'
 import { useAuthStore } from '../../auth/store'
 import { useSettingsStore } from '../../settings/store'
@@ -101,7 +102,7 @@ export default function Invoices() {
 
     const amount = parseFloat(paymentAmount) || 0
     if (amount <= 0 || amount > selectedBill.balance_due) {
-      alert('Please enter a valid amount (greater than 0 and less than/equal to balance due).')
+      toast.error('Please enter a valid amount (greater than 0 and less than/equal to balance due).')
       return
     }
 
@@ -114,12 +115,12 @@ export default function Invoices() {
         referenceNo: transactionId || undefined,
         userId: currentUser?.id || ''
       })
-      alert('Payment recorded successfully!')
+      toast.success('Payment recorded successfully!')
       setShowPaymentModal(false)
       loadBills()
     } catch (err: any) {
       console.error('Failed to log payment:', err)
-      alert(err.message || 'Error logging payment')
+      toast.error(err.message || 'Error logging payment')
     } finally {
       setSubmittingPayment(false)
     }
@@ -140,12 +141,12 @@ export default function Invoices() {
         transactionId: finalizeTransactionId || undefined,
         userId: currentUser?.id || ''
       })
-      alert('Invoice finalized successfully!')
+      toast.success('Invoice finalized successfully!')
       setShowFinalizeModal(false)
       setShowDetailsModal(false)
       loadBills()
     } catch (err: any) {
-      alert(err.message || 'Failed to finalize bill')
+      toast.error(err.message || 'Failed to finalize bill')
     } finally {
       setSubmittingFinalize(false)
     }
@@ -155,7 +156,7 @@ export default function Invoices() {
   const handleCancelSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!selectedBill) return
-    if (!cancelReason.trim()) return alert('Reason is required.')
+    if (!cancelReason.trim()) return toast.error('Cancellation reason is required.')
 
     setSubmittingCancel(true)
     try {
@@ -166,12 +167,12 @@ export default function Invoices() {
         adminPassword: currentUser?.role !== 'ADMIN' ? adminPassword : undefined,
         userId: currentUser?.id || ''
       })
-      alert('Invoice cancelled successfully!')
+      toast.success('Invoice cancelled successfully!')
       setShowCancelModal(false)
       setShowDetailsModal(false)
       loadBills()
     } catch (err: any) {
-      alert(err.message || 'Failed to cancel bill')
+      toast.error(err.message || 'Failed to cancel bill')
     } finally {
       setSubmittingCancel(false)
     }
@@ -182,11 +183,11 @@ export default function Invoices() {
     try {
       const res = await printInvoice(billId)
       if (res) {
-        console.log('Printed successfully')
+        toast.success('Invoice print initiated')
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error('Failed to execute printing:', e)
-      alert('Print operation failed')
+      toast.error(e.message || 'Print operation failed')
     }
   }
 
@@ -195,7 +196,17 @@ export default function Invoices() {
       key: 'bill_no',
       header: 'Invoice Number',
       sortable: true,
-      render: (b) => <span className="font-bold text-slate-900 font-mono">{b.bill_no}</span>
+      render: (b) => (
+        <span className="font-bold font-mono">
+          {b.bill_no ? (
+            <span className="text-teal-900 bg-teal-50 px-2 py-1 rounded-lg border border-teal-200/80">{b.bill_no}</span>
+          ) : (
+            <span className="text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md text-xs font-semibold">
+              {b.status === 'DRAFT' ? 'DRAFT' : `#${b.id.substring(0, 8)}`}
+            </span>
+          )}
+        </span>
+      )
     },
     {
       key: 'patient',
@@ -213,7 +224,11 @@ export default function Invoices() {
       key: 'bill_date',
       header: 'Date',
       sortable: true,
-      render: (b) => <span className="font-mono text-xs text-slate-600">{b.bill_date}</span>
+      render: (b) => (
+        <span className="font-mono text-xs text-slate-600 font-medium">
+          {b.bill_date ? new Date(b.bill_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}
+        </span>
+      )
     },
     {
       key: 'grand_total',

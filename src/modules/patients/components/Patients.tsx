@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { toast } from 'sonner'
 import { 
   Search, 
   UserPlus, 
@@ -732,10 +733,11 @@ export default function Patients() {
 
   const [searchQuery, setSearchQuery] = useState('')
 
-  // Toast feedback state
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null)
+  // Toast feedback helper
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
-    setToast({ message, type })
+    if (type === 'error') toast.error(message)
+    else if (type === 'info') toast.info(message)
+    else toast.success(message)
   }
 
   // Modals state
@@ -830,14 +832,7 @@ export default function Patients() {
   return (
     <div className="h-full flex gap-8 animate-fade-in">
       
-      {/* Toast Notification Popup */}
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
-      )}
+
 
       {/* LEFT COLUMN: List & Search */}
       <div className="w-1/3 min-w-[320px] bg-white rounded-2xl border border-slate-200/80 shadow-sm flex flex-col overflow-hidden">

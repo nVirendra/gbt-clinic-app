@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { toast } from 'sonner'
 import { 
   Search, 
   Plus, 
@@ -1389,10 +1390,11 @@ export default function Inventory() {
   const [localTab, setLocalTab] = useState('stock-in') // default to stock-in for quick access
   const [searchQuery, setSearchQuery] = useState('')
 
-  // Toast feedback state
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null)
+  // Toast feedback helper
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
-    setToast({ message, type })
+    if (type === 'error') toast.error(message)
+    else if (type === 'info') toast.info(message)
+    else toast.success(message)
   }
 
   // Modals state
@@ -1924,14 +1926,7 @@ export default function Inventory() {
 
   return (
     <div className="space-y-6 animate-fade-in pb-12">
-      {/* Toast Notification Popup */}
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
-      )}
+
 
       {/* Sub Tabs Navigation */}
       <div className="flex border-b border-slate-200 overflow-x-auto">
@@ -1964,47 +1959,7 @@ export default function Inventory() {
         ))}
       </div>
 
-      {/* Action / Search Bar (Except Stock In) */}
-      {localTab !== 'stock-in' && (
-        <div className="flex flex-col sm:flex-row gap-4 justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-          <div className="relative w-full sm:w-80">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Search..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 pr-4 py-2 w-full text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
-            />
-          </div>
 
-          <div className="flex gap-3 w-full sm:w-auto">
-            {localTab === 'medicines' && (
-              <button
-                onClick={() => {
-                  setEditingMed(null)
-                  setShowMedModal(true)
-                }}
-                className="flex items-center justify-center px-4 py-2 bg-teal-500 text-white rounded-lg text-sm font-semibold hover:bg-teal-600 shadow-md shadow-teal-500/10 transition-all cursor-pointer w-full sm:w-auto"
-              >
-                <Plus className="h-4 w-4 mr-2" /> Add Medicine
-              </button>
-            )}
-
-            {localTab === 'vendors' && (
-              <button
-                onClick={() => {
-                  setEditingVendor(null)
-                  setShowVendorModal(true)
-                }}
-                className="flex items-center justify-center px-4 py-2 bg-teal-500 text-white rounded-lg text-sm font-semibold hover:bg-teal-600 shadow-md shadow-teal-500/10 transition-all cursor-pointer w-full sm:w-auto"
-              >
-                <Plus className="h-4 w-4 mr-2" /> Add Vendor
-              </button>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* --- CURRENT STOCK BATCHES TAB --- */}
       {localTab === 'batches' && (

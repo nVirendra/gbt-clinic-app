@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react'
+import { toast } from 'sonner'
 import { 
   Building2, 
   Users, 
@@ -536,10 +537,11 @@ export default function Settings() {
   // Tabs: 'profile', 'services', 'users', 'database'
   const [activeSubTab, setActiveSubTab] = useState('profile')
 
-  // Toast feedback state
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null)
+  // Toast feedback helper
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
-    setToast({ message, type })
+    if (type === 'error') toast.error(message)
+    else if (type === 'info') toast.info(message)
+    else toast.success(message)
   }
 
   // Clinic profile form state
@@ -949,14 +951,7 @@ export default function Settings() {
   return (
     <div className="h-full flex flex-col md:flex-row gap-6 animate-fade-in pb-12">
       
-      {/* Toast Notification Popup */}
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
-      )}
+
 
       {/* SUB-TABS SIDEBAR NAVIGATION */}
       <div className="w-full md:w-56 bg-white border border-slate-200 p-4 rounded-2xl flex flex-row md:flex-col gap-1.5 flex-shrink-0 self-start shadow-sm sticky top-6 z-10 overflow-x-auto">

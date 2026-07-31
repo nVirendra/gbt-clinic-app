@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Bill, ClinicProfile } from '../types'
+import { realApi } from '../lib/realApi'
 
 interface PrintInvoiceProps {
   billId: string
@@ -45,9 +46,10 @@ export default function PrintInvoice({ billId }: PrintInvoiceProps) {
 
   const loadInvoiceData = async () => {
     try {
+      const activeApi = typeof window !== 'undefined' && window.api ? window.api : realApi
       const [bData, pData] = await Promise.all([
-        window.api.getBillById(billId),
-        window.api.getClinicProfile()
+        activeApi.getBillById(billId),
+        activeApi.getClinicProfile()
       ])
       setBill(bData)
       setProfile(pData)

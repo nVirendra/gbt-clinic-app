@@ -1,16 +1,16 @@
-import { 
-  Patient, 
-  Vendor, 
-  Medicine, 
-  Purchase, 
-  InventoryBatch, 
-  Service, 
-  Bill, 
-  ClinicProfile, 
-  UserSummary, 
-  CollectionSummary, 
-  GstSummaryRow, 
-  AuditLogEntry 
+import {
+  Patient,
+  Vendor,
+  Medicine,
+  Purchase,
+  InventoryBatch,
+  Service,
+  Bill,
+  ClinicProfile,
+  UserSummary,
+  CollectionSummary,
+  GstSummaryRow,
+  AuditLogEntry
 } from '../types';
 
 const getBaseUrl = (): string => {
@@ -60,9 +60,20 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     let errorMessage = `API Request failed with status ${response.status}`;
     try {
       const errData = await response.json();
-      if (errData.message) errorMessage = errData.message;
-      else if (errData.error) errorMessage = errData.error;
-    } catch {}
+      if (Array.isArray(errData.errors) && errData.errors.length > 0) {
+        const details = errData.errors.map((e: any) => typeof e === 'string' ? e : e.message || e.msg || JSON.stringify(e)).join('; ');
+        errorMessage = errData.message ? `${errData.message}: ${details}` : details;
+      } else if (Array.isArray(errData.details) && errData.details.length > 0) {
+        const details = errData.details.map((e: any) => typeof e === 'string' ? e : e.message || JSON.stringify(e)).join('; ');
+        errorMessage = errData.message ? `${errData.message}: ${details}` : details;
+      } else if (typeof errData.details === 'string') {
+        errorMessage = errData.message ? `${errData.message}: ${errData.details}` : errData.details;
+      } else if (errData.message) {
+        errorMessage = errData.message;
+      } else if (errData.error) {
+        errorMessage = typeof errData.error === 'string' ? errData.error : JSON.stringify(errData.error);
+      }
+    } catch { }
     throw new Error(errorMessage);
   }
 
@@ -435,20 +446,36 @@ export const realApi: Window['api'] = {
 
   async createBill(args: { data: any; userId: string }): Promise<Bill> {
     const rawData = args.data;
+    const items = (rawData.items || []).map((item: any) => {
+      const qtyRaw = Number(item.quantity !== undefined ? item.quantity : (item.qty !== undefined ? item.qty : 1));
+      const qty = isNaN(qtyRaw) || qtyRaw < 1 ? 1 : Math.round(qtyRaw);
+
+      const priceRaw = Number(item.price !== undefined ? item.price : (item.unitPrice !== undefined ? item.unitPrice : (item.unit_price || 0)));
+      const unitPrice = isNaN(priceRaw) || priceRaw < 0 ? 0 : priceRaw;
+
+      const discRaw = Number(item.discount !== undefined ? item.discount : (item.discountAmount !== undefined ? item.discountAmount : (item.discount_amount || 0)));
+      const discountAmount = isNaN(discRaw) || discRaw < 0 ? 0 : discRaw;
+
+      const gstRaw = Number(item.gstPercent !== undefined ? item.gstPercent : (item.gst_percent || 0));
+      const gstPercent = isNaN(gstRaw) || gstRaw < 0 ? 0 : gstRaw;
+
+      return {
+        itemType: item.itemType || item.item_type || 'SERVICE',
+        serviceId: item.serviceId || item.service_id || null,
+        batchId: item.batchId || item.batch_id || null,
+        description: String(item.name || item.description || 'Line Item').trim(),
+        qty,
+        unitPrice,
+        discountAmount,
+        gstPercent,
+      };
+    });
+
     const payload = {
       patientId: rawData.patientId || rawData.patient_id || null,
       walkinName: rawData.walkinName || rawData.walkin_name || null,
       notes: rawData.notes || null,
-      items: (rawData.items || []).map((item: any) => ({
-        itemType: item.itemType || item.item_type,
-        serviceId: item.serviceId || item.service_id || null,
-        batchId: item.batchId || item.batch_id || null,
-        description: item.name || item.description,
-        qty: Number(item.quantity || item.qty),
-        unitPrice: Number(item.price !== undefined ? item.price : (item.unitPrice !== undefined ? item.unitPrice : (item.unit_price || 0))),
-        discountAmount: Number(item.discount !== undefined ? item.discount : (item.discountAmount !== undefined ? item.discountAmount : (item.discount_amount || 0))),
-        gstPercent: Number(item.gstPercent !== undefined ? item.gstPercent : (item.gst_percent || 0)),
-      })),
+      items,
     };
 
     const draftBill = await request<Bill>('/billing', {
@@ -459,7 +486,7 @@ export const realApi: Window['api'] = {
     if (rawData.status === 'FINALIZED') {
       return this.finalizeBill({
         billId: draftBill.id,
-        paidAmount: rawData.paidAmount || draftBill.grand_total,
+        paidAmount: rawData.paidAmount !== undefined ? rawData.paidAmount : draftBill.grand_total,
         paymentMode: rawData.paymentMode || 'CASH',
         transactionId: rawData.transactionId,
         userId: args.userId,
@@ -475,17 +502,21 @@ export const realApi: Window['api'] = {
     });
 
     if (args.paidAmount > 0) {
-      const updatedBill = await this.recordPayment({
-        billId: args.billId,
-        amount: args.paidAmount,
-        mode: args.paymentMode,
-        referenceNo: args.transactionId,
-        userId: args.userId,
-      });
-      return (updatedBill && updatedBill.id) ? updatedBill : bill;
+      try {
+        await this.recordPayment({
+          billId: args.billId,
+          amount: args.paidAmount,
+          mode: args.paymentMode,
+          referenceNo: args.transactionId,
+          userId: args.userId,
+        });
+      } catch (e) {
+        console.error('Failed to record payment during finalization:', e);
+      }
     }
 
-    return bill;
+    const freshBill = await this.getBillById(args.billId);
+    return freshBill || bill;
   },
 
   async cancelBill(args: { billId: string; reason: string; adminUsername?: string; adminPassword?: string; userId: string }): Promise<Bill> {
@@ -586,7 +617,7 @@ export const realApi: Window['api'] = {
         if (typeof window !== 'undefined') {
           const stored = localStorage.getItem('gbt_user');
           if (stored) {
-            try { return JSON.parse(stored); } catch {}
+            try { return JSON.parse(stored); } catch { }
           }
         }
         return null;
@@ -604,7 +635,7 @@ export const realApi: Window['api'] = {
       if (typeof window !== 'undefined') {
         const stored = localStorage.getItem('gbt_user');
         if (stored) {
-          try { return JSON.parse(stored); } catch {}
+          try { return JSON.parse(stored); } catch { }
         }
       }
       return null;
