@@ -51,13 +51,13 @@ export default function Login({
   const isFormValid = username.trim().length > 0 && password.trim().length > 0
 
   return (
-    <div className="min-h-screen w-screen flex flex-col justify-between items-center bg-gradient-to-br from-slate-950 via-slate-900 to-teal-950 p-6 text-slate-100 font-sans selection:bg-teal-500 selection:text-white">
+    <div className="min-h-screen w-screen flex flex-col justify-between items-center bg-gradient-to-br from-[#0B132B] via-[#0D1B3E] to-[#070D1F] p-6 text-slate-100 font-sans selection:bg-[#00E5FF] selection:text-[#0B132B]">
       
       {/* Top Spacer for Vertical Balance */}
       <div className="hidden sm:block h-6" />
 
       {/* CENTERED LOGIN CARD */}
-      <div className="w-full max-w-md bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl overflow-hidden border border-white/20 p-8 space-y-6 text-slate-800 animate-fade-in transition-all">
+      <div className="w-full max-w-md bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl overflow-hidden border border-white/20 p-8 space-y-6 text-[#0B132B] animate-fade-in transition-all">
         
         {/* Product Brand Header */}
         <div className="text-center space-y-3">
@@ -70,14 +70,14 @@ export default function Login({
                 className="h-14 w-auto object-contain drop-shadow-sm transition-transform hover:scale-105"
               />
             ) : (
-              <div className="h-12 w-12 rounded-2xl bg-teal-600 text-white flex items-center justify-center shadow-lg shadow-teal-600/20">
+              <div className="h-12 w-12 rounded-2xl bg-[#0B132B] text-[#00E5FF] flex items-center justify-center shadow-lg shadow-[#00E5FF]/20 border border-[#00E5FF]/30">
                 <Building2 className="h-6 w-6" />
               </div>
             )}
           </div>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900">{productName}</h1>
-            <p className="text-xs text-slate-500 mt-1 font-medium">{productTagline}</p>
+            <h1 className="text-2xl font-black tracking-tight text-[#0B132B]">{productName}</h1>
+            <p className="text-xs text-slate-500 mt-1 font-semibold">{productTagline}</p>
           </div>
         </div>
 
@@ -98,7 +98,7 @@ export default function Login({
           
           {/* Username Field */}
           <div>
-            <label htmlFor="username" className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+            <label htmlFor="username" className="block text-[11px] font-extrabold uppercase tracking-wider text-[#0B132B]/70 mb-1.5">
               Username
             </label>
             <div className="relative">
@@ -115,7 +115,7 @@ export default function Login({
                   if (error) setError('')
                 }}
                 placeholder="Enter your username"
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm bg-slate-50/50 text-slate-900 placeholder:text-slate-400 font-medium transition-all"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#00E5FF] focus:border-transparent text-sm bg-[#F4F5F7]/60 text-[#0B132B] placeholder:text-slate-400 font-semibold transition-all"
                 disabled={loading}
                 autoComplete="username"
               />
@@ -124,7 +124,7 @@ export default function Login({
 
           {/* Password Field with Mask Toggle */}
           <div>
-            <label htmlFor="password" className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+            <label htmlFor="password" className="block text-[11px] font-extrabold uppercase tracking-wider text-[#0B132B]/70 mb-1.5">
               Password
             </label>
             <div className="relative">
@@ -140,14 +140,14 @@ export default function Login({
                   if (error) setError('')
                 }}
                 placeholder="Enter your password"
-                className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm bg-slate-50/50 text-slate-900 placeholder:text-slate-400 font-medium transition-all"
+                className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#00E5FF] focus:border-transparent text-sm bg-[#F4F5F7]/60 text-[#0B132B] placeholder:text-slate-400 font-semibold transition-all"
                 disabled={loading}
                 autoComplete="current-password"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-[#0B132B] transition-colors cursor-pointer"
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -159,11 +159,11 @@ export default function Login({
           <button
             type="submit"
             disabled={loading || !isFormValid}
-            className="w-full bg-teal-600 hover:bg-teal-500 text-white font-bold py-3 rounded-xl transition-all shadow-md shadow-teal-600/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 disabled:opacity-50 disabled:cursor-not-allowed text-xs uppercase tracking-wider cursor-pointer flex items-center justify-center gap-2 mt-2"
+            className="w-full bg-[#0B132B] hover:bg-[#162244] text-[#00E5FF] font-black py-3 rounded-xl transition-all shadow-md shadow-[#00E5FF]/10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#00E5FF] disabled:opacity-50 disabled:cursor-not-allowed text-xs uppercase tracking-wider cursor-pointer flex items-center justify-center gap-2 mt-2 border border-[#00E5FF]/30"
           >
             {loading ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin text-[#00E5FF]" />
                 <span>Authenticating...</span>
               </>
             ) : (
@@ -177,9 +177,9 @@ export default function Login({
       <footer className="py-4 text-center space-y-1">
         <p className="text-xs text-slate-400 flex items-center justify-center gap-1.5 font-medium">
           <span>Developed by</span>
-          <strong className="text-teal-400 tracking-tight font-bold">{developerName}</strong>
+          <strong className="text-[#00E5FF] tracking-tight font-extrabold">{developerName}</strong>
         </p>
-        <p className="text-[11px] text-slate-500/80 font-mono">
+        <p className="text-[11px] text-slate-400/80 font-mono">
           {copyrightText}
         </p>
       </footer>

@@ -1,8 +1,11 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #F4F5F7;
+  --foreground: #0B132B;
+  --navy: #0B132B;
+  --platinum: #F4F5F7;
+  --cyan: #00E5FF;
 }
 
 @theme inline {
@@ -12,16 +15,9 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #ffffff;
-    --foreground: #171717;
-  }
-}
-
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: #F4F5F7;
+  color: #0B132B;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -44,21 +40,21 @@ body {
   }
 }
 
-/* Custom Scrollbars */
+/* Custom Scrollbars in Deep Tech Navy & Cyber Cyan */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: #F4F5F7;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.3);
+  background: rgba(11, 19, 43, 0.2);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.5);
+  background: #00E5FF;
 }

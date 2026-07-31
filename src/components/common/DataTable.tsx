@@ -201,11 +201,11 @@ export function DataTable<T extends Record<string, any>>({
       )}
 
       {/* MAIN TABLE CONTAINER */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col">
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden flex flex-col">
         <div className="overflow-x-auto min-w-full">
           <table className="w-full text-left border-collapse min-w-max">
             <thead>
-              <tr className="bg-slate-50 border-b border-slate-200/80 text-slate-500 font-bold uppercase text-[11px] tracking-wider sticky top-0 z-10">
+              <tr className="bg-[#0B132B] border-b border-[#162244] text-[#00E5FF] font-black uppercase text-[11px] tracking-wider sticky top-0 z-10">
                 {columns.map((col) => {
                   const isSorted = sortColumn === col.key
                   const alignClass = 
@@ -217,18 +217,18 @@ export function DataTable<T extends Record<string, any>>({
                       style={{ width: col.width }}
                       onClick={() => col.sortable && handleSort(col.key)}
                       className={`px-5 py-3.5 transition-colors ${alignClass} ${
-                        col.sortable ? 'cursor-pointer hover:text-slate-800 select-none' : ''
+                        col.sortable ? 'cursor-pointer hover:text-white select-none' : ''
                       }`}
                     >
                       <div className={`inline-flex items-center gap-1.5 ${alignClass === 'text-right' ? 'justify-end' : alignClass === 'text-center' ? 'justify-center' : 'justify-start'}`}>
                         <span>{col.header}</span>
                         {col.sortable && (
-                          <span className="text-slate-400">
+                          <span className="text-[#00E5FF]/80">
                             {isSorted ? (
                               sortDirection === 'asc' ? (
-                                <ArrowUp className="w-3.5 h-3.5 text-teal-600 font-bold" />
+                                <ArrowUp className="w-3.5 h-3.5 text-[#00E5FF] font-bold" />
                               ) : (
-                                <ArrowDown className="w-3.5 h-3.5 text-teal-600 font-bold" />
+                                <ArrowDown className="w-3.5 h-3.5 text-[#00E5FF] font-bold" />
                               )
                             ) : (
                               <ArrowUpDown className="w-3.5 h-3.5 opacity-40 hover:opacity-100" />
@@ -242,7 +242,7 @@ export function DataTable<T extends Record<string, any>>({
               </tr>
             </thead>
 
-            <tbody className="divide-y divide-slate-100 text-slate-700 text-sm">
+            <tbody className="divide-y divide-slate-100 text-[#0B132B] text-sm">
               
               {/* SKELETON LOADING STATE */}
               {loading ? (
@@ -268,8 +268,8 @@ export function DataTable<T extends Record<string, any>>({
                         onRowClick ? 'cursor-pointer' : ''
                       } ${
                         isHighlighted 
-                          ? 'bg-teal-50/90 font-medium' 
-                          : 'hover:bg-slate-50/50'
+                          ? 'bg-[#00E5FF]/10 font-bold border-l-4 border-l-[#00E5FF]' 
+                          : 'hover:bg-[#F4F5F7]'
                       }`}
                     >
                       {columns.map((col) => {
@@ -292,7 +292,7 @@ export function DataTable<T extends Record<string, any>>({
                     {isFiltered ? (
                       <div className="flex flex-col items-center justify-center space-y-2 text-slate-400">
                         <FilterX className="w-10 h-10 text-slate-300" />
-                        <p className="font-bold text-slate-800 text-sm">No matching records found</p>
+                        <p className="font-bold text-[#0B132B] text-sm">No matching records found</p>
                         <p className="text-xs text-slate-400">No results match your active search or filter criteria.</p>
                         <button
                           onClick={() => {
@@ -300,7 +300,7 @@ export function DataTable<T extends Record<string, any>>({
                             if (onClearAllFilters) onClearAllFilters()
                             if (onDatePresetChange) onDatePresetChange('all')
                           }}
-                          className="mt-2 inline-flex items-center gap-1 px-3.5 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl text-xs transition cursor-pointer shadow-xs"
+                          className="mt-2 inline-flex items-center gap-1 px-4 py-2 bg-[#0B132B] hover:bg-[#162244] text-[#00E5FF] font-bold rounded-xl text-xs transition cursor-pointer shadow-xs border border-[#00E5FF]/40"
                         >
                           <X className="w-3.5 h-3.5" /> Clear All Filters
                         </button>
@@ -308,12 +308,12 @@ export function DataTable<T extends Record<string, any>>({
                     ) : (
                       <div className="flex flex-col items-center justify-center space-y-2 text-slate-400">
                         <Inbox className="w-10 h-10 text-slate-300" />
-                        <p className="font-bold text-slate-800 text-sm">{emptyMessage}</p>
+                        <p className="font-bold text-[#0B132B] text-sm">{emptyMessage}</p>
                         <p className="text-xs text-slate-400">{emptySubtext}</p>
                         {emptyActionLabel && onEmptyAction && (
                           <button
                             onClick={onEmptyAction}
-                            className="mt-2 inline-flex items-center gap-1.5 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl text-xs shadow-sm transition cursor-pointer"
+                            className="mt-2 inline-flex items-center gap-1.5 px-4 py-2 bg-[#0B132B] hover:bg-[#162244] text-[#00E5FF] font-extrabold rounded-xl text-xs shadow-sm transition cursor-pointer border border-[#00E5FF]/40"
                           >
                             <Plus className="w-4 h-4" /> {emptyActionLabel}
                           </button>

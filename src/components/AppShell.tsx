@@ -116,19 +116,19 @@ export default function AppShell({ children, activeTab }: AppShellProps) {
   ]
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-slate-50 text-slate-800">
+    <div className="flex h-screen w-screen overflow-hidden bg-[#F4F5F7] text-[#0B132B] font-sans selection:bg-[#00E5FF] selection:text-[#0B132B]">
       {/* Sidebar */}
-      <aside className="w-64 bg-slate-900 text-slate-100 flex flex-col flex-shrink-0">
+      <aside className="w-64 bg-[#0B132B] text-slate-100 flex flex-col flex-shrink-0 border-r border-[#162244]">
         {/* Clinic Header */}
-        <div className="h-16 flex items-center px-6 border-b border-slate-800 space-x-3">
-          <Building2 className="h-6 w-6 text-teal-400" />
-          <div className="truncate font-semibold text-lg text-slate-50 tracking-tight">
+        <div className="h-16 flex items-center px-6 border-b border-[#162244] space-x-3">
+          <Building2 className="h-6 w-6 text-[#00E5FF]" />
+          <div className="truncate font-bold text-lg text-white tracking-tight">
             {profile?.name || 'Clinic Manager'}
           </div>
         </div>
 
         {/* Navigation Items */}
-        <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
+        <nav className="flex-1 px-4 py-4 space-y-1.5 overflow-y-auto">
           {menuItems.map((item) => {
             const Icon = item.icon
             const isActive = pathname === item.href || activeTab === item.id
@@ -136,13 +136,13 @@ export default function AppShell({ children, activeTab }: AppShellProps) {
               <Link
                 key={item.id}
                 href={item.href}
-                className={`w-full flex items-center px-4 py-3 rounded-lg text-sm font-medium transition-all duration-150 cursor-pointer ${
+                className={`w-full flex items-center px-4 py-3 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
                   isActive
-                    ? 'bg-teal-500 text-white shadow-md shadow-teal-500/10'
-                    : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+                    ? 'bg-[#00E5FF] text-[#0B132B] shadow-md shadow-[#00E5FF]/20 font-black'
+                    : 'text-slate-300 hover:bg-[#162244] hover:text-[#00E5FF]'
                 }`}
               >
-                <Icon className={`mr-3 h-5 w-5 ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-slate-200'}`} />
+                <Icon className={`mr-3 h-5 w-5 ${isActive ? 'text-[#0B132B]' : 'text-slate-400 group-hover:text-[#00E5FF]'}`} />
                 {item.name}
               </Link>
             )
@@ -150,20 +150,20 @@ export default function AppShell({ children, activeTab }: AppShellProps) {
         </nav>
 
         {/* User profile footer */}
-        <div className="p-4 border-t border-slate-800 flex items-center justify-between">
+        <div className="p-4 border-t border-[#162244] flex items-center justify-between">
           <div className="flex items-center space-x-3 overflow-hidden">
-            <div className="h-8 w-8 rounded-full bg-teal-500 flex items-center justify-center text-sm font-bold text-white uppercase flex-shrink-0">
+            <div className="h-8 w-8 rounded-full bg-[#00E5FF] text-[#0B132B] flex items-center justify-center text-sm font-extrabold uppercase flex-shrink-0">
               {user.username.slice(0, 2)}
             </div>
             <div className="overflow-hidden">
-              <p className="text-sm font-medium text-slate-200 truncate">{user.username}</p>
-              <p className="text-xs text-slate-500 capitalize truncate">{user.role.toLowerCase()}</p>
+              <p className="text-sm font-bold text-slate-200 truncate">{user.username}</p>
+              <p className="text-xs text-[#00E5FF] capitalize truncate font-semibold">{user.role.toLowerCase()}</p>
             </div>
           </div>
           <button
             onClick={logout}
             title="Logout"
-            className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-slate-200 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg text-slate-400 hover:bg-[#162244] hover:text-[#00E5FF] transition-colors cursor-pointer"
           >
             <LogOut className="h-5 w-5" />
           </button>
@@ -171,15 +171,15 @@ export default function AppShell({ children, activeTab }: AppShellProps) {
       </aside>
 
       {/* Main Workspace */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#F4F5F7]">
         {/* Header */}
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8 flex-shrink-0">
-          <h1 className="text-xl font-semibold text-slate-900 capitalize">
+        <header className="h-16 bg-white border-b border-slate-200/80 flex items-center justify-between px-8 flex-shrink-0 shadow-2xs">
+          <h1 className="text-xl font-black text-[#0B132B] capitalize tracking-tight">
             {menuItems.find((item) => item.id === activeTab || item.href === pathname)?.name || activeTab}
           </h1>
           <div className="flex items-center space-x-4">
-            <div className={`text-xs px-3 py-1.5 rounded-full font-medium flex items-center space-x-1.5 ${
-              isApiConnected ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'
+            <div className={`text-xs px-3.5 py-1.5 rounded-full font-bold flex items-center space-x-1.5 ${
+              isApiConnected ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-amber-50 text-amber-800 border border-amber-200'
             }`}>
               <span className={`h-2 w-2 rounded-full ${isApiConnected ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
               <span>{isApiConnected ? 'Backend API Connected (v1)' : 'Backend Offline / Disconnected'}</span>
@@ -188,7 +188,7 @@ export default function AppShell({ children, activeTab }: AppShellProps) {
         </header>
 
         {/* View container */}
-        <div className="flex-1 overflow-y-auto p-8 bg-slate-50">
+        <div className="flex-1 overflow-y-auto p-8 bg-[#F4F5F7]">
           {children}
         </div>
       </main>
