@@ -17,7 +17,7 @@ const getBaseUrl = (): string => {
   if (typeof window !== 'undefined' && (window as any).NEXT_PUBLIC_API_URL) {
     return (window as any).NEXT_PUBLIC_API_URL;
   }
-  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+  return process.env.NEXT_PUBLIC_API_URL || 'https://shree-balaji-polyclinic.onrender.com/api/v1';
 };
 
 const getToken = (): string | null => {

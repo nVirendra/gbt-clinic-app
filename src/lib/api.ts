@@ -5,7 +5,7 @@ let isBackendConnected = false;
 export async function checkBackendHealth(): Promise<boolean> {
   if (typeof window === 'undefined') return false;
 
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://shree-balaji-polyclinic.onrender.com/api/v1';
   const healthUrl = baseUrl.replace(/\/api\/v1\/?$/, '/health');
 
   try {
