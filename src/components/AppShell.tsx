@@ -2,23 +2,31 @@
 import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { 
-  Users, 
-  Receipt, 
-  Settings as SettingsIcon, 
-  TrendingUp, 
-  LayoutDashboard, 
-  Layers, 
-  LogOut, 
+import {
+  Users,
+  Receipt,
+  Settings as SettingsIcon,
+  TrendingUp,
+  LayoutDashboard,
+  Layers,
+  LogOut,
   Building2,
   FileSpreadsheet,
   Package,
-  History
+  History,
+  AlertTriangle,
+  X,
+  ShieldAlert,
+  Clock,
+  PackageX,
+  Wallet,
+  ChevronRight
 } from 'lucide-react'
 
 import { useSettingsStore } from '../modules/settings'
 import { Login, useAuthStore } from '../modules/auth'
 import { useShellStore } from '../modules/shell'
+import { useAlertsStore } from '../modules/alerts'
 import { api, checkBackendHealth } from '../lib/api'
 
 interface AppShellProps {
@@ -39,6 +47,14 @@ export default function AppShell({ children, activeTab }: AppShellProps) {
   const profile = useSettingsStore((state) => state.profile)
   const fetchProfile = useSettingsStore((state) => state.fetchProfile)
   const setActiveTab = useShellStore((state) => state.setActiveTab)
+
+  const [showAlertsModal, setShowAlertsModal] = useState(false)
+  const expiredBatches = useAlertsStore((state) => state.expiredBatches)
+  const nearExpiryBatches = useAlertsStore((state) => state.nearExpiryBatches)
+  const lowStockItems = useAlertsStore((state) => state.lowStockItems)
+  const patientDues = useAlertsStore((state) => state.patientDues)
+  const fetchAlerts = useAlertsStore((state) => state.fetchAlerts)
+  const totalAlertCount = expiredBatches.length + nearExpiryBatches.length + lowStockItems.length + patientDues.length
 
   // Bind api manager to window.api & check health & restore auth session
   useEffect(() => {
@@ -61,6 +77,14 @@ export default function AppShell({ children, activeTab }: AppShellProps) {
   useEffect(() => {
     fetchProfile()
   }, [])
+
+  // Critical alerts: fetch on login and refresh periodically
+  useEffect(() => {
+    if (!user) return
+    fetchAlerts()
+    const intervalId = setInterval(fetchAlerts, 3 * 60 * 1000)
+    return () => clearInterval(intervalId)
+  }, [user, fetchAlerts])
 
   // Session auto-lock
   useEffect(() => {
@@ -149,6 +173,28 @@ export default function AppShell({ children, activeTab }: AppShellProps) {
           })}
         </nav>
 
+        {/* Critical Alerts Trigger */}
+        <div className="px-4 pb-3 flex-shrink-0">
+          <button
+            onClick={() => setShowAlertsModal(true)}
+            className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition-colors cursor-pointer border-2 ${
+              totalAlertCount > 0
+                ? 'bg-red-500/20 border-red-400 text-red-300 hover:bg-red-500/30 animate-alert-blink'
+                : 'bg-[#162244]/50 border-[#1E2B4D] text-slate-400 hover:text-cyan-500'
+            }`}
+          >
+            <span className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5" />
+              Critical Alerts
+            </span>
+            {totalAlertCount > 0 && (
+              <span className="h-5 min-w-5 px-1.5 rounded-full bg-red-500 text-white text-[11px] font-black flex items-center justify-center">
+                {totalAlertCount}
+              </span>
+            )}
+          </button>
+        </div>
+
         {/* User profile footer */}
         <div className="p-4 border-t border-[#162244] flex items-center justify-between">
           <div className="flex items-center space-x-3 overflow-hidden">
@@ -192,6 +238,154 @@ export default function AppShell({ children, activeTab }: AppShellProps) {
           {children}
         </div>
       </main>
+
+      {/* --- CRITICAL ALERTS MODAL --- */}
+      {showAlertsModal && (
+        <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col border border-slate-100">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
+              <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5 text-red-500" /> Critical Alerts Center
+                <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-700">{totalAlertCount} active</span>
+              </h3>
+              <button
+                onClick={() => setShowAlertsModal(false)}
+                className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+              {totalAlertCount === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-slate-400 space-y-2">
+                  <ShieldAlert className="w-10 h-10 text-slate-300" />
+                  <p className="font-bold text-slate-600 text-sm">All Clear</p>
+                  <p className="text-xs">No expired stock, low stock, or pending patient dues right now.</p>
+                </div>
+              ) : (
+                <>
+                  {/* Expired Stock */}
+                  {expiredBatches.length > 0 && (
+                    <div>
+                      <p className="text-xs font-bold text-red-600 uppercase mb-2 flex items-center gap-1.5">
+                        <ShieldAlert className="w-4 h-4" /> Expired Stock ({expiredBatches.length})
+                      </p>
+                      <div className="border border-red-100 rounded-xl divide-y divide-red-50 overflow-hidden">
+                        {expiredBatches.slice(0, 8).map((b) => (
+                          <div key={b.id} className="flex items-center justify-between px-4 py-2.5 bg-red-50/40 text-sm">
+                            <div>
+                              <span className="font-semibold text-slate-900">{b.medicineName}</span>
+                              <span className="ml-2 text-xs font-mono text-slate-500">Batch: {b.batchNo}</span>
+                            </div>
+                            <div className="text-xs font-bold text-red-600">
+                              Expired {Math.abs(b.daysLeft)}d ago &middot; {b.qtyAvailable} units
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      {expiredBatches.length > 8 && (
+                        <p className="text-xs text-slate-400 mt-1.5">+{expiredBatches.length - 8} more expired batches</p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Near Expiry */}
+                  {nearExpiryBatches.length > 0 && (
+                    <div>
+                      <p className="text-xs font-bold text-amber-700 uppercase mb-2 flex items-center gap-1.5">
+                        <Clock className="w-4 h-4" /> Expiring Within 30 Days ({nearExpiryBatches.length})
+                      </p>
+                      <div className="border border-amber-100 rounded-xl divide-y divide-amber-50 overflow-hidden">
+                        {nearExpiryBatches.slice(0, 8).map((b) => (
+                          <div key={b.id} className="flex items-center justify-between px-4 py-2.5 bg-amber-50/40 text-sm">
+                            <div>
+                              <span className="font-semibold text-slate-900">{b.medicineName}</span>
+                              <span className="ml-2 text-xs font-mono text-slate-500">Batch: {b.batchNo}</span>
+                            </div>
+                            <div className="text-xs font-bold text-amber-700">
+                              Expires in {b.daysLeft}d &middot; {b.qtyAvailable} units
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      {nearExpiryBatches.length > 8 && (
+                        <p className="text-xs text-slate-400 mt-1.5">+{nearExpiryBatches.length - 8} more expiring soon</p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Low Stock */}
+                  {lowStockItems.length > 0 && (
+                    <div>
+                      <p className="text-xs font-bold text-orange-700 uppercase mb-2 flex items-center gap-1.5">
+                        <PackageX className="w-4 h-4" /> Low Stock ({lowStockItems.length})
+                      </p>
+                      <div className="border border-orange-100 rounded-xl divide-y divide-orange-50 overflow-hidden">
+                        {lowStockItems.slice(0, 8).map((m) => (
+                          <div key={m.id} className="flex items-center justify-between px-4 py-2.5 bg-orange-50/40 text-sm">
+                            <span className="font-semibold text-slate-900">{m.name}</span>
+                            <div className="text-xs font-bold text-orange-700">
+                              {m.currentStock} available &middot; reorder at {m.reorderLevel}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      {lowStockItems.length > 8 && (
+                        <p className="text-xs text-slate-400 mt-1.5">+{lowStockItems.length - 8} more low stock items</p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Patient Dues */}
+                  {patientDues.length > 0 && (
+                    <div>
+                      <p className="text-xs font-bold text-cyan-700 uppercase mb-2 flex items-center gap-1.5">
+                        <Wallet className="w-4 h-4" /> Patient Dues ({patientDues.length})
+                      </p>
+                      <div className="border border-cyan-100 rounded-xl divide-y divide-cyan-50 overflow-hidden">
+                        {patientDues.slice(0, 8).map((d) => (
+                          <div key={d.id} className="flex items-center justify-between px-4 py-2.5 bg-cyan-50/40 text-sm">
+                            <div>
+                              <span className="font-semibold text-slate-900">{d.patientName}</span>
+                              <span className="ml-2 text-xs font-mono text-slate-500">Inv #{d.billNo}</span>
+                            </div>
+                            <div className="text-xs font-bold text-cyan-700">₹{d.balanceDue.toFixed(2)} due</div>
+                          </div>
+                        ))}
+                      </div>
+                      {patientDues.length > 8 && (
+                        <p className="text-xs text-slate-400 mt-1.5">+{patientDues.length - 8} more pending dues</p>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowAlertsModal(false)
+                  router.push('/inventory')
+                }}
+                className="px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-650 hover:bg-slate-50 font-semibold cursor-pointer flex items-center gap-1"
+              >
+                Open Inventory <ChevronRight className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setShowAlertsModal(false)}
+                className="px-4 py-2 bg-[#0B132B] hover:bg-[#162244] text-cyan-500 font-bold rounded-xl text-sm transition cursor-pointer shadow-xs border border-cyan-500/40"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

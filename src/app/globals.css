@@ -58,3 +58,12 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #06B6D4;
 }
+
+@keyframes alert-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.animate-alert-blink {
+  animation: alert-blink 1.1s ease-in-out infinite;
+}
