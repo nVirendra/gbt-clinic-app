@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { toast } from 'sonner'
-import { 
-  Search, 
-  Plus, 
-  Edit2, 
-  Trash2, 
-  AlertTriangle, 
-  History, 
+import {
+  Search,
+  Plus,
+  Edit2,
+  Trash2,
+  AlertTriangle,
+  History,
   ArrowRight,
   FilePlus,
   ChevronDown,
@@ -40,14 +40,14 @@ import { Medicine, Vendor, InventoryBatch } from '../../../types'
 import { DataTable, ColumnDef } from '../../../components/common/DataTable'
 
 // Toast Component
-function Toast({ 
-  message, 
-  type, 
-  onClose 
-}: { 
+function Toast({
+  message,
+  type,
+  onClose
+}: {
   message: string
   type: 'success' | 'error' | 'info'
-  onClose: () => void 
+  onClose: () => void
 }) {
   useEffect(() => {
     const timer = setTimeout(onClose, 3000)
@@ -170,13 +170,12 @@ function VendorTypeahead({
           placeholder={placeholder}
           aria-label="Vendor search"
           aria-expanded={isOpen}
-          className={`w-full pl-9 pr-8 py-2 text-sm rounded-lg border transition-all ${
-            error
+          className={`w-full pl-9 pr-8 py-2 text-sm rounded-lg border transition-all ${error
               ? 'border-red-300 bg-red-50/30 focus:ring-red-500'
               : value
-              ? 'border-cyan-500 bg-cyan-50/20 font-semibold text-slate-900 focus:ring-cyan-500'
-              : 'border-slate-200 focus:ring-cyan-500'
-          } focus:outline-none focus:ring-2`}
+                ? 'border-cyan-500 bg-cyan-50/20 font-semibold text-slate-900 focus:ring-cyan-500'
+                : 'border-slate-200 focus:ring-cyan-500'
+            } focus:outline-none focus:ring-2`}
         />
         <ChevronDown
           onClick={() => setIsOpen(!isOpen)}
@@ -200,9 +199,8 @@ function VendorTypeahead({
                   setQuery(v.name)
                   setIsOpen(false)
                 }}
-                className={`px-4 py-2.5 cursor-pointer flex justify-between items-center transition-colors ${
-                  idx === highlightedIndex ? 'bg-cyan-50 text-cyan-900 font-semibold' : 'text-slate-700 hover:bg-slate-50'
-                }`}
+                className={`px-4 py-2.5 cursor-pointer flex justify-between items-center transition-colors ${idx === highlightedIndex ? 'bg-cyan-50 text-cyan-900 font-semibold' : 'text-slate-700 hover:bg-slate-50'
+                  }`}
               >
                 <div>
                   <div className="text-sm font-medium text-slate-900">{v.name}</div>
@@ -321,13 +319,12 @@ function MedicineTypeahead({
           placeholder={placeholder}
           aria-label="Medicine search"
           aria-expanded={isOpen}
-          className={`w-full pl-9 pr-8 py-2 text-sm rounded-lg border transition-all ${
-            error
+          className={`w-full pl-9 pr-8 py-2 text-sm rounded-lg border transition-all ${error
               ? 'border-red-300 bg-red-50/30 focus:ring-red-500'
               : value
-              ? 'border-cyan-500 bg-cyan-50/20 font-semibold text-slate-900 focus:ring-cyan-500'
-              : 'border-slate-200 focus:ring-cyan-500'
-          } focus:outline-none focus:ring-2`}
+                ? 'border-cyan-500 bg-cyan-50/20 font-semibold text-slate-900 focus:ring-cyan-500'
+                : 'border-slate-200 focus:ring-cyan-500'
+            } focus:outline-none focus:ring-2`}
         />
         <ChevronDown
           onClick={() => setIsOpen(!isOpen)}
@@ -351,9 +348,8 @@ function MedicineTypeahead({
                   setQuery(`${m.name} ${m.pack ? `[${m.pack}]` : ''}`)
                   setIsOpen(false)
                 }}
-                className={`px-4 py-2.5 cursor-pointer border-b border-slate-100 last:border-0 transition-colors ${
-                  idx === highlightedIndex ? 'bg-cyan-50 text-cyan-950 font-medium' : 'text-slate-700 hover:bg-slate-50'
-                }`}
+                className={`px-4 py-2.5 cursor-pointer border-b border-slate-100 last:border-0 transition-colors ${idx === highlightedIndex ? 'bg-cyan-50 text-cyan-950 font-medium' : 'text-slate-700 hover:bg-slate-50'
+                  }`}
               >
                 <div className="flex justify-between items-start">
                   <div>
@@ -455,11 +451,10 @@ function FreeTextCombobox({
           }}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className={`w-full py-2 pl-3 pr-8 text-sm rounded-xl border transition-all ${
-            error
+          className={`w-full py-2 pl-3 pr-8 text-sm rounded-xl border transition-all ${error
               ? 'border-red-300 bg-red-50/30 focus:ring-red-500'
               : 'border-slate-200 focus:ring-cyan-500'
-          } focus:outline-none focus:ring-2`}
+            } focus:outline-none focus:ring-2`}
         />
         {options.length > 0 && (
           <ChevronDown
@@ -482,9 +477,8 @@ function FreeTextCombobox({
                 if (onSelectOption) onSelectOption(opt.value)
                 setIsOpen(false)
               }}
-              className={`px-3 py-2 cursor-pointer flex justify-between items-center transition-colors ${
-                idx === highlightedIndex ? 'bg-cyan-50 text-cyan-900 font-semibold' : 'text-slate-700 hover:bg-slate-50'
-              }`}
+              className={`px-3 py-2 cursor-pointer flex justify-between items-center transition-colors ${idx === highlightedIndex ? 'bg-cyan-50 text-cyan-900 font-semibold' : 'text-slate-700 hover:bg-slate-50'
+                }`}
             >
               <div>
                 <span className="font-medium text-slate-900">{opt.value}</span>
@@ -653,7 +647,7 @@ function RedesignedMedicineModal({
   const usedHsns = Array.from(
     new Set(existingMedicines.map((m) => m.hsn_code).filter(Boolean) as string[])
   ).map((hsn) => ({ value: hsn, label: 'Used in Inventory' }))
-  
+
   const hsnOptions = [...standardPharmaHsns, ...usedHsns.filter(u => !standardPharmaHsns.some(s => s.value === u.value))]
 
   // HSN Auto-GST Mapper Callback
@@ -686,12 +680,12 @@ function RedesignedMedicineModal({
   const trimmedName = form.name.trim().toLowerCase()
   const duplicateMedMatch = trimmedName.length >= 3
     ? existingMedicines.find(
-        (m) =>
-          m.id !== editingMed?.id &&
-          (m.name.toLowerCase() === trimmedName ||
-           m.name.toLowerCase().includes(trimmedName) ||
-           trimmedName.includes(m.name.toLowerCase()))
-      )
+      (m) =>
+        m.id !== editingMed?.id &&
+        (m.name.toLowerCase() === trimmedName ||
+          m.name.toLowerCase().includes(trimmedName) ||
+          trimmedName.includes(m.name.toLowerCase()))
+    )
     : null
 
   // Validations
@@ -727,7 +721,7 @@ function RedesignedMedicineModal({
 
   return (
     <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
-      <div 
+      <div
         onKeyDown={handleFormKeyDown}
         className="bg-white rounded-2xl shadow-2xl max-w-xl w-full border border-slate-100 overflow-hidden flex flex-col max-h-[90vh]"
       >
@@ -753,7 +747,7 @@ function RedesignedMedicineModal({
 
         {/* MODAL FORM BODY (SCROLLABLE) */}
         <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-6 text-slate-800">
-          
+
           {/* SECTION 1: MEDICINE IDENTITY */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 border-b border-slate-100 pb-2 text-xs font-bold uppercase tracking-wider text-cyan-700">
@@ -772,11 +766,10 @@ function RedesignedMedicineModal({
                   placeholder="e.g. Paracetamol 650mg"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className={`w-full py-2 px-3 rounded-xl border text-sm focus:outline-none focus:ring-2 font-semibold ${
-                    !isNameValid && form.name !== ''
+                  className={`w-full py-2 px-3 rounded-xl border text-sm focus:outline-none focus:ring-2 font-semibold ${!isNameValid && form.name !== ''
                       ? 'border-red-300 bg-red-50/20 focus:ring-red-500'
                       : 'border-slate-200 focus:ring-cyan-500'
-                  }`}
+                    }`}
                 />
                 {!isNameValid && (
                   <p className="text-[11px] text-red-500 mt-1 font-medium">Medicine name is required.</p>
@@ -914,11 +907,10 @@ function RedesignedMedicineModal({
                   placeholder="10"
                   value={form.reorderLevel}
                   onChange={(e) => setForm({ ...form, reorderLevel: e.target.value })}
-                  className={`w-full py-2 px-3 rounded-xl border text-sm focus:outline-none focus:ring-2 font-mono ${
-                    !isReorderValid
+                  className={`w-full py-2 px-3 rounded-xl border text-sm focus:outline-none focus:ring-2 font-mono ${!isReorderValid
                       ? 'border-red-300 bg-red-50/20 focus:ring-red-500'
                       : 'border-slate-200 focus:ring-cyan-500'
-                  }`}
+                    }`}
                 />
                 {!isReorderValid && (
                   <p className="text-[11px] text-red-500 mt-1 font-medium">Must be an integer ≥ 0.</p>
@@ -932,18 +924,17 @@ function RedesignedMedicineModal({
                 <span>Default GST Rate (%) <span className="text-red-500">*</span></span>
                 <span className="text-[11px] text-slate-400 font-normal font-sans">Click chip or type percentage</span>
               </label>
-              
+
               <div className="flex flex-wrap items-center gap-2 mb-2">
                 {['0', '5', '12', '18', '28'].map((slab) => (
                   <button
                     key={slab}
                     type="button"
                     onClick={() => setForm({ ...form, defaultGstPercent: slab })}
-                    className={`px-3 py-1 rounded-lg text-xs font-bold border transition-all cursor-pointer ${
-                      form.defaultGstPercent === slab
+                    className={`px-3 py-1 rounded-lg text-xs font-bold border transition-all cursor-pointer ${form.defaultGstPercent === slab
                         ? 'bg-cyan-600 text-white border-cyan-600 shadow-sm'
                         : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
-                    }`}
+                      }`}
                   >
                     {slab}% GST
                   </button>
@@ -956,11 +947,10 @@ function RedesignedMedicineModal({
                 placeholder="12"
                 value={form.defaultGstPercent}
                 onChange={(e) => setForm({ ...form, defaultGstPercent: e.target.value })}
-                className={`w-full py-2 px-3 rounded-xl border text-sm focus:outline-none focus:ring-2 font-mono font-bold ${
-                  !isGstValid
+                className={`w-full py-2 px-3 rounded-xl border text-sm focus:outline-none focus:ring-2 font-mono font-bold ${!isGstValid
                     ? 'border-red-300 bg-red-50/20 focus:ring-red-500'
                     : 'border-slate-200 focus:ring-cyan-500'
-                }`}
+                  }`}
               />
               {!isGstValid && (
                 <p className="text-[11px] text-red-500 mt-1 font-medium">Valid GST rate between 0% and 100% required.</p>
@@ -1089,9 +1079,10 @@ function RedesignedVendorModal({
   // Validations
   const isNameValid = Boolean(form.name.trim())
 
-  // Phone Validation (10-digit Indian Mobile, optional when blank)
-  const cleanPhone = form.phone.replace(/\s+/g, '')
-  const isPhoneValid = cleanPhone === '' || /^\d{10}$/.test(cleanPhone) || /^[6-9]\d{9}$/.test(cleanPhone)
+  // Phone Validation (Mobile or Telephone / Landline, optional when blank)
+  const cleanPhone = form.phone.trim()
+  const digitsOnlyPhone = cleanPhone.replace(/[\s\-\(\)\+]/g, '')
+  const isPhoneValid = cleanPhone === '' || (digitsOnlyPhone.length >= 6 && digitsOnlyPhone.length <= 15 && /^[\+\d\s\-\(\)]+$/.test(cleanPhone))
 
   // GSTIN Validation (15-character format, optional when blank)
   const cleanGstin = form.gstin.trim().toUpperCase()
@@ -1109,12 +1100,12 @@ function RedesignedVendorModal({
   const trimmedName = form.name.trim().toLowerCase()
   const duplicateVendor = (trimmedName.length >= 3 || cleanGstin.length === 15)
     ? existingVendors.find(
-        (v) =>
-          v.id !== editingVendor?.id &&
-          ((trimmedName.length >= 3 && v.name.toLowerCase() === trimmedName) ||
-           (trimmedName.length >= 3 && v.name.toLowerCase().includes(trimmedName)) ||
-           (cleanGstin.length === 15 && v.gstin && v.gstin.toUpperCase() === cleanGstin))
-      )
+      (v) =>
+        v.id !== editingVendor?.id &&
+        ((trimmedName.length >= 3 && v.name.toLowerCase() === trimmedName) ||
+          (trimmedName.length >= 3 && v.name.toLowerCase().includes(trimmedName)) ||
+          (cleanGstin.length === 15 && v.gstin && v.gstin.toUpperCase() === cleanGstin))
+    )
     : null
 
   const handleSubmit = async (e?: React.FormEvent) => {
@@ -1147,7 +1138,7 @@ function RedesignedVendorModal({
 
   return (
     <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
-      <div 
+      <div
         onKeyDown={handleFormKeyDown}
         className="bg-white rounded-2xl shadow-2xl max-w-lg w-full border border-slate-100 overflow-hidden flex flex-col max-h-[90vh]"
       >
@@ -1173,7 +1164,7 @@ function RedesignedVendorModal({
 
         {/* MODAL FORM BODY */}
         <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-6 text-slate-800">
-          
+
           {/* SECTION 1: CONTACT & LOCATION */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 border-b border-slate-100 pb-2 text-xs font-bold uppercase tracking-wider text-cyan-700">
@@ -1192,11 +1183,10 @@ function RedesignedVendorModal({
                   placeholder="e.g. Apex Pharmacy Wholesale"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className={`w-full py-2 px-3 rounded-xl border text-sm focus:outline-none focus:ring-2 font-semibold ${
-                    !isNameValid && form.name !== ''
+                  className={`w-full py-2 px-3 rounded-xl border text-sm focus:outline-none focus:ring-2 font-semibold ${!isNameValid && form.name !== ''
                       ? 'border-red-300 bg-red-50/20 focus:ring-red-500'
                       : 'border-slate-200 focus:ring-cyan-500'
-                  }`}
+                    }`}
                 />
                 {!isNameValid && (
                   <p className="text-[11px] text-red-500 mt-1 font-medium">Vendor name is required.</p>
@@ -1219,22 +1209,21 @@ function RedesignedVendorModal({
               {/* Phone Number */}
               <div>
                 <label className="block text-xs font-bold text-slate-600 uppercase mb-1 flex justify-between">
-                  <span>Phone Number</span>
-                  <span className="text-[11px] text-slate-400 font-normal font-sans">10-digit mobile</span>
+                  <span>Phone / Telephone No.</span>
+                  <span className="text-[11px] text-slate-400 font-normal font-sans">Mobile or Landline</span>
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. 9876543210"
+                  placeholder="e.g. 9876543210 or 022-28491234"
                   value={form.phone}
-                  onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/\s+/g, '') })}
-                  className={`w-full py-2 px-3 rounded-xl border text-sm focus:outline-none focus:ring-2 font-mono ${
-                    !isPhoneValid
+                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                  className={`w-full py-2 px-3 rounded-xl border text-sm focus:outline-none focus:ring-2 font-mono ${!isPhoneValid
                       ? 'border-red-300 bg-red-50/20 focus:ring-red-500'
                       : 'border-slate-200 focus:ring-cyan-500'
-                  }`}
+                    }`}
                 />
                 {!isPhoneValid && (
-                  <p className="text-[11px] text-red-500 mt-1 font-medium">Must be a valid 10-digit Indian phone number.</p>
+                  <p className="text-[11px] text-red-500 mt-1 font-medium">Must be a valid mobile or landline/telephone number.</p>
                 )}
               </div>
 
@@ -1282,11 +1271,10 @@ function RedesignedVendorModal({
                   placeholder="e.g. 27AAAAA1111A1Z1"
                   value={form.gstin}
                   onChange={(e) => setForm({ ...form, gstin: e.target.value.toUpperCase() })}
-                  className={`w-full py-2 px-3 rounded-xl border text-sm focus:outline-none focus:ring-2 font-mono font-semibold uppercase ${
-                    !isGstinValid
+                  className={`w-full py-2 px-3 rounded-xl border text-sm focus:outline-none focus:ring-2 font-mono font-semibold uppercase ${!isGstinValid
                       ? 'border-red-300 bg-red-50/20 focus:ring-red-500'
                       : 'border-slate-200 focus:ring-cyan-500'
-                  }`}
+                    }`}
                 />
                 {!isGstinValid && (
                   <p className="text-[11px] text-red-500 mt-1 font-medium">
@@ -1353,7 +1341,7 @@ function RedesignedVendorModal({
                   <p className="font-semibold text-amber-400 mb-1">Cannot save yet:</p>
                   <ul className="list-disc pl-4 space-y-0.5 text-[11px]">
                     {!isNameValid && <li>Vendor name required</li>}
-                    {!isPhoneValid && <li>Phone must be 10 digits</li>}
+                    {!isPhoneValid && <li>Phone must be a valid mobile or landline number</li>}
                     {!isGstinValid && <li>GSTIN format invalid</li>}
                   </ul>
                 </div>
@@ -1372,7 +1360,7 @@ export default function Inventory() {
   const batches = useInventoryStore((state) => state.batches)
   const purchases = useInventoryStore((state) => state.purchases)
   const loading = useInventoryStore((state) => state.loading)
-  
+
   const loadAllData = useInventoryStore((state) => state.loadAllData)
   const createMedicine = useInventoryStore((state) => state.createMedicine)
   const updateMedicine = useInventoryStore((state) => state.updateMedicine)
@@ -1400,7 +1388,7 @@ export default function Inventory() {
   // Modals state
   const [showMedModal, setShowMedModal] = useState(false)
   const [editingMed, setEditingMed] = useState<Medicine | null>(null)
-  
+
   const [showVendorModal, setShowVendorModal] = useState(false)
   const [editingVendor, setEditingVendor] = useState<Vendor | null>(null)
 
@@ -1408,6 +1396,8 @@ export default function Inventory() {
   const [selectedBatch, setSelectedBatch] = useState<InventoryBatch | null>(null)
   const [adjustQty, setAdjustQty] = useState('')
   const [adjustReason, setAdjustReason] = useState('Count correction')
+
+  const [selectedPurchase, setSelectedPurchase] = useState<any | null>(null)
 
   // Stock In Form State
   const [purchaseForm, setPurchaseForm] = useState({
@@ -1462,6 +1452,13 @@ export default function Inventory() {
   const medicineInputRef = useRef<HTMLInputElement>(null)
 
   const safeBatches = Array.isArray(batches) ? batches : []
+  const searchableBatches = safeBatches.map((b: any) => ({ ...b, medicine_name: b.medicine?.name || '' }))
+  const safePurchases = Array.isArray(purchases) ? purchases : []
+  const searchablePurchases = safePurchases.map((p: any) => ({
+    ...p,
+    vendor_name: p.vendor?.name || '',
+    batch_items_search: (p.batches || []).map((b: any) => b.medicine?.name || '').join(' ')
+  }))
   const safeMedicines = Array.isArray(medicines) ? medicines : []
   const safeVendors = Array.isArray(vendors) ? vendors : []
 
@@ -1547,7 +1544,7 @@ export default function Inventory() {
   // MEDICINES CRUD SUBMISSION HANDLER
   const handleMedModalSave = async (formData: any) => {
     if (!formData.name.trim()) return showToast('Name is required', 'error')
-    
+
     try {
       const data = {
         name: formData.name,
@@ -1656,10 +1653,12 @@ export default function Inventory() {
   // STOCK IN LOGIC
   const addStockInItem = () => {
     if (!stockInItem.medicineId) return showToast('Please select a medicine', 'error')
-    if (!stockInItem.batchNo.trim()) return showToast('Please enter batch number', 'error')
     if (!stockInItem.expiryDate) return showToast('Please select expiry date', 'error')
-    
-    const expiryTimestamp = new Date(stockInItem.expiryDate).getTime()
+
+    const isoExpiryDate = formatExpiryToISO(stockInItem.expiryDate)
+    if (!isoExpiryDate) return showToast('Invalid expiry date format', 'error')
+
+    const expiryTimestamp = new Date(isoExpiryDate).getTime()
     const todayTimestamp = new Date().setHours(0, 0, 0, 0)
     if (expiryTimestamp <= todayTimestamp) {
       showToast('Warning: Expiry date should be a future date', 'info')
@@ -1703,8 +1702,8 @@ export default function Inventory() {
 
     const newItem = {
       medicineId: stockInItem.medicineId,
-      batchNo: stockInItem.batchNo,
-      expiryDate: stockInItem.expiryDate,
+      batchNo: stockInItem.batchNo.trim() || 'N/A',
+      expiryDate: isoExpiryDate,
       qtyPurchased: qty,
       freeQty,
       mrp,
@@ -1778,8 +1777,8 @@ export default function Inventory() {
 
     setStockInItem({
       medicineId: item.medicineId,
-      batchNo: item.batchNo,
-      expiryDate: item.expiryDate,
+      batchNo: item.batchNo === 'N/A' ? '' : item.batchNo,
+      expiryDate: item.expiryDate ? item.expiryDate.slice(0, 7) : '',
       qtyPurchased: item.qtyPurchased.toString(),
       freeQty: item.freeQty ? item.freeQty.toString() : '',
       mrp: item.mrp ? item.mrp.toString() : '',
@@ -1831,8 +1830,8 @@ export default function Inventory() {
     const sgstAmount = purchaseForm.items.reduce((sum, item) => sum + (item.sgstAmount || 0), 0)
     const igstAmount = purchaseForm.items.reduce((sum, item) => sum + (item.igstAmount || 0), 0)
     const gstAmount = cgstAmount + sgstAmount + igstAmount
-    const totalAmount = (taxableAmount + gstAmount) > 0 
-      ? (taxableAmount + gstAmount) 
+    const totalAmount = (taxableAmount + gstAmount) > 0
+      ? (taxableAmount + gstAmount)
       : purchaseForm.items.reduce((sum, item) => sum + (item.qtyPurchased * item.purchasePricePerUnit), 0)
 
     const isCash = purchaseForm.purchaseType === 'CASH'
@@ -1896,12 +1895,12 @@ export default function Inventory() {
   }
 
   // Filter lists based on search
-  const filteredBatches = safeBatches.filter(b => 
+  const filteredBatches = safeBatches.filter(b =>
     (b.medicine?.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
     (b.batch_no || '').toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const filteredMedicines = safeMedicines.filter(m => 
+  const filteredMedicines = safeMedicines.filter(m =>
     (m.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
     (m.generic_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
     (m.manufacturer || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -1909,7 +1908,7 @@ export default function Inventory() {
     (m.type || '').toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const filteredVendors = safeVendors.filter(v => 
+  const filteredVendors = safeVendors.filter(v =>
     (v.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
     (v.phone || '').includes(searchQuery) ||
     (v.gstin || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -1919,6 +1918,68 @@ export default function Inventory() {
   const getDaysToExpiry = (expiryStr: string) => {
     const diff = new Date(expiryStr).getTime() - new Date().getTime()
     return Math.ceil(diff / (1000 * 60 * 60 * 24))
+  }
+
+  const formatExpiryToISO = (expiryInput: string): string => {
+    if (!expiryInput || !expiryInput.trim()) return ''
+    const str = expiryInput.trim()
+
+    // Format: YYYY-MM (e.g. from <input type="month"> like "2028-08")
+    if (/^\d{4}-\d{2}$/.test(str)) {
+      const [y, m] = str.split('-').map(Number)
+      const lastDay = new Date(y, m, 0).getDate()
+      const mm = String(m).padStart(2, '0')
+      const dd = String(lastDay).padStart(2, '0')
+      return `${y}-${mm}-${dd}`
+    }
+
+    // Format: YYYY-MM-DD (already full date)
+    if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+      return str
+    }
+
+    // Format: MM/YY or MM/YYYY or MM-YY or MM-YYYY
+    if (/^\d{1,2}[\/\-]\d{2,4}$/.test(str)) {
+      const parts = str.split(/[\/\-]/)
+      const m = parseInt(parts[0], 10)
+      let yStr = parts[1]
+      if (yStr.length === 2) yStr = '20' + yStr
+      const y = parseInt(yStr, 10)
+      if (m >= 1 && m <= 12 && y > 2000 && y < 2100) {
+        const lastDay = new Date(y, m, 0).getDate()
+        const mm = String(m).padStart(2, '0')
+        const dd = String(lastDay).padStart(2, '0')
+        return `${y}-${mm}-${dd}`
+      }
+    }
+
+    // Format: 4 digits MMYY (e.g. 0828)
+    if (/^\d{4}$/.test(str)) {
+      const m = parseInt(str.substring(0, 2), 10)
+      const y = parseInt('20' + str.substring(2, 4), 10)
+      if (m >= 1 && m <= 12 && y > 2000 && y < 2100) {
+        const lastDay = new Date(y, m, 0).getDate()
+        const mm = String(m).padStart(2, '0')
+        const dd = String(lastDay).padStart(2, '0')
+        return `${y}-${mm}-${dd}`
+      }
+    }
+
+    const parsed = new Date(str)
+    if (!isNaN(parsed.getTime())) {
+      return parsed.toISOString().split('T')[0]
+    }
+
+    return str
+  }
+
+  const formatExpiryDisplay = (dateStr: string): string => {
+    if (!dateStr) return '---'
+    const d = new Date(dateStr)
+    if (isNaN(d.getTime())) return dateStr
+    const month = String(d.getMonth() + 1).padStart(2, '0')
+    const year = d.getFullYear()
+    return `${month}/${year}`
   }
 
   const selectedVendorObject = safeVendors.find(v => v.id === purchaseForm.vendorId)
@@ -1943,11 +2004,10 @@ export default function Inventory() {
               setLocalTab(tab.id)
               setSearchQuery('')
             }}
-            className={`px-6 py-3 font-semibold text-sm border-b-2 transition-all cursor-pointer whitespace-nowrap flex items-center gap-2 ${
-              localTab === tab.id 
-                ? 'border-cyan-500 text-cyan-600 bg-cyan-50/40' 
+            className={`px-6 py-3 font-semibold text-sm border-b-2 transition-all cursor-pointer whitespace-nowrap flex items-center gap-2 ${localTab === tab.id
+                ? 'border-cyan-500 text-cyan-600 bg-cyan-50/40'
                 : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-            }`}
+              }`}
           >
             <span>{tab.label}</span>
             {tab.badge && (
@@ -1967,7 +2027,7 @@ export default function Inventory() {
           columns={[
             { key: 'medicine', header: 'Medicine', sortable: true, sortValue: (b: any) => b.medicine?.name || '', render: (b: any) => <span className="font-bold text-slate-900">{b.medicine?.name}</span> },
             { key: 'batch_no', header: 'Batch No.', sortable: true, render: (b: any) => <span className="font-mono text-xs text-slate-600">{b.batch_no}</span> },
-            { key: 'expiry_date', header: 'Expiry Date', sortable: true, render: (b: any) => <span className="font-mono text-xs">{new Date(b.expiry_date).toLocaleDateString('en-GB')}</span> },
+            { key: 'expiry_date', header: 'Expiry Date', sortable: true, render: (b: any) => <span className="font-mono text-xs">{formatExpiryDisplay(b.expiry_date)}</span> },
             { key: 'qty_available', header: 'Qty Available', sortable: true, align: 'right', render: (b: any) => <span className="font-bold font-mono">{b.qty_available}</span> },
             { key: 'purchase_price_per_unit', header: 'Purchase Price', sortable: true, align: 'right', render: (b: any) => <span className="font-mono">₹{b.purchase_price_per_unit.toFixed(2)}</span> },
             { key: 'selling_price_per_unit', header: 'Selling Price', sortable: true, align: 'right', render: (b: any) => <span className="font-mono font-bold text-slate-900">₹{b.selling_price_per_unit.toFixed(2)}</span> },
@@ -2008,12 +2068,13 @@ export default function Inventory() {
               ) : null
             }
           ]}
-          data={safeBatches}
+          data={searchableBatches}
           loading={loading}
           rowKey={(b) => b.id}
           searchPlaceholder="Search by medicine or batch no..."
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
+          searchFilterKeys={['medicine_name', 'batch_no']}
           emptyMessage="No stock batches found"
           emptySubtext="Perform a Stock Purchase In to add medicine batches."
         />
@@ -2112,9 +2173,8 @@ export default function Inventory() {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold uppercase ${
-                      purchaseForm.purchaseType === 'CREDIT' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
-                    }`}>
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold uppercase ${purchaseForm.purchaseType === 'CREDIT' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
+                      }`}>
                       {purchaseForm.purchaseType}
                     </span>
                     <span className="text-slate-400 font-mono text-[11px]">
@@ -2187,11 +2247,10 @@ export default function Inventory() {
                       placeholder="e.g. PUR-1001"
                       value={purchaseForm.purchaseInvoiceNo}
                       onChange={(e) => setPurchaseForm({ ...purchaseForm, purchaseInvoiceNo: e.target.value })}
-                      className={`w-full py-2 px-3 rounded-lg border text-sm focus:outline-none focus:ring-2 font-mono ${
-                        !purchaseForm.purchaseInvoiceNo.trim()
+                      className={`w-full py-2 px-3 rounded-lg border text-sm focus:outline-none focus:ring-2 font-mono ${!purchaseForm.purchaseInvoiceNo.trim()
                           ? 'border-slate-200 focus:ring-cyan-500'
                           : 'border-cyan-500 bg-cyan-50/10 font-bold focus:ring-cyan-500'
-                      }`}
+                        }`}
                     />
                   </div>
 
@@ -2287,7 +2346,7 @@ export default function Inventory() {
                           className="w-full py-2 px-3 rounded-lg border border-amber-300 bg-white text-sm font-bold text-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono"
                         />
                       </div>
-                      
+
                       {/* Computed Pending Amount Field with AUTO badge */}
                       <div>
                         <label className="block text-xs font-bold text-amber-800 uppercase mb-1 flex items-center justify-between">
@@ -2374,7 +2433,7 @@ export default function Inventory() {
             </div>
 
             {/* FAST DATA ENTRY ROW / GRID */}
-            <div 
+            <div
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || (e.ctrlKey && e.key === 'Enter')) {
                   e.preventDefault()
@@ -2399,28 +2458,32 @@ export default function Inventory() {
               {/* Batch No */}
               <div className="lg:col-span-2">
                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
-                  Batch No. <span className="text-red-500">*</span>
+                  Batch No.
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. B-9021"
+                  placeholder="e.g. B-9021 (Optional)"
                   value={stockInItem.batchNo}
                   onChange={(e) => setStockInItem({ ...stockInItem, batchNo: e.target.value })}
                   className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 font-mono font-semibold"
                 />
               </div>
 
-              {/* Expiry Date */}
+              {/* Expiry Date (Month & Year) */}
               <div className="lg:col-span-2">
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
-                  Expiry Date <span className="text-red-500">*</span>
-                </label>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="block text-xs font-bold text-slate-500 uppercase">
+                    Expiry (MM/YY) <span className="text-red-500">*</span>
+                  </label>
+                  <span className="text-[10px] text-slate-400 font-medium">Month & Year</span>
+                </div>
                 <input
-                  type="date"
-                  value={stockInItem.expiryDate}
+                  type="month"
+                  value={stockInItem.expiryDate ? stockInItem.expiryDate.slice(0, 7) : ''}
                   onChange={(e) => setStockInItem({ ...stockInItem, expiryDate: e.target.value })}
-                  className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 font-medium"
+                  className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 font-mono font-semibold"
                 />
+
               </div>
 
               {/* Qty Purchased */}
@@ -2543,11 +2606,10 @@ export default function Inventory() {
                 <button
                   type="button"
                   onClick={addStockInItem}
-                  className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-md cursor-pointer ${
-                    editingIndex !== null
+                  className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-md cursor-pointer ${editingIndex !== null
                       ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-500/20'
                       : 'bg-cyan-600 hover:bg-cyan-700 text-white shadow-cyan-500/20'
-                  }`}
+                    }`}
                 >
                   {editingIndex !== null ? (
                     <>
@@ -2604,15 +2666,14 @@ export default function Inventory() {
                     const isBeingEdited = editingIndex === index
 
                     return (
-                      <tr 
-                        key={index} 
-                        className={`transition-colors duration-500 ${
-                          isRecentlyAdded
+                      <tr
+                        key={index}
+                        className={`transition-colors duration-500 ${isRecentlyAdded
                             ? 'bg-cyan-50/90 font-medium'
                             : isBeingEdited
-                            ? 'bg-indigo-50/80 border-l-4 border-l-indigo-600'
-                            : 'hover:bg-slate-50/70'
-                        }`}
+                              ? 'bg-indigo-50/80 border-l-4 border-l-indigo-600'
+                              : 'hover:bg-slate-50/70'
+                          }`}
                       >
                         {/* Sticky Medicine Body Column */}
                         <td className="px-4 py-3 font-semibold text-slate-900 sticky left-0 bg-white z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">
@@ -2627,7 +2688,7 @@ export default function Inventory() {
                         </td>
                         <td className="px-4 py-3 font-mono text-xs font-semibold">{item.batchNo}</td>
                         <td className="px-4 py-3 text-xs font-mono">
-                          {new Date(item.expiryDate).toLocaleDateString('en-GB')}
+                          {formatExpiryDisplay(item.expiryDate)}
                         </td>
                         <td className="px-4 py-3 text-right font-mono font-bold text-slate-900">{item.qtyPurchased}</td>
                         <td className="px-4 py-3 text-right font-mono text-cyan-600 font-semibold">
@@ -2641,7 +2702,7 @@ export default function Inventory() {
                         </td>
                         <td className="px-4 py-3 text-right font-mono">₹{item.purchasePricePerUnit.toFixed(2)}</td>
                         <td className="px-4 py-3 text-right font-mono font-semibold text-slate-900">₹{item.sellingPricePerUnit.toFixed(2)}</td>
-                        
+
                         {/* COMPUTED READ-ONLY NET TOTAL */}
                         <td className="px-4 py-3 text-right font-mono font-extrabold text-cyan-900 bg-cyan-50/40">
                           ₹{itemTotal.toFixed(2)}
@@ -2698,8 +2759,8 @@ export default function Inventory() {
             const sgst = purchaseForm.items.reduce((s, i) => s + (i.sgstAmount || 0), 0)
             const igst = purchaseForm.items.reduce((s, i) => s + (i.igstAmount || 0), 0)
             const totalGst = cgst + sgst + igst
-            const grandTotal = taxable + totalGst > 0 
-              ? (taxable + totalGst) 
+            const grandTotal = taxable + totalGst > 0
+              ? (taxable + totalGst)
               : purchaseForm.items.reduce((sum, item) => sum + (item.qtyPurchased * item.purchasePricePerUnit), 0)
 
             const canSubmit = isHeaderValid && purchaseForm.items.length > 0
@@ -2806,9 +2867,8 @@ export default function Inventory() {
               header: 'Type',
               sortable: true,
               render: (p: any) => (
-                <span className={`text-[10px] px-2 py-0.5 rounded font-extrabold uppercase ${
-                  p.purchase_type === 'CREDIT' ? 'bg-amber-100 text-amber-800' : 'bg-cyan-100 text-cyan-800'
-                }`}>
+                <span className={`text-[10px] px-2 py-0.5 rounded font-extrabold uppercase ${p.purchase_type === 'CREDIT' ? 'bg-amber-100 text-amber-800' : 'bg-cyan-100 text-cyan-800'
+                  }`}>
                   {p.purchase_type || 'CASH'}
                 </span>
               )
@@ -2841,10 +2901,9 @@ export default function Inventory() {
               sortable: true,
               align: 'center',
               render: (p: any) => (
-                <span className={`text-[10px] px-2 py-0.5 rounded font-extrabold uppercase ${
-                  p.payment_status === 'PENDING' ? 'bg-red-100 text-red-800' :
-                  p.payment_status === 'PARTIAL' ? 'bg-amber-100 text-amber-800' : 'bg-cyan-100 text-cyan-800'
-                }`}>
+                <span className={`text-[10px] px-2 py-0.5 rounded font-extrabold uppercase ${p.payment_status === 'PENDING' ? 'bg-red-100 text-red-800' :
+                    p.payment_status === 'PARTIAL' ? 'bg-amber-100 text-amber-800' : 'bg-cyan-100 text-cyan-800'
+                  }`}>
                   {p.payment_status || 'PAID'}
                 </span>
               )
@@ -2853,20 +2912,32 @@ export default function Inventory() {
             {
               key: 'items_summary',
               header: 'Batch Items',
-              render: (p: any) => (
-                <span className="text-xs text-slate-600 truncate max-w-xs block">
-                  {p.batches?.map((b: any) => `${b.medicine?.name} (${b.qty_purchased})`).join(', ') || 'N/A'}
-                </span>
-              )
+              render: (p: any) => {
+                const batchCount = p.batches?.length || 0
+                if (!batchCount) return <span className="text-xs text-slate-400">N/A</span>
+                const firstItem = p.batches[0]?.medicine?.name || 'Item'
+                return (
+                  <span className="inline-flex items-center gap-1.5 text-xs text-slate-600">
+                    <span className="truncate max-w-[140px]">{firstItem}</span>
+                    {batchCount > 1 && (
+                      <span className="shrink-0 px-1.5 py-0.5 rounded-full bg-cyan-100 text-cyan-700 font-bold text-[10px]">
+                        +{batchCount - 1} more
+                      </span>
+                    )}
+                  </span>
+                )
+              }
             },
             { key: 'notes', header: 'Notes', render: (p: any) => <span className="text-xs text-slate-400 truncate max-w-xs block">{p.notes || 'N/A'}</span> }
           ]}
-          data={purchases}
+          data={searchablePurchases}
           loading={loading}
           rowKey={(p) => p.id}
+          onRowClick={(p) => setSelectedPurchase(p)}
           searchPlaceholder="Search purchase history by invoice, vendor, notes..."
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
+          searchFilterKeys={['purchase_invoice_no', 'vendor_name', 'notes', 'batch_items_search']}
           emptyMessage="No purchases recorded"
           emptySubtext="Log your first stock purchase in the Stock Purchase In tab."
         />
@@ -3021,6 +3092,140 @@ export default function Inventory() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* --- PURCHASE INVOICE DETAILS MODAL --- */}
+      {selectedPurchase && (
+        <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col border border-slate-100">
+            {/* Header */}
+            <div className="flex items-start justify-between px-6 py-5 border-b border-slate-100">
+              <div>
+                <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                  <Receipt className="w-5 h-5 text-cyan-500" /> Purchase Invoice Details
+                </h3>
+                <p className="text-xs text-slate-500 mt-1 font-mono">
+                  Inv #{selectedPurchase.purchase_invoice_no} &middot; {new Date(selectedPurchase.purchase_date).toLocaleDateString('en-GB')}
+                </p>
+              </div>
+              <button
+                onClick={() => setSelectedPurchase(null)}
+                className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Summary Info */}
+            <div className="px-6 py-4 border-b border-slate-100 grid grid-cols-2 sm:grid-cols-4 gap-4 bg-slate-50/50">
+              <div>
+                <p className="text-[10px] font-bold text-slate-400 uppercase flex items-center gap-1"><Building2 className="w-3 h-3" /> Vendor</p>
+                <p className="text-sm font-bold text-slate-900 mt-0.5">{selectedPurchase.vendor?.name || 'N/A'}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-slate-400 uppercase flex items-center gap-1"><Tag className="w-3 h-3" /> Type</p>
+                <span className={`inline-block mt-0.5 text-[10px] px-2 py-0.5 rounded font-extrabold uppercase ${selectedPurchase.purchase_type === 'CREDIT' ? 'bg-amber-100 text-amber-800' : 'bg-cyan-100 text-cyan-800'}`}>
+                  {selectedPurchase.purchase_type || 'CASH'}
+                </span>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-slate-400 uppercase flex items-center gap-1"><CreditCard className="w-3 h-3" /> Status</p>
+                <span className={`inline-block mt-0.5 text-[10px] px-2 py-0.5 rounded font-extrabold uppercase ${selectedPurchase.payment_status === 'PENDING' ? 'bg-red-100 text-red-800' : selectedPurchase.payment_status === 'PARTIAL' ? 'bg-amber-100 text-amber-800' : 'bg-cyan-100 text-cyan-800'}`}>
+                  {selectedPurchase.payment_status || 'PAID'}
+                </span>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-slate-400 uppercase flex items-center gap-1"><Calendar className="w-3 h-3" /> Due Date</p>
+                <p className="text-sm font-semibold text-slate-700 mt-0.5 font-mono">{selectedPurchase.due_date ? new Date(selectedPurchase.due_date).toLocaleDateString('en-GB') : '-'}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-slate-400 uppercase">Total Amount</p>
+                <p className="text-sm font-bold text-slate-900 mt-0.5 font-mono">₹{Number(selectedPurchase.total_amount || 0).toFixed(2)}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-slate-400 uppercase">Paid Amount</p>
+                <p className="text-sm font-bold text-cyan-700 mt-0.5 font-mono">
+                  ₹{Number(selectedPurchase.paid_amount !== undefined ? selectedPurchase.paid_amount : (selectedPurchase.purchase_type === 'CREDIT' ? 0 : selectedPurchase.total_amount)).toFixed(2)}
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-slate-400 uppercase">Pending Dues</p>
+                <p className={`text-sm font-bold mt-0.5 font-mono ${(selectedPurchase.pending_amount ?? 0) > 0 ? 'text-rose-600' : 'text-slate-400'}`}>
+                  ₹{Number(selectedPurchase.pending_amount !== undefined ? selectedPurchase.pending_amount : (selectedPurchase.purchase_type === 'CREDIT' ? selectedPurchase.total_amount : 0)).toFixed(2)}
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-slate-400 uppercase">Payment Mode</p>
+                <p className="text-sm font-semibold text-slate-700 mt-0.5 uppercase">{selectedPurchase.payment_mode || 'CASH'}</p>
+              </div>
+            </div>
+
+            {/* Items Table */}
+            <div className="flex-1 overflow-auto px-6 py-4">
+              <p className="text-xs font-bold text-slate-500 uppercase mb-2 flex items-center gap-1.5">
+                <Layers className="w-4 h-4 text-cyan-500" /> Batch Items ({selectedPurchase.batches?.length || 0})
+              </p>
+              <div className="border border-slate-200 rounded-xl overflow-hidden">
+                <table className="w-full text-left border-collapse min-w-max">
+                  <thead>
+                    <tr className="bg-[#0B132B] text-cyan-500 font-black uppercase text-[10px] tracking-wider">
+                      <th className="px-3 py-2.5">Medicine</th>
+                      <th className="px-3 py-2.5">Batch No</th>
+                      <th className="px-3 py-2.5">Expiry</th>
+                      <th className="px-3 py-2.5 text-right">Qty</th>
+                      <th className="px-3 py-2.5 text-right">Free</th>
+                      <th className="px-3 py-2.5 text-right">MRP</th>
+                      <th className="px-3 py-2.5 text-right">Purchase/Unit</th>
+                      <th className="px-3 py-2.5 text-right">Sell/Unit</th>
+                      <th className="px-3 py-2.5 text-right">GST%</th>
+                      <th className="px-3 py-2.5 text-right">Taxable Amt</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 text-[#0B132B] text-xs">
+                    {(selectedPurchase.batches || []).map((b: any) => (
+                      <tr key={b.id} className="hover:bg-slate-50">
+                        <td className="px-3 py-2.5 font-semibold flex items-center gap-1.5">
+                          <Pill className="w-3.5 h-3.5 text-slate-400 shrink-0" /> {b.medicine?.name || 'N/A'}
+                        </td>
+                        <td className="px-3 py-2.5 font-mono">{b.batch_no || '-'}</td>
+                        <td className="px-3 py-2.5 font-mono">{b.expiry_date ? new Date(b.expiry_date).toLocaleDateString('en-GB', { month: '2-digit', year: 'numeric' }) : '-'}</td>
+                        <td className="px-3 py-2.5 text-right font-mono font-bold">{b.qty_purchased}</td>
+                        <td className="px-3 py-2.5 text-right font-mono text-slate-500">{b.qty_free || 0}</td>
+                        <td className="px-3 py-2.5 text-right font-mono">₹{Number(b.mrp || 0).toFixed(2)}</td>
+                        <td className="px-3 py-2.5 text-right font-mono">₹{Number(b.purchase_price_per_unit || 0).toFixed(2)}</td>
+                        <td className="px-3 py-2.5 text-right font-mono">₹{Number(b.selling_price_per_unit || 0).toFixed(2)}</td>
+                        <td className="px-3 py-2.5 text-right font-mono">{b.gst_percent ?? 0}%</td>
+                        <td className="px-3 py-2.5 text-right font-mono font-bold">₹{Number(b.taxable_amount || 0).toFixed(2)}</td>
+                      </tr>
+                    ))}
+                    {(!selectedPurchase.batches || selectedPurchase.batches.length === 0) && (
+                      <tr>
+                        <td colSpan={10} className="px-3 py-6 text-center text-slate-400 text-xs">No batch items recorded for this purchase.</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {selectedPurchase.notes && (
+                <div className="mt-4 p-3 bg-slate-50 border border-slate-100 rounded-xl">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Notes</p>
+                  <p className="text-xs text-slate-600">{selectedPurchase.notes}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 border-t border-slate-100 flex justify-end">
+              <button
+                onClick={() => setSelectedPurchase(null)}
+                className="px-4 py-2 bg-[#0B132B] hover:bg-[#162244] text-cyan-500 font-bold rounded-xl text-xs transition cursor-pointer shadow-xs border border-cyan-500/40"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

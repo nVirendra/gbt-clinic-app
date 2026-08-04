@@ -225,7 +225,6 @@ function RedesignedPatientModal({
   const [form, setForm] = useState({
     fullName: '',
     phone: '',
-    dob: '',
     ageYears: '',
     gender: 'MALE',
     address: '',
@@ -263,7 +262,6 @@ function RedesignedPatientModal({
         setForm({
           fullName: editingPatient.full_name || '',
           phone: editingPatient.phone || '',
-          dob: rawDob,
           ageYears: rawAge,
           gender: editingPatient.gender || 'MALE',
           address: editingPatient.address || '',
@@ -277,7 +275,6 @@ function RedesignedPatientModal({
         setForm({
           fullName: '',
           phone: '',
-          dob: '',
           ageYears: '',
           gender: 'MALE',
           address: '',
@@ -298,24 +295,7 @@ function RedesignedPatientModal({
 
   if (!isOpen) return null
 
-  // Bi-directional DOB <-> Age Sync Handlers
-  const handleDobChange = (newDob: string) => {
-    const calcAge = calculateAgeFromDob(newDob)
-    setForm((prev) => ({
-      ...prev,
-      dob: newDob,
-      ageYears: calcAge || prev.ageYears
-    }))
-  }
 
-  const handleAgeChange = (newAge: string) => {
-    const calcDob = calculateDobFromAge(newAge, form.dob)
-    setForm((prev) => ({
-      ...prev,
-      ageYears: newAge,
-      dob: calcDob || prev.dob
-    }))
-  }
 
   // Allergy Chips Handlers
   const addAllergyTag = (tag: string) => {
@@ -374,7 +354,7 @@ function RedesignedPatientModal({
       await onSubmit({
         fullName: form.fullName.trim(),
         phone: cleanPhone,
-        dob: form.dob || null,
+        dob: null,
         ageYears: form.ageYears ? parseInt(form.ageYears, 10) : null,
         gender: form.gender,
         address: form.address,
@@ -491,32 +471,18 @@ function RedesignedPatientModal({
                 </div>
               )}
 
-              {/* DOB ↔ AGE SYNC & GENDER */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {/* Date of Birth */}
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 uppercase mb-1">
-                    Date of Birth
-                  </label>
-                  <input
-                    type="date"
-                    value={form.dob}
-                    onChange={(e) => handleDobChange(e.target.value)}
-                    className="w-full py-2 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 font-medium"
-                  />
-                </div>
-
+              {/* AGE & GENDER */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {/* Age (Years) */}
                 <div>
-                  <label className="block text-xs font-bold text-slate-600 uppercase mb-1 flex justify-between">
-                    <span>Age (Years)</span>
-                    <span className="text-[10px] text-cyan-600 font-bold">LIVE SYNC</span>
+                  <label className="block text-xs font-bold text-slate-600 uppercase mb-1">
+                    Age (Years)
                   </label>
                   <input
                     type="number"
                     placeholder="e.g. 35"
                     value={form.ageYears}
-                    onChange={(e) => handleAgeChange(e.target.value)}
+                    onChange={(e) => setForm({ ...form, ageYears: e.target.value })}
                     className="w-full py-2 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 font-mono font-bold text-slate-900"
                   />
                 </div>

@@ -836,7 +836,7 @@ export default function Billing({ onSuccess }: BillingProps) {
       )}
 
       {/* LEFT COLUMN: Invoiced items & details */}
-      <div className="flex-1 bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 flex flex-col overflow-hidden">
+      <div className="flex-1 bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 flex flex-col overflow-visible">
         <div className="flex items-center justify-between mb-5 flex-shrink-0">
           <h2 className="text-lg font-bold text-slate-900 flex items-center">
             <ClipboardList className="h-5 w-5 text-cyan-600 mr-2" /> Invoice Specifications

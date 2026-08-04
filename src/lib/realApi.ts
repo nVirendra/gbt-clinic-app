@@ -328,7 +328,7 @@ export const realApi: Window['api'] = {
       notes: raw.notes || null,
       items: (raw.items || []).map((item: any) => ({
         medicineId: item.medicineId,
-        batchNo: item.batchNo,
+        batchNo: item.batchNo && item.batchNo.trim() ? item.batchNo.trim() : 'N/A',
         expiryDate: item.expiryDate,
         qty: item.qty !== undefined ? Number(item.qty) : Number(item.qtyPurchased),
         freeQty: item.freeQty !== undefined ? Number(item.freeQty) : (Number(item.qtyFree) || 0),
