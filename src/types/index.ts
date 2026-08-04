@@ -38,6 +38,7 @@ export interface Medicine {
   type: string
   unit_label: string
   hsn_code: string | null
+  rack_no?: string | null
   reorder_level: number
   default_gst_percent: number
   created_at: string

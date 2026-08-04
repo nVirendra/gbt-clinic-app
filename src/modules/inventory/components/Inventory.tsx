@@ -271,7 +271,8 @@ function MedicineTypeahead({
       (m.generic_name || '').toLowerCase().includes(query.toLowerCase()) ||
       (m.manufacturer || '').toLowerCase().includes(query.toLowerCase()) ||
       (m.pack || '').toLowerCase().includes(query.toLowerCase()) ||
-      (m.hsn_code || '').toLowerCase().includes(query.toLowerCase())
+      (m.hsn_code || '').toLowerCase().includes(query.toLowerCase()) ||
+      (m.rack_no || '').toLowerCase().includes(query.toLowerCase())
   )
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -361,9 +362,14 @@ function MedicineTypeahead({
                     GST {m.default_gst_percent}%
                   </span>
                 </div>
-                <div className="flex gap-3 text-[11px] text-slate-500 mt-1 font-sans">
+                <div className="flex gap-3 text-[11px] text-slate-500 mt-1 font-sans items-center">
                   {m.generic_name && <span><strong className="text-slate-600">Gen:</strong> {m.generic_name}</span>}
                   {m.hsn_code && <span><strong className="text-slate-600">HSN:</strong> <code className="font-mono">{m.hsn_code}</code></span>}
+                  {m.rack_no && (
+                    <span className="font-mono font-bold bg-amber-50 text-amber-800 border border-amber-200 px-1.5 py-0.5 rounded">
+                      Rack {m.rack_no}
+                    </span>
+                  )}
                 </div>
               </li>
             ))
@@ -493,6 +499,81 @@ function FreeTextCombobox({
   )
 }
 
+// Scrollable single-select dropdown (native <select> popups can't be styled/capped in height)
+function ScrollableSelect({
+  value,
+  onChange,
+  options
+}: {
+  value: string
+  onChange: (val: string) => void
+  options: Array<{ value: string; label: string }>
+}) {
+  const [isOpen, setIsOpen] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const selected = options.find((opt) => opt.value === value)
+
+  return (
+    <div ref={containerRef} className="relative w-full">
+      <button
+        type="button"
+        onClick={() => setIsOpen((prev) => !prev)}
+        className="w-full py-2 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 font-semibold text-slate-900 bg-white flex items-center justify-between cursor-pointer"
+      >
+        <span>{selected?.label || value}</span>
+        <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+
+      {isOpen && (
+        <ul className="absolute z-50 mt-1 w-full max-h-56 overflow-y-auto rounded-xl bg-white border border-slate-200 shadow-xl py-1 text-sm">
+          {options.map((opt) => (
+            <li
+              key={opt.value}
+              onClick={() => {
+                onChange(opt.value)
+                setIsOpen(false)
+              }}
+              className={`px-3 py-2 cursor-pointer transition-colors ${opt.value === value ? 'bg-cyan-50 text-cyan-900 font-semibold' : 'text-slate-700 hover:bg-slate-50'
+                }`}
+            >
+              {opt.label}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
+
+const DOSAGE_FORM_OPTIONS = [
+  { value: 'TABLET', label: 'TABLET' },
+  { value: 'CAPSULE', label: 'CAPSULE' },
+  { value: 'INJECTION', label: 'INJECTION' },
+  { value: 'SYRUP', label: 'SYRUP' },
+  { value: 'OINTMENT', label: 'OINTMENT' },
+  { value: 'SUSPENSION', label: 'SUSPENSION' },
+  { value: 'DROP', label: 'DROP' },
+  { value: 'GEL', label: 'GEL' },
+  { value: 'LOTION', label: 'LOTION' },
+  { value: 'POWDER', label: 'POWDER' },
+  { value: 'OIL', label: 'OIL' },
+  { value: 'FACE_WASH', label: 'FACE WASH' },
+  { value: 'CREAM', label: 'CREAM' },
+  { value: 'BALM', label: 'BALM' },
+  { value: 'OTHER', label: 'OTHER' }
+]
+
 // Indian GST State Code Map for Auto-Detection
 const INDIAN_GST_STATE_CODES: Record<string, string> = {
   '01': 'Jammu & Kashmir',
@@ -556,6 +637,7 @@ function RedesignedMedicineModal({
     type: string
     unitLabel: string
     hsnCode: string
+    rackNo: string
     reorderLevel: string
     defaultGstPercent: string
   }>
@@ -568,6 +650,7 @@ function RedesignedMedicineModal({
     type: 'TABLET',
     unitLabel: 'strip',
     hsnCode: '',
+    rackNo: '',
     reorderLevel: '10',
     defaultGstPercent: '12'
   })
@@ -587,6 +670,7 @@ function RedesignedMedicineModal({
           type: editingMed.type || 'TABLET',
           unitLabel: editingMed.unit_label || 'strip',
           hsnCode: editingMed.hsn_code || '',
+          rackNo: editingMed.rack_no || '',
           reorderLevel: (editingMed.reorder_level ?? 10).toString(),
           defaultGstPercent: (editingMed.default_gst_percent ?? 12).toString()
         })
@@ -599,6 +683,7 @@ function RedesignedMedicineModal({
           type: initialFormValues.type || 'TABLET',
           unitLabel: initialFormValues.unitLabel || 'strip',
           hsnCode: initialFormValues.hsnCode || '',
+          rackNo: initialFormValues.rackNo || '',
           reorderLevel: initialFormValues.reorderLevel || '10',
           defaultGstPercent: initialFormValues.defaultGstPercent || '12'
         })
@@ -611,6 +696,7 @@ function RedesignedMedicineModal({
           type: 'TABLET',
           unitLabel: 'strip',
           hsnCode: '',
+          rackNo: '',
           reorderLevel: '10',
           defaultGstPercent: '12'
         })
@@ -672,6 +758,15 @@ function RedesignedMedicineModal({
     INJECTION: ['vial', 'ampoule', 'pcs', 'box'],
     SYRUP: ['bottle', 'ml', 'pcs'],
     OINTMENT: ['tube', 'gm', 'pcs'],
+    SUSPENSION: ['bottle', 'ml', 'pcs'],
+    DROP: ['bottle', 'ml', 'pcs'],
+    GEL: ['tube', 'gm', 'pcs'],
+    LOTION: ['bottle', 'ml', 'pcs'],
+    POWDER: ['bottle', 'gm', 'sachet', 'pcs'],
+    OIL: ['bottle', 'ml', 'pcs'],
+    FACE_WASH: ['tube', 'ml', 'pcs'],
+    CREAM: ['tube', 'gm', 'pcs'],
+    BALM: ['tube', 'gm', 'pcs'],
     OTHER: ['pcs', 'bottle', 'box', 'pack']
   }
   const currentUnitOptions = adaptiveUnitLabels[form.type] || ['strip', 'vial', 'bottle', 'pcs']
@@ -820,14 +915,13 @@ function RedesignedMedicineModal({
               <Package className="w-4 h-4 text-cyan-500" /> 2. Classification & Packaging
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {/* Type Dropdown */}
               <div>
                 <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Dosage Form Type</label>
-                <select
+                <ScrollableSelect
                   value={form.type}
-                  onChange={(e) => {
-                    const newType = e.target.value
+                  onChange={(newType) => {
                     const newAdaptiveUnits = adaptiveUnitLabels[newType] || ['strip', 'vial', 'bottle', 'pcs']
                     setForm({
                       ...form,
@@ -835,15 +929,8 @@ function RedesignedMedicineModal({
                       unitLabel: newAdaptiveUnits.includes(form.unitLabel) ? form.unitLabel : newAdaptiveUnits[0]
                     })
                   }}
-                  className="w-full py-2 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 font-semibold text-slate-900 bg-white"
-                >
-                  <option value="TABLET">TABLET</option>
-                  <option value="CAPSULE">CAPSULE</option>
-                  <option value="INJECTION">INJECTION</option>
-                  <option value="SYRUP">SYRUP</option>
-                  <option value="OINTMENT">OINTMENT</option>
-                  <option value="OTHER">OTHER</option>
-                </select>
+                  options={DOSAGE_FORM_OPTIONS}
+                />
               </div>
 
               {/* Unit Label (Adaptive Dropdown) */}
@@ -871,6 +958,20 @@ function RedesignedMedicineModal({
                   value={form.pack}
                   onChange={(e) => setForm({ ...form, pack: e.target.value })}
                   className="w-full py-2 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 font-mono"
+                />
+              </div>
+
+              {/* Rack No */}
+              <div>
+                <label className="block text-xs font-bold text-slate-600 uppercase mb-1">
+                  Rack No <span className="text-slate-400 font-normal">(Storage location)</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. A-12 / R3-S2"
+                  value={form.rackNo}
+                  onChange={(e) => setForm({ ...form, rackNo: e.target.value.toUpperCase() })}
+                  className="w-full py-2 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 font-mono uppercase"
                 />
               </div>
             </div>
@@ -1534,7 +1635,9 @@ export default function Inventory() {
     setStockInItem((prev) => ({
       ...prev,
       medicineId: selectedMed.id,
-      gstPercent: selectedMed.default_gst_percent ? selectedMed.default_gst_percent.toString() : lastUsedGstPercent,
+      gstPercent: selectedMed.default_gst_percent !== null && selectedMed.default_gst_percent !== undefined
+        ? selectedMed.default_gst_percent.toString()
+        : lastUsedGstPercent,
       mrp: prevBatch?.mrp ? prevBatch.mrp.toString() : prev.mrp,
       purchasePricePerUnit: prevBatch?.purchase_price_per_unit ? prevBatch.purchase_price_per_unit.toString() : prev.purchasePricePerUnit,
       sellingPricePerUnit: prevBatch?.selling_price_per_unit ? prevBatch.selling_price_per_unit.toString() : prev.sellingPricePerUnit
@@ -1546,6 +1649,8 @@ export default function Inventory() {
     if (!formData.name.trim()) return showToast('Name is required', 'error')
 
     try {
+      const parsedGst = parseFloat(formData.defaultGstPercent)
+      const gstPercent = isNaN(parsedGst) ? 12.0 : parsedGst
       const data = {
         name: formData.name,
         generic_name: formData.genericName || null,
@@ -1557,10 +1662,12 @@ export default function Inventory() {
         unitLabel: formData.unitLabel,
         hsn_code: formData.hsnCode || null,
         hsnCode: formData.hsnCode || null,
+        rack_no: formData.rackNo || null,
+        rackNo: formData.rackNo || null,
         reorder_level: parseInt(formData.reorderLevel) || 0,
         reorderLevel: parseInt(formData.reorderLevel) || 0,
-        default_gst_percent: parseFloat(formData.defaultGstPercent) || 12.0,
-        defaultGstPercent: parseFloat(formData.defaultGstPercent) || 12.0
+        default_gst_percent: gstPercent,
+        defaultGstPercent: gstPercent
       }
       if (editingMed) {
         await updateMedicine({ id: editingMed.id, data, userId: currentUser?.id || '' })
@@ -1681,7 +1788,10 @@ export default function Inventory() {
     if (isNaN(sPrice) || sPrice < pPrice) return showToast('Selling price should be >= purchase price', 'error')
 
     const selMed = safeMedicines.find(m => m.id === stockInItem.medicineId)
-    const gstPercent = parseFloat(stockInItem.gstPercent) || selMed?.default_gst_percent || 12.0
+    const parsedItemGst = parseFloat(stockInItem.gstPercent)
+    const gstPercent = !isNaN(parsedItemGst)
+      ? parsedItemGst
+      : (selMed?.default_gst_percent ?? 12.0)
 
     // Tax calculation per item
     const baseGross = qty * pPrice
@@ -1861,7 +1971,7 @@ export default function Inventory() {
           sgstAmount,
           igstAmount,
           gstAmount,
-          gstPercent: purchaseForm.items.length > 0 ? (purchaseForm.items[0].gstPercent || 12) : 12,
+          gstPercent: purchaseForm.items.length > 0 ? (purchaseForm.items[0].gstPercent ?? 12) : 12,
           totalAmount,
           paidAmount,
           pendingAmount,
@@ -1905,7 +2015,8 @@ export default function Inventory() {
     (m.generic_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
     (m.manufacturer || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
     (m.pack || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (m.type || '').toLowerCase().includes(searchQuery.toLowerCase())
+    (m.type || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (m.rack_no || '').toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   const filteredVendors = safeVendors.filter(v =>
@@ -2091,6 +2202,13 @@ export default function Inventory() {
             { key: 'type', header: 'Type', sortable: true, render: (m: any) => <span className="font-mono text-xs">{m.type}</span> },
             { key: 'unit_label', header: 'Unit Label', sortable: true, render: (m: any) => <span className="capitalize">{m.unit_label}</span> },
             { key: 'hsn_code', header: 'HSN Code', sortable: true, render: (m: any) => <span className="font-mono text-xs">{m.hsn_code || 'N/A'}</span> },
+            {
+              key: 'rack_no', header: 'Rack No', sortable: true, render: (m: any) => (
+                m.rack_no
+                  ? <span className="font-mono text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200 px-1.5 py-0.5 rounded">{m.rack_no}</span>
+                  : <span className="text-xs text-slate-400">N/A</span>
+              )
+            },
             { key: 'reorder_level', header: 'Reorder Level', sortable: true, align: 'right', render: (m: any) => <span className="font-mono font-bold text-slate-800">{m.reorder_level}</span> },
             { key: 'default_gst_percent', header: 'GST %', sortable: true, align: 'right', render: (m: any) => <span className="font-mono">{m.default_gst_percent}%</span> },
             {
@@ -2661,7 +2779,8 @@ export default function Inventory() {
                 <tbody className="divide-y divide-slate-100">
                   {purchaseForm.items.map((item, index) => {
                     const med = safeMedicines.find((m) => m.id === item.medicineId)
-                    const itemTotal = item.qtyPurchased * item.purchasePricePerUnit
+                    // Net Total = (Qty x Rate - Discount) + GST, matching the invoice-level totals below
+                    const itemTotal = (item.taxableAmount || 0) + (item.cgstAmount || 0) + (item.sgstAmount || 0) + (item.igstAmount || 0)
                     const isRecentlyAdded = recentlyAddedIndex === index
                     const isBeingEdited = editingIndex === index
 
@@ -2683,7 +2802,7 @@ export default function Inventory() {
                         <td className="px-4 py-3 text-xs font-mono">
                           <div>{med?.hsn_code || '---'}</div>
                           <span className="text-[10px] bg-cyan-50 text-cyan-700 border border-cyan-200/60 font-sans px-1.5 py-0.5 rounded font-bold">
-                            GST {item.gstPercent || med?.default_gst_percent || 12}%
+                            GST {item.gstPercent ?? med?.default_gst_percent ?? 12}%
                           </span>
                         </td>
                         <td className="px-4 py-3 font-mono text-xs font-semibold">{item.batchNo}</td>

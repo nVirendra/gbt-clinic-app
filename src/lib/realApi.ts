@@ -254,6 +254,7 @@ export const realApi: Window['api'] = {
       type: raw.type || 'TABLET',
       unit_label: raw.unit_label || raw.unitLabel,
       hsn_code: raw.hsn_code !== undefined ? raw.hsn_code : (raw.hsnCode || null),
+      rack_no: raw.rack_no !== undefined ? raw.rack_no : (raw.rackNo || null),
       reorder_level: raw.reorder_level !== undefined ? Number(raw.reorder_level) : (Number(raw.reorderLevel) || 0),
       default_gst_percent: raw.default_gst_percent !== undefined ? Number(raw.default_gst_percent) : (Number(raw.defaultGstPercent) || 12.0),
     };
@@ -278,6 +279,9 @@ export const realApi: Window['api'] = {
     }
     if (raw.hsn_code !== undefined || raw.hsnCode !== undefined) {
       payload.hsn_code = raw.hsn_code !== undefined ? raw.hsn_code : raw.hsnCode;
+    }
+    if (raw.rack_no !== undefined || raw.rackNo !== undefined) {
+      payload.rack_no = raw.rack_no !== undefined ? raw.rack_no : raw.rackNo;
     }
     if (raw.reorder_level !== undefined || raw.reorderLevel !== undefined) {
       payload.reorder_level = raw.reorder_level !== undefined ? Number(raw.reorder_level) : Number(raw.reorderLevel);
