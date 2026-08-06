@@ -37,6 +37,7 @@ import {
 import { useSettingsStore } from '../store'
 import { useAuthStore } from '../../auth/store'
 import { useServicesStore } from '../../services/store'
+import { formatDateTime } from '../../../lib/formatDate'
 import { Service, UserSummary } from '../../../types'
 
 // Toast Component
@@ -1370,6 +1371,8 @@ export default function Settings() {
                     <th className="px-6 py-4">Category</th>
                     <th className="px-6 py-4">Service / Procedure Name</th>
                     <th className="px-6 py-4 text-right">Standard Price</th>
+                    <th className="px-6 py-4">Created At</th>
+                    <th className="px-6 py-4">Updated At</th>
                     <th className="px-6 py-4 text-center">Actions</th>
                   </tr>
                 </thead>
@@ -1388,6 +1391,12 @@ export default function Settings() {
                       <td className="px-6 py-4 font-bold text-slate-900">{service.name}</td>
                       <td className="px-6 py-4 text-right font-extrabold text-cyan-900 font-mono">
                         ₹{(service?.price ?? service?.default_price ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                      </td>
+                      <td className="px-6 py-4 font-mono text-xs text-slate-600">
+                        {formatDateTime(service.created_at)}
+                      </td>
+                      <td className="px-6 py-4 font-mono text-xs text-slate-600">
+                        {formatDateTime(service.updated_at)}
                       </td>
                       <td className="px-6 py-4 text-center space-x-1.5">
                         <button
@@ -1622,6 +1631,7 @@ export default function Settings() {
                         <th className="px-4 py-3">Username</th>
                         <th className="px-4 py-3">Role</th>
                         <th className="px-4 py-3">Status</th>
+                        <th className="px-4 py-3">Created At</th>
                         <th className="px-4 py-3 text-right">Actions</th>
                       </tr>
                     </thead>
@@ -1671,6 +1681,10 @@ export default function Settings() {
                                   Inactive
                                 </span>
                               )}
+                            </td>
+
+                            <td className="px-4 py-3.5 font-mono text-xs text-slate-600">
+                              {formatDateTime(u.created_at)}
                             </td>
 
                             <td className="px-4 py-3.5 text-right whitespace-nowrap">

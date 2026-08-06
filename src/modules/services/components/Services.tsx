@@ -18,6 +18,7 @@ import {
 import { useServicesStore } from '../store'
 import { useAuthStore } from '../../auth/store'
 import { Service } from '../../../types'
+import { formatDateTime } from '../../../lib/formatDate'
 
 // Toast Component
 function Toast({ 
@@ -581,6 +582,8 @@ export default function Services() {
                 <th className="px-6 py-4">Category</th>
                 <th className="px-6 py-4">Service / Procedure Name</th>
                 <th className="px-6 py-4 text-right">Standard Price</th>
+                <th className="px-6 py-4">Created At</th>
+                <th className="px-6 py-4">Updated At</th>
                 <th className="px-6 py-4 text-center">Actions</th>
               </tr>
             </thead>
@@ -599,6 +602,12 @@ export default function Services() {
                   <td className="px-6 py-4 font-bold text-slate-900">{service.name}</td>
                   <td className="px-6 py-4 text-right font-extrabold text-cyan-900 font-mono">
                     ₹{(service?.price ?? service?.default_price ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  </td>
+                  <td className="px-6 py-4 font-mono text-xs text-slate-600">
+                    {formatDateTime(service.created_at)}
+                  </td>
+                  <td className="px-6 py-4 font-mono text-xs text-slate-600">
+                    {formatDateTime(service.updated_at)}
                   </td>
                   <td className="px-6 py-4 text-center space-x-1.5">
                     <button

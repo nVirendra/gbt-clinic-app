@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { toast } from 'sonner'
+import { formatDateTime } from '../../../lib/formatDate'
 import { 
   Search, 
   UserPlus, 
@@ -963,6 +964,20 @@ export default function Patients() {
                         </div>
                       </div>
                     )}
+                    <div className="flex items-start border-t border-slate-100 pt-2.5 mt-1">
+                      <Calendar className="h-4 w-4 text-slate-400 mr-2.5 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="text-xs font-semibold text-slate-400">Created At</p>
+                        <p className="text-slate-700 font-mono text-xs mt-0.5">{formatDateTime(selectedPatient.created_at)}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start">
+                      <Calendar className="h-4 w-4 text-slate-400 mr-2.5 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="text-xs font-semibold text-slate-400">Updated At</p>
+                        <p className="text-slate-700 font-mono text-xs mt-0.5">{formatDateTime(selectedPatient.updated_at)}</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
 

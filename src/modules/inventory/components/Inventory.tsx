@@ -38,6 +38,7 @@ import { useInventoryStore } from '../store'
 import { useAuthStore } from '../../auth/store'
 import { Medicine, Vendor, InventoryBatch } from '../../../types'
 import { DataTable, ColumnDef } from '../../../components/common/DataTable'
+import { formatDateTime } from '../../../lib/formatDate'
 
 // Toast Component
 function Toast({
@@ -771,20 +772,18 @@ function RedesignedMedicineModal({
   }
   const currentUnitOptions = adaptiveUnitLabels[form.type] || ['strip', 'vial', 'bottle', 'pcs']
 
-  // Duplicate Name Warning (Non-blocking)
-  const trimmedName = form.name.trim().toLowerCase()
-  const duplicateMedMatch = trimmedName.length >= 3
+  // Duplicate Name Warning (Blocking)
+  const cleanInputName = form.name.trim().replace(/\s+/g, ' ').toUpperCase()
+  const duplicateMedMatch = cleanInputName.length > 0
     ? existingMedicines.find(
       (m) =>
         m.id !== editingMed?.id &&
-        (m.name.toLowerCase() === trimmedName ||
-          m.name.toLowerCase().includes(trimmedName) ||
-          trimmedName.includes(m.name.toLowerCase()))
+        m.name.trim().replace(/\s+/g, ' ').toUpperCase() === cleanInputName
     )
     : null
 
   // Validations
-  const isNameValid = Boolean(form.name.trim())
+  const isNameValid = Boolean(form.name.trim()) && !duplicateMedMatch
   const reorderNum = parseInt(form.reorderLevel)
   const isReorderValid = !isNaN(reorderNum) && reorderNum >= 0
   const gstNum = parseFloat(form.defaultGstPercent)
@@ -794,10 +793,17 @@ function RedesignedMedicineModal({
 
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
+    if (duplicateMedMatch) {
+      toast.error(`Duplicate Medicine Name "${duplicateMedMatch.name}" is not allowed!`)
+      return
+    }
     if (!isValid || submitting) return
     setSubmitting(true)
     try {
-      await onSubmit(form)
+      await onSubmit({
+        ...form,
+        name: cleanInputName
+      })
     } finally {
       setSubmitting(false)
     }
@@ -818,12 +824,12 @@ function RedesignedMedicineModal({
     <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
       <div
         onKeyDown={handleFormKeyDown}
-        className="bg-white rounded-2xl shadow-2xl max-w-xl w-full border border-slate-100 overflow-hidden flex flex-col max-h-[90vh]"
+        className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full border border-slate-100 overflow-hidden flex flex-col max-h-[90vh]"
       >
         {/* MODAL HEADER */}
         <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between shadow-md">
           <div className="flex items-center gap-2.5">
-            <Pill className="w-5 h-5 text-cyan-400" />
+            <Sparkles className="w-5 h-5 text-cyan-400" />
             <h3 className="text-md font-bold">
               {editingMed ? 'Edit Medicine Master' : 'Add New Medicine Master'}
             </h3>
@@ -840,10 +846,10 @@ function RedesignedMedicineModal({
           </div>
         </div>
 
-        {/* MODAL FORM BODY (SCROLLABLE) */}
+        {/* MODAL FORM BODY */}
         <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-6 text-slate-800">
 
-          {/* SECTION 1: MEDICINE IDENTITY */}
+          {/* SECTION 1: MEDICINE IDENTIFICATION */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 border-b border-slate-100 pb-2 text-xs font-bold uppercase tracking-wider text-cyan-700">
               <Tag className="w-4 h-4 text-cyan-500" /> 1. Medicine Identification
@@ -858,26 +864,26 @@ function RedesignedMedicineModal({
                 <input
                   ref={nameInputRef}
                   type="text"
-                  placeholder="e.g. Paracetamol 650mg"
+                  placeholder="e.g. PARACETAMOL 650MG"
                   value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className={`w-full py-2 px-3 rounded-xl border text-sm focus:outline-none focus:ring-2 font-semibold ${!isNameValid && form.name !== ''
+                  onChange={(e) => setForm({ ...form, name: e.target.value.toUpperCase() })}
+                  className={`w-full py-2 px-3 rounded-xl border text-sm focus:outline-none focus:ring-2 font-semibold uppercase ${!isNameValid && form.name !== ''
                       ? 'border-red-300 bg-red-50/20 focus:ring-red-500'
                       : 'border-slate-200 focus:ring-cyan-500'
                     }`}
                 />
-                {!isNameValid && (
+                {!Boolean(form.name.trim()) && (
                   <p className="text-[11px] text-red-500 mt-1 font-medium">Medicine name is required.</p>
                 )}
 
-                {/* NON-BLOCKING DUPLICATE WARNING */}
+                {/* DUPLICATE MEDICINE RESTRICTION ERROR */}
                 {duplicateMedMatch && (
-                  <div className="mt-2 p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-xs flex items-start gap-2 text-amber-900">
-                    <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                  <div className="mt-2 p-2.5 bg-red-50 border border-red-200 rounded-xl text-xs flex items-start gap-2 text-red-900">
+                    <ShieldAlert className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
                     <div>
-                      <span className="font-bold">Notice: Similar medicine already registered!</span>
-                      <div className="text-[11px] text-amber-800 mt-0.5">
-                        <strong className="text-amber-950">{duplicateMedMatch.name}</strong> ({duplicateMedMatch.type}, Pack: {duplicateMedMatch.pack || 'N/A'})
+                      <span className="font-bold">Duplicate Medicine Name Restricted!</span>
+                      <div className="text-[11px] text-red-800 mt-0.5">
+                        Medicine with name <strong className="text-red-950">"{duplicateMedMatch.name}"</strong> already exists. Duplicate entries are not allowed.
                       </div>
                     </div>
                   </div>
@@ -1177,16 +1183,29 @@ function RedesignedVendorModal({
 
   if (!isOpen) return null
 
+  // Phone & GSTIN Clean Values
+  const cleanPhone = form.phone.trim()
+  const cleanGstin = form.gstin.trim().toUpperCase()
+
+  // Duplicate Vendor Warning (Blocking)
+  const cleanVendorInputName = form.name.trim().replace(/\s+/g, ' ').toUpperCase()
+  const duplicateVendor = (cleanVendorInputName.length > 0 || cleanGstin.length === 15)
+    ? existingVendors.find(
+      (v) =>
+        v.id !== editingVendor?.id &&
+        ((cleanVendorInputName.length > 0 && v.name.trim().replace(/\s+/g, ' ').toUpperCase() === cleanVendorInputName) ||
+          (cleanGstin.length === 15 && v.gstin && v.gstin.toUpperCase() === cleanGstin))
+    )
+    : null
+
   // Validations
-  const isNameValid = Boolean(form.name.trim())
+  const isNameValid = Boolean(form.name.trim()) && !duplicateVendor
 
   // Phone Validation (Mobile or Telephone / Landline, optional when blank)
-  const cleanPhone = form.phone.trim()
   const digitsOnlyPhone = cleanPhone.replace(/[\s\-\(\)\+]/g, '')
   const isPhoneValid = cleanPhone === '' || (digitsOnlyPhone.length >= 6 && digitsOnlyPhone.length <= 15 && /^[\+\d\s\-\(\)]+$/.test(cleanPhone))
 
   // GSTIN Validation (15-character format, optional when blank)
-  const cleanGstin = form.gstin.trim().toUpperCase()
   const gstinPattern = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/
   const isGstinValid = cleanGstin === '' || (cleanGstin.length === 15 && gstinPattern.test(cleanGstin))
 
@@ -1197,25 +1216,17 @@ function RedesignedVendorModal({
   // Overall Form Validation State
   const isValid = isNameValid && isPhoneValid && isGstinValid
 
-  // Duplicate Vendor Warning (Non-blocking)
-  const trimmedName = form.name.trim().toLowerCase()
-  const duplicateVendor = (trimmedName.length >= 3 || cleanGstin.length === 15)
-    ? existingVendors.find(
-      (v) =>
-        v.id !== editingVendor?.id &&
-        ((trimmedName.length >= 3 && v.name.toLowerCase() === trimmedName) ||
-          (trimmedName.length >= 3 && v.name.toLowerCase().includes(trimmedName)) ||
-          (cleanGstin.length === 15 && v.gstin && v.gstin.toUpperCase() === cleanGstin))
-    )
-    : null
-
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
+    if (duplicateVendor) {
+      toast.error(`Duplicate Vendor Name "${duplicateVendor.name}" is not allowed!`)
+      return
+    }
     if (!isValid || submitting) return
     setSubmitting(true)
     try {
       await onSubmit({
-        name: form.name.trim(),
+        name: cleanVendorInputName,
         phone: cleanPhone,
         address: form.address,
         gstin: cleanGstin,
@@ -1281,26 +1292,26 @@ function RedesignedVendorModal({
                 <input
                   ref={nameInputRef}
                   type="text"
-                  placeholder="e.g. Apex Pharmacy Wholesale"
+                  placeholder="e.g. APEX PHARMACY WHOLESALE"
                   value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className={`w-full py-2 px-3 rounded-xl border text-sm focus:outline-none focus:ring-2 font-semibold ${!isNameValid && form.name !== ''
+                  onChange={(e) => setForm({ ...form, name: e.target.value.toUpperCase() })}
+                  className={`w-full py-2 px-3 rounded-xl border text-sm focus:outline-none focus:ring-2 font-semibold uppercase ${!isNameValid && form.name !== ''
                       ? 'border-red-300 bg-red-50/20 focus:ring-red-500'
                       : 'border-slate-200 focus:ring-cyan-500'
                     }`}
                 />
-                {!isNameValid && (
+                {!Boolean(form.name.trim()) && (
                   <p className="text-[11px] text-red-500 mt-1 font-medium">Vendor name is required.</p>
                 )}
 
-                {/* DUPLICATE VENDOR WARNING */}
+                {/* DUPLICATE VENDOR RESTRICTION ERROR */}
                 {duplicateVendor && (
-                  <div className="mt-2 p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-xs flex items-start gap-2 text-amber-900">
-                    <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                  <div className="mt-2 p-2.5 bg-red-50 border border-red-200 rounded-xl text-xs flex items-start gap-2 text-red-900">
+                    <ShieldAlert className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
                     <div>
-                      <span className="font-bold">Notice: Similar vendor already registered!</span>
-                      <div className="text-[11px] text-amber-800 mt-0.5">
-                        <strong className="text-amber-950">{duplicateVendor.name}</strong> {duplicateVendor.gstin ? `(GSTIN: ${duplicateVendor.gstin})` : ''} {duplicateVendor.phone ? `• Ph: ${duplicateVendor.phone}` : ''}
+                      <span className="font-bold">Duplicate Vendor Restricted!</span>
+                      <div className="text-[11px] text-red-800 mt-0.5">
+                        Vendor with name <strong className="text-red-950">"{duplicateVendor.name}"</strong> already exists. Duplicate entries are not allowed.
                       </div>
                     </div>
                   </div>
@@ -1646,13 +1657,23 @@ export default function Inventory() {
 
   // MEDICINES CRUD SUBMISSION HANDLER
   const handleMedModalSave = async (formData: any) => {
-    if (!formData.name.trim()) return showToast('Name is required', 'error')
+    const cleanName = (formData.name || '').trim().replace(/\s+/g, ' ').toUpperCase()
+    if (!cleanName) return showToast('Medicine Name is required', 'error')
+
+    // Duplicate check against existing medicines
+    const isDuplicate = safeMedicines.some(
+      (m) => m.id !== editingMed?.id && m.name.trim().replace(/\s+/g, ' ').toUpperCase() === cleanName
+    )
+    if (isDuplicate) {
+      showToast(`Medicine "${cleanName}" already exists! Duplicate entry is not allowed.`, 'error')
+      throw new Error(`Duplicate medicine name "${cleanName}"`)
+    }
 
     try {
       const parsedGst = parseFloat(formData.defaultGstPercent)
       const gstPercent = isNaN(parsedGst) ? 12.0 : parsedGst
       const data = {
-        name: formData.name,
+        name: cleanName,
         generic_name: formData.genericName || null,
         genericName: formData.genericName || null,
         manufacturer: formData.manufacturer || null,
@@ -1701,14 +1722,29 @@ export default function Inventory() {
 
   // VENDORS CRUD SUBMISSION HANDLER
   const handleVendorModalSave = async (formData: any) => {
-    if (!formData.name.trim()) return showToast('Vendor Name is required', 'error')
+    const cleanName = (formData.name || '').trim().replace(/\s+/g, ' ').toUpperCase()
+    if (!cleanName) return showToast('Vendor Name is required', 'error')
+
+    // Duplicate check against existing vendors
+    const isDuplicate = safeVendors.some(
+      (v) => v.id !== editingVendor?.id && v.name.trim().replace(/\s+/g, ' ').toUpperCase() === cleanName
+    )
+    if (isDuplicate) {
+      showToast(`Vendor "${cleanName}" already exists! Duplicate entry is not allowed.`, 'error')
+      throw new Error(`Duplicate vendor name "${cleanName}"`)
+    }
+
+    const payload = {
+      ...formData,
+      name: cleanName
+    }
 
     try {
       if (editingVendor) {
-        await updateVendor({ id: editingVendor.id, data: formData, userId: currentUser?.id || '' })
+        await updateVendor({ id: editingVendor.id, data: payload, userId: currentUser?.id || '' })
         showToast('Vendor updated successfully', 'success')
       } else {
-        await createVendor({ data: formData, userId: currentUser?.id || '' })
+        await createVendor({ data: payload, userId: currentUser?.id || '' })
         showToast('Vendor created successfully', 'success')
       }
       setShowVendorModal(false)
@@ -2142,6 +2178,8 @@ export default function Inventory() {
             { key: 'qty_available', header: 'Qty Available', sortable: true, align: 'right', render: (b: any) => <span className="font-bold font-mono">{b.qty_available}</span> },
             { key: 'purchase_price_per_unit', header: 'Purchase Price', sortable: true, align: 'right', render: (b: any) => <span className="font-mono">₹{b.purchase_price_per_unit.toFixed(2)}</span> },
             { key: 'selling_price_per_unit', header: 'Selling Price', sortable: true, align: 'right', render: (b: any) => <span className="font-mono font-bold text-slate-900">₹{b.selling_price_per_unit.toFixed(2)}</span> },
+            { key: 'created_at', header: 'Created At', sortable: true, sortValue: (b: any) => b.created_at ? new Date(b.created_at).getTime() : 0, render: (b: any) => <span className="font-mono text-xs text-slate-600">{formatDateTime(b.created_at)}</span> },
+            { key: 'updated_at', header: 'Updated At', sortable: true, sortValue: (b: any) => b.updated_at ? new Date(b.updated_at).getTime() : 0, render: (b: any) => <span className="font-mono text-xs text-slate-600">{formatDateTime(b.updated_at)}</span> },
             {
               key: 'status',
               header: 'Status',
@@ -2211,6 +2249,8 @@ export default function Inventory() {
             },
             { key: 'reorder_level', header: 'Reorder Level', sortable: true, align: 'right', render: (m: any) => <span className="font-mono font-bold text-slate-800">{m.reorder_level}</span> },
             { key: 'default_gst_percent', header: 'GST %', sortable: true, align: 'right', render: (m: any) => <span className="font-mono">{m.default_gst_percent}%</span> },
+            { key: 'created_at', header: 'Created At', sortable: true, sortValue: (m: any) => m.created_at ? new Date(m.created_at).getTime() : 0, render: (m: any) => <span className="font-mono text-xs text-slate-600">{formatDateTime(m.created_at)}</span> },
+            { key: 'updated_at', header: 'Updated At', sortable: true, sortValue: (m: any) => m.updated_at ? new Date(m.updated_at).getTime() : 0, render: (m: any) => <span className="font-mono text-xs text-slate-600">{formatDateTime(m.updated_at)}</span> },
             {
               key: 'actions',
               header: 'Actions',
@@ -2969,6 +3009,8 @@ export default function Inventory() {
         <DataTable
           columns={[
             { key: 'purchase_date', header: 'Date', sortable: true, render: (p: any) => <span className="font-mono text-xs text-slate-600">{new Date(p.purchase_date).toLocaleDateString('en-GB')}</span> },
+            { key: 'created_at', header: 'Created At', sortable: true, sortValue: (p: any) => p.created_at ? new Date(p.created_at).getTime() : 0, render: (p: any) => <span className="font-mono text-xs text-slate-600">{formatDateTime(p.created_at)}</span> },
+            { key: 'updated_at', header: 'Updated At', sortable: true, sortValue: (p: any) => p.updated_at ? new Date(p.updated_at).getTime() : 0, render: (p: any) => <span className="font-mono text-xs text-slate-600">{formatDateTime(p.updated_at)}</span> },
             {
               key: 'vendor',
               header: 'Vendor & Invoice',
@@ -3072,6 +3114,8 @@ export default function Inventory() {
             { key: 'gstin', header: 'GSTIN', sortable: true, render: (v: any) => <span className="font-mono text-xs uppercase">{v.gstin || 'N/A'}</span> },
             { key: 'drug_license_no', header: 'Drug License No', sortable: true, render: (v: any) => <span className="font-mono text-xs uppercase">{v.drug_license_no || 'N/A'}</span> },
             { key: 'notes', header: 'Notes', render: (v: any) => <span className="text-xs text-slate-400 truncate max-w-xs block">{v.notes || 'N/A'}</span> },
+            { key: 'created_at', header: 'Created At', sortable: true, sortValue: (v: any) => v.created_at ? new Date(v.created_at).getTime() : 0, render: (v: any) => <span className="font-mono text-xs text-slate-600">{formatDateTime(v.created_at)}</span> },
+            { key: 'updated_at', header: 'Updated At', sortable: true, sortValue: (v: any) => v.updated_at ? new Date(v.updated_at).getTime() : 0, render: (v: any) => <span className="font-mono text-xs text-slate-600">{formatDateTime(v.updated_at)}</span> },
             {
               key: 'actions',
               header: 'Actions',

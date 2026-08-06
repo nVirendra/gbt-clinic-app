@@ -179,6 +179,8 @@ export interface UserSummary {
   username: string
   role: 'ADMIN' | 'RECEPTIONIST'
   is_active: boolean
+  created_at?: string
+  updated_at?: string
 }
 
 export interface CollectionSummary {

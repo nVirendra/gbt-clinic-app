@@ -18,6 +18,7 @@ import { useAuthStore } from '../../auth/store'
 import { useSettingsStore } from '../../settings/store'
 import { Bill } from '../../../types'
 import { DataTable, ColumnDef } from '../../../components/common/DataTable'
+import { formatDateTime } from '../../../lib/formatDate'
 
 export default function Invoices() {
   const bills = useBillingStore((state) => state.bills)
@@ -231,6 +232,28 @@ export default function Invoices() {
       )
     },
     {
+      key: 'created_at',
+      header: 'Created At',
+      sortable: true,
+      sortValue: (b) => b.created_at ? new Date(b.created_at).getTime() : 0,
+      render: (b) => (
+        <span className="font-mono text-xs text-slate-600 font-medium">
+          {formatDateTime(b.created_at)}
+        </span>
+      )
+    },
+    {
+      key: 'updated_at',
+      header: 'Updated At',
+      sortable: true,
+      sortValue: (b) => b.updated_at ? new Date(b.updated_at).getTime() : 0,
+      render: (b) => (
+        <span className="font-mono text-xs text-slate-600 font-medium">
+          {formatDateTime(b.updated_at)}
+        </span>
+      )
+    },
+    {
       key: 'grand_total',
       header: 'Grand Total',
       sortable: true,
@@ -432,6 +455,12 @@ export default function Invoices() {
                   <p className="text-lg font-black text-slate-900 font-mono mt-1">{selectedBill.bill_no}</p>
                   <p className="text-xs text-slate-500 mt-1">
                     Date: {new Date(selectedBill.bill_date).toLocaleDateString('en-GB')}
+                  </p>
+                  <p className="text-[11px] text-slate-500 mt-0.5 font-mono">
+                    Created: {formatDateTime(selectedBill.created_at)}
+                  </p>
+                  <p className="text-[11px] text-slate-500 mt-0.5 font-mono">
+                    Updated: {formatDateTime(selectedBill.updated_at)}
                   </p>
                   {profile?.gstin && (
                     <p className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.8 rounded font-medium mt-2 inline-block">
