@@ -248,6 +248,7 @@ export const realApi: Window['api'] = {
     const raw = args.data || {};
     const payload = {
       name: raw.name,
+      strength: raw.strength !== undefined ? raw.strength : null,
       generic_name: raw.generic_name !== undefined ? raw.generic_name : (raw.genericName || null),
       manufacturer: raw.manufacturer || null,
       pack: raw.pack || null,
@@ -268,6 +269,7 @@ export const realApi: Window['api'] = {
     const raw = args.data || {};
     const payload: Record<string, any> = {};
     if (raw.name !== undefined) payload.name = raw.name;
+    if (raw.strength !== undefined) payload.strength = raw.strength;
     if (raw.generic_name !== undefined || raw.genericName !== undefined) {
       payload.generic_name = raw.generic_name !== undefined ? raw.generic_name : raw.genericName;
     }

@@ -32,6 +32,7 @@ export interface Vendor {
 export interface Medicine {
   id: string
   name: string
+  strength?: string | null
   generic_name?: string | null
   manufacturer?: string | null
   pack?: string | null

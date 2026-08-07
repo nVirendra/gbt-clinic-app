@@ -11,7 +11,7 @@ export interface LoginProps {
 }
 
 export default function Login({
-  productName = 'Clinic Billing System',
+  productName = 'Shree Balaji Poly Clinic',
   productTagline = 'Sign in to manage records and invoices',
   productLogoSrc = '/get-by-tech-logo.png',
   developerName = 'GetBytech',
@@ -61,20 +61,7 @@ export default function Login({
         
         {/* Product Brand Header */}
         <div className="text-center space-y-3">
-          <div className="mx-auto flex items-center justify-center">
-            {isLogoLoaded && productLogoSrc ? (
-              <img
-                src={productLogoSrc}
-                alt={productName}
-                onError={() => setIsLogoLoaded(false)}
-                className="h-14 w-auto object-contain drop-shadow-sm transition-transform hover:scale-105"
-              />
-            ) : (
-              <div className="h-12 w-12 rounded-2xl bg-[#0B132B] text-cyan-500 flex items-center justify-center shadow-lg shadow-cyan-500/20 border border-cyan-500/30">
-                <Building2 className="h-6 w-6" />
-              </div>
-            )}
-          </div>
+          
           <div>
             <h1 className="text-2xl font-black tracking-tight text-[#0B132B]">{productName}</h1>
             <p className="text-xs text-slate-500 mt-1 font-semibold">{productTagline}</p>

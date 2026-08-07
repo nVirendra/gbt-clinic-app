@@ -243,9 +243,17 @@ function MedicineTypeahead({
 
   const selectedMed = medicines.find((m) => m.id === value)
 
+  const formatMedLabel = (m?: Medicine | null) => {
+    if (!m) return ''
+    const parts = [m.name]
+    if (m.strength) parts.push(m.strength)
+    if (m.pack) parts.push(`[${m.pack}]`)
+    return parts.join(' ')
+  }
+
   useEffect(() => {
     if (selectedMed && !isOpen) {
-      setQuery(`${selectedMed.name} ${selectedMed.pack ? `[${selectedMed.pack}]` : ''}`)
+      setQuery(formatMedLabel(selectedMed))
     } else if (!value && !isOpen) {
       setQuery('')
     }
@@ -256,7 +264,7 @@ function MedicineTypeahead({
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setIsOpen(false)
         if (selectedMed) {
-          setQuery(`${selectedMed.name} ${selectedMed.pack ? `[${selectedMed.pack}]` : ''}`)
+          setQuery(formatMedLabel(selectedMed))
         } else {
           setQuery('')
         }
@@ -269,6 +277,7 @@ function MedicineTypeahead({
   const filtered = medicines.filter(
     (m) =>
       m.name.toLowerCase().includes(query.toLowerCase()) ||
+      (m.strength || '').toLowerCase().includes(query.toLowerCase()) ||
       (m.generic_name || '').toLowerCase().includes(query.toLowerCase()) ||
       (m.manufacturer || '').toLowerCase().includes(query.toLowerCase()) ||
       (m.pack || '').toLowerCase().includes(query.toLowerCase()) ||
@@ -292,7 +301,7 @@ function MedicineTypeahead({
         e.preventDefault()
         const med = filtered[highlightedIndex]
         onChange(med)
-        setQuery(`${med.name} ${med.pack ? `[${med.pack}]` : ''}`)
+        setQuery(formatMedLabel(med))
         setIsOpen(false)
       }
     } else if (e.key === 'Escape') {
@@ -347,7 +356,7 @@ function MedicineTypeahead({
                 onMouseEnter={() => setHighlightedIndex(idx)}
                 onClick={() => {
                   onChange(m)
-                  setQuery(`${m.name} ${m.pack ? `[${m.pack}]` : ''}`)
+                  setQuery(formatMedLabel(m))
                   setIsOpen(false)
                 }}
                 className={`px-4 py-2.5 cursor-pointer border-b border-slate-100 last:border-0 transition-colors ${idx === highlightedIndex ? 'bg-cyan-50 text-cyan-950 font-medium' : 'text-slate-700 hover:bg-slate-50'
@@ -356,6 +365,7 @@ function MedicineTypeahead({
                 <div className="flex justify-between items-start">
                   <div>
                     <span className="font-semibold text-slate-900">{m.name}</span>
+                    {m.strength && <span className="ml-1.5 text-xs font-semibold text-cyan-700">({m.strength})</span>}
                     {m.pack && <span className="ml-2 text-xs font-mono text-slate-500">[{m.pack}]</span>}
                     <span className="ml-2 text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-mono uppercase">{m.type}</span>
                   </div>
@@ -632,6 +642,7 @@ function RedesignedMedicineModal({
   existingMedicines: Medicine[]
   initialFormValues?: Partial<{
     name: string
+    strength: string
     genericName: string
     manufacturer: string
     pack: string
@@ -645,6 +656,7 @@ function RedesignedMedicineModal({
 }) {
   const [form, setForm] = useState({
     name: '',
+    strength: '',
     genericName: '',
     manufacturer: '',
     pack: '',
@@ -665,6 +677,7 @@ function RedesignedMedicineModal({
       if (editingMed) {
         setForm({
           name: editingMed.name || '',
+          strength: editingMed.strength || '',
           genericName: editingMed.generic_name || '',
           manufacturer: editingMed.manufacturer || '',
           pack: editingMed.pack || '',
@@ -678,6 +691,7 @@ function RedesignedMedicineModal({
       } else if (initialFormValues) {
         setForm({
           name: initialFormValues.name || '',
+          strength: initialFormValues.strength || '',
           genericName: initialFormValues.genericName || '',
           manufacturer: initialFormValues.manufacturer || '',
           pack: initialFormValues.pack || '',
@@ -691,6 +705,7 @@ function RedesignedMedicineModal({
       } else {
         setForm({
           name: '',
+          strength: '',
           genericName: '',
           manufacturer: '',
           pack: '',
@@ -772,13 +787,30 @@ function RedesignedMedicineModal({
   }
   const currentUnitOptions = adaptiveUnitLabels[form.type] || ['strip', 'vial', 'bottle', 'pcs']
 
-  // Duplicate Name Warning (Blocking)
-  const cleanInputName = form.name.trim().replace(/\s+/g, ' ').toUpperCase()
+  // Helper for string normalization
+  const normStr = (str?: string | null) => {
+    if (!str) return ''
+    const s = str.trim().replace(/\s+/g, ' ')
+    if (s.toUpperCase() === 'NULL' || s.toUpperCase() === 'UNDEFINED') return ''
+    return s.toUpperCase()
+  }
+
+  // 5-Tuple Duplicate Combination Check (Name + Strength + Dosage Form + Pack Size + Manufacturer)
+  const cleanInputName = normStr(form.name)
+  const cleanInputStrength = normStr(form.strength)
+  const cleanInputType = normStr(form.type) || 'TABLET'
+  const cleanInputPack = normStr(form.pack)
+  const cleanInputManufacturer = normStr(form.manufacturer)
+
   const duplicateMedMatch = cleanInputName.length > 0
     ? existingMedicines.find(
       (m) =>
         m.id !== editingMed?.id &&
-        m.name.trim().replace(/\s+/g, ' ').toUpperCase() === cleanInputName
+        normStr(m.name) === cleanInputName &&
+        normStr(m.strength) === cleanInputStrength &&
+        (normStr(m.type) || 'TABLET') === cleanInputType &&
+        normStr(m.pack) === cleanInputPack &&
+        normStr(m.manufacturer) === cleanInputManufacturer
     )
     : null
 
@@ -794,7 +826,7 @@ function RedesignedMedicineModal({
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
     if (duplicateMedMatch) {
-      toast.error(`Duplicate Medicine Name "${duplicateMedMatch.name}" is not allowed!`)
+      toast.error(`Duplicate Medicine Combination (Name + Strength + Dosage Form + Pack + Manufacturer) is not allowed!`)
       return
     }
     if (!isValid || submitting) return
@@ -802,7 +834,11 @@ function RedesignedMedicineModal({
     try {
       await onSubmit({
         ...form,
-        name: cleanInputName
+        name: cleanInputName,
+        strength: cleanInputStrength,
+        type: cleanInputType,
+        pack: cleanInputPack,
+        manufacturer: cleanInputManufacturer
       })
     } finally {
       setSubmitting(false)
@@ -856,39 +892,59 @@ function RedesignedMedicineModal({
             </div>
 
             <div className="space-y-3">
-              {/* Medicine Name */}
-              <div>
-                <label className="block text-xs font-bold text-slate-600 uppercase mb-1">
-                  Medicine Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  ref={nameInputRef}
-                  type="text"
-                  placeholder="e.g. PARACETAMOL 650MG"
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value.toUpperCase() })}
-                  className={`w-full py-2 px-3 rounded-xl border text-sm focus:outline-none focus:ring-2 font-semibold uppercase ${!isNameValid && form.name !== ''
-                      ? 'border-red-300 bg-red-50/20 focus:ring-red-500'
-                      : 'border-slate-200 focus:ring-cyan-500'
-                    }`}
-                />
-                {!Boolean(form.name.trim()) && (
-                  <p className="text-[11px] text-red-500 mt-1 font-medium">Medicine name is required.</p>
-                )}
+              {/* Medicine Name & Strength inputs */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-bold text-slate-600 uppercase mb-1">
+                    Medicine Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    ref={nameInputRef}
+                    type="text"
+                    placeholder="e.g. PARACETAMOL or DOLOMED"
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value.toUpperCase() })}
+                    className={`w-full py-2 px-3 rounded-xl border text-sm focus:outline-none focus:ring-2 font-semibold uppercase ${!isNameValid && form.name !== ''
+                        ? 'border-red-300 bg-red-50/20 focus:ring-red-500'
+                        : 'border-slate-200 focus:ring-cyan-500'
+                      }`}
+                  />
+                  {!Boolean(form.name.trim()) && (
+                    <p className="text-[11px] text-red-500 mt-1 font-medium">Medicine name is required.</p>
+                  )}
+                </div>
 
-                {/* DUPLICATE MEDICINE RESTRICTION ERROR */}
-                {duplicateMedMatch && (
-                  <div className="mt-2 p-2.5 bg-red-50 border border-red-200 rounded-xl text-xs flex items-start gap-2 text-red-900">
-                    <ShieldAlert className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
-                    <div>
-                      <span className="font-bold">Duplicate Medicine Name Restricted!</span>
-                      <div className="text-[11px] text-red-800 mt-0.5">
-                        Medicine with name <strong className="text-red-950">"{duplicateMedMatch.name}"</strong> already exists. Duplicate entries are not allowed.
-                      </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-600 uppercase mb-1">
+                    Strength
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 500mg, 10ml, 500IU"
+                    value={form.strength}
+                    onChange={(e) => setForm({ ...form, strength: e.target.value })}
+                    className="w-full py-2 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 font-semibold"
+                  />
+                </div>
+              </div>
+
+              {/* DUPLICATE MEDICINE RESTRICTION ERROR */}
+              {duplicateMedMatch && (
+                <div className="p-2.5 bg-red-50 border border-red-200 rounded-xl text-xs flex items-start gap-2 text-red-900">
+                  <ShieldAlert className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-bold">Duplicate Medicine Combination Restricted!</span>
+                    <div className="text-[11px] text-red-800 mt-0.5 leading-relaxed">
+                      A medicine with combination: Name <strong className="text-red-950">"{duplicateMedMatch.name}"</strong>
+                      {duplicateMedMatch.strength && <>, Strength <strong className="text-red-950">"{duplicateMedMatch.strength}"</strong></>}
+                      , Form <strong className="text-red-950">"{duplicateMedMatch.type}"</strong>
+                      {duplicateMedMatch.pack && <>, Pack <strong className="text-red-950">"{duplicateMedMatch.pack}"</strong></>}
+                      {duplicateMedMatch.manufacturer && <>, Manufacturer <strong className="text-red-950">"{duplicateMedMatch.manufacturer}"</strong></>}
+                      {' '}already exists. Duplicate combination entries are not allowed.
                     </div>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
 
               {/* Generic Name & Manufacturer Comboboxes */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1564,12 +1620,15 @@ export default function Inventory() {
   const medicineInputRef = useRef<HTMLInputElement>(null)
 
   const safeBatches = Array.isArray(batches) ? batches : []
-  const searchableBatches = safeBatches.map((b: any) => ({ ...b, medicine_name: b.medicine?.name || '' }))
+  const searchableBatches = safeBatches.map((b: any) => ({
+    ...b,
+    medicine_name: b.medicine ? `${b.medicine.name}${b.medicine.strength ? ` (${b.medicine.strength})` : ''}` : ''
+  }))
   const safePurchases = Array.isArray(purchases) ? purchases : []
   const searchablePurchases = safePurchases.map((p: any) => ({
     ...p,
     vendor_name: p.vendor?.name || '',
-    batch_items_search: (p.batches || []).map((b: any) => b.medicine?.name || '').join(' ')
+    batch_items_search: (p.batches || []).map((b: any) => b.medicine ? `${b.medicine.name}${b.medicine.strength ? ` (${b.medicine.strength})` : ''}` : '').join(' ')
   }))
   const safeMedicines = Array.isArray(medicines) ? medicines : []
   const safeVendors = Array.isArray(vendors) ? vendors : []
@@ -1657,16 +1716,33 @@ export default function Inventory() {
 
   // MEDICINES CRUD SUBMISSION HANDLER
   const handleMedModalSave = async (formData: any) => {
-    const cleanName = (formData.name || '').trim().replace(/\s+/g, ' ').toUpperCase()
+    const norm = (str?: string | null) => {
+      if (!str) return ''
+      const s = str.trim().replace(/\s+/g, ' ')
+      if (s.toUpperCase() === 'NULL' || s.toUpperCase() === 'UNDEFINED') return ''
+      return s.toUpperCase()
+    }
+    const cleanName = norm(formData.name)
+    const cleanStrength = norm(formData.strength)
+    const cleanType = norm(formData.type) || 'TABLET'
+    const cleanPack = norm(formData.pack)
+    const cleanManufacturer = norm(formData.manufacturer)
+
     if (!cleanName) return showToast('Medicine Name is required', 'error')
 
-    // Duplicate check against existing medicines
+    // 5-Tuple Duplicate check against existing medicines
     const isDuplicate = safeMedicines.some(
-      (m) => m.id !== editingMed?.id && m.name.trim().replace(/\s+/g, ' ').toUpperCase() === cleanName
+      (m) =>
+        m.id !== editingMed?.id &&
+        norm(m.name) === cleanName &&
+        norm(m.strength) === cleanStrength &&
+        (norm(m.type) || 'TABLET') === cleanType &&
+        norm(m.pack) === cleanPack &&
+        norm(m.manufacturer) === cleanManufacturer
     )
     if (isDuplicate) {
-      showToast(`Medicine "${cleanName}" already exists! Duplicate entry is not allowed.`, 'error')
-      throw new Error(`Duplicate medicine name "${cleanName}"`)
+      showToast(`Medicine with this combination already exists! Duplicate entry is not allowed.`, 'error')
+      return
     }
 
     try {
@@ -1674,11 +1750,12 @@ export default function Inventory() {
       const gstPercent = isNaN(parsedGst) ? 12.0 : parsedGst
       const data = {
         name: cleanName,
-        generic_name: formData.genericName || null,
-        genericName: formData.genericName || null,
-        manufacturer: formData.manufacturer || null,
-        pack: formData.pack || null,
-        type: formData.type,
+        strength: cleanStrength || null,
+        generic_name: formData.genericName ? formData.genericName.trim() : null,
+        genericName: formData.genericName ? formData.genericName.trim() : null,
+        manufacturer: cleanManufacturer || null,
+        pack: cleanPack || null,
+        type: cleanType || 'TABLET',
         unit_label: formData.unitLabel,
         unitLabel: formData.unitLabel,
         hsn_code: formData.hsnCode || null,
@@ -2234,6 +2311,7 @@ export default function Inventory() {
         <DataTable
           columns={[
             { key: 'name', header: 'Medicine Name', sortable: true, render: (m: any) => <span className="font-bold text-slate-900">{m.name}</span> },
+            { key: 'strength', header: 'Strength', sortable: true, render: (m: any) => <span className="font-semibold text-cyan-800 bg-cyan-50 border border-cyan-200/60 px-2 py-0.5 rounded text-xs">{m.strength || 'N/A'}</span> },
             { key: 'generic_name', header: 'Generic Name', sortable: true, render: (m: any) => <span className="text-xs text-slate-600 font-medium">{m.generic_name || 'N/A'}</span> },
             { key: 'manufacturer', header: 'Manufacturer', sortable: true, render: (m: any) => <span className="text-xs text-slate-600">{m.manufacturer || 'N/A'}</span> },
             { key: 'pack', header: 'Pack', sortable: true, render: (m: any) => <span className="font-mono text-xs">{m.pack || 'N/A'}</span> },
