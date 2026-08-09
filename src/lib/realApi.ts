@@ -10,7 +10,9 @@ import {
   UserSummary,
   CollectionSummary,
   GstSummaryRow,
-  AuditLogEntry
+  AuditLogEntry,
+  ScanInvoiceResult,
+  ScanCommitPayload
 } from '../types';
 
 const getBaseUrl = (): string => {
@@ -352,6 +354,48 @@ export const realApi: Window['api'] = {
     return request<Purchase>('/inventory/purchases', {
       method: 'POST',
       body: JSON.stringify(payload),
+    });
+  },
+
+  // ==========================================
+  // Scan Purchase Invoice
+  // ==========================================
+  async scanPurchaseInvoice(file: File): Promise<ScanInvoiceResult> {
+    const baseUrl = getBaseUrl();
+    const token = getToken();
+
+    const formData = new FormData();
+    formData.append('invoice', file);
+
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    // No 'Content-Type' header — the browser sets the multipart boundary for FormData.
+    const response = await fetch(`${baseUrl}/purchase-scan/extract`, {
+      method: 'POST',
+      headers,
+      body: formData,
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      let errorMessage = `Invoice scan failed with status ${response.status}`;
+      try {
+        const errData = await response.json();
+        errorMessage = errData.message || errorMessage;
+      } catch { }
+      throw new Error(errorMessage);
+    }
+
+    return response.json() as Promise<ScanInvoiceResult>;
+  },
+
+  async commitScannedPurchase(args: { data: ScanCommitPayload; userId: string }): Promise<Purchase> {
+    return request<Purchase>('/purchase-scan/commit', {
+      method: 'POST',
+      body: JSON.stringify(args.data),
     });
   },
 

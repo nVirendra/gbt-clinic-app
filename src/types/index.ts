@@ -204,6 +204,142 @@ export interface GstSummaryRow {
   totalTax: number
 }
 
+// ==========================================
+// Scan Purchase Invoice
+// ==========================================
+export interface ScanExtractedVendor {
+  name: string
+  gstin: string | null
+  drugLicenseNo: string | null
+  address: string | null
+  phone: string | null
+}
+
+export interface ScanExtractedItem {
+  rawName: string
+  pack: string | null
+  hsnCode: string | null
+  batchNumber: string | null
+  expiryDate: string | null // YYYY-MM
+  quantity: number
+  freeQuantity: number
+  mrp: number
+  purchaseRate: number
+  discountPct: number
+  gstPct: number
+  lineAmount: number
+}
+
+export interface ScanExtractedPurchase {
+  invoiceNumber: string | null
+  invoiceDate: string | null
+  subtotal: number
+  totalDiscount: number
+  cgst: number
+  sgst: number
+  igst: number
+  grandTotal: number
+}
+
+export interface ScanVendorMatch {
+  status: 'matched' | 'new'
+  vendorId: string | null
+  matchedVendor: (Vendor & { score: number }) | null
+  extracted: ScanExtractedVendor
+}
+
+export interface ScanMedicineCandidate extends Medicine {
+  score: number
+}
+
+export interface ScanItemMatch {
+  status: 'matched' | 'ambiguous' | 'new'
+  medicineId: string | null
+  matchedMedicine: ScanMedicineCandidate | null
+  suggestions: ScanMedicineCandidate[]
+  extracted: ScanExtractedItem
+}
+
+export interface ScanInvoiceResult {
+  vendor: ScanVendorMatch
+  items: ScanItemMatch[]
+  purchase: ScanExtractedPurchase
+  validation: {
+    sumOfLineAmounts: number
+    grandTotal: number
+    difference: number
+    mismatch: boolean
+  }
+}
+
+export type ScanCommitVendor =
+  | { mode: 'existing'; vendorId: string }
+  | {
+      mode: 'new'
+      data: {
+        name: string
+        phone: string
+        address: string
+        gstin?: string | null
+        drug_license_no?: string | null
+        notes?: string | null
+      }
+    }
+
+interface ScanCommitBatchFields {
+  batchNo?: string
+  expiryDate: string
+  qty: number
+  freeQty?: number
+  mrp?: number
+  discountPercent?: number
+  gstPercent?: number
+  purchasePrice: number
+  sellingPrice: number
+  lineAmount: number
+}
+
+export type ScanCommitItem = ScanCommitBatchFields &
+  (
+    | { mode: 'existing'; medicineId: string }
+    | {
+        mode: 'new'
+        data: {
+          name: string
+          unit_label: string
+          strength?: string | null
+          generic_name?: string | null
+          manufacturer?: string | null
+          pack?: string | null
+          type?: string
+          hsn_code?: string | null
+          rack_no?: string | null
+          reorder_level?: number
+          default_gst_percent?: number
+        }
+      }
+  )
+
+export interface ScanCommitPayload {
+  vendor: ScanCommitVendor
+  items: ScanCommitItem[]
+  purchase: {
+    invoiceNumber: string
+    invoiceDate: string
+    purchaseDate: string
+    purchaseType?: 'CASH' | 'CREDIT'
+    dueDate?: string | null
+    paymentDate?: string | null
+    paymentStatus?: 'PAID' | 'PENDING' | 'PARTIAL'
+    paymentMode?: string | null
+    paidAmount?: number
+    pendingAmount?: number
+    notes?: string | null
+    grandTotal: number
+  }
+  confirmMismatch?: boolean
+}
+
 export interface AuditLogEntry {
   id: string
   user_id: string | null
@@ -249,6 +385,10 @@ declare global {
       // Purchases
       createPurchase(args: { data: any; userId: string }): Promise<Purchase>
       getPurchases(): Promise<Purchase[]>
+
+      // Scan Purchase Invoice
+      scanPurchaseInvoice(file: File): Promise<ScanInvoiceResult>
+      commitScannedPurchase(args: { data: ScanCommitPayload; userId: string }): Promise<Purchase>
 
       // Inventory Batches
       getInventoryBatches(): Promise<InventoryBatch[]>

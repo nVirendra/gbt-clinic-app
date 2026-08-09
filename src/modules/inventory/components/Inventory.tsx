@@ -32,13 +32,15 @@ import {
   Clock,
   Pill,
   ShieldAlert,
-  ShieldCheck
+  ShieldCheck,
+  ScanLine
 } from 'lucide-react'
 import { useInventoryStore } from '../store'
 import { useAuthStore } from '../../auth/store'
-import { Medicine, Vendor, InventoryBatch } from '../../../types'
+import { Medicine, Vendor, InventoryBatch, Purchase } from '../../../types'
 import { DataTable, ColumnDef } from '../../../components/common/DataTable'
 import { formatDateTime } from '../../../lib/formatDate'
+import ScanPurchaseInvoice from './ScanPurchaseInvoice'
 
 // Toast Component
 function Toast({
@@ -1617,6 +1619,7 @@ export default function Inventory() {
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
   const [recentlyAddedIndex, setRecentlyAddedIndex] = useState<number | null>(null)
   const [lastUsedGstPercent, setLastUsedGstPercent] = useState('12')
+  const [showScanInvoiceModal, setShowScanInvoiceModal] = useState(false)
   const medicineInputRef = useRef<HTMLInputElement>(null)
 
   const safeBatches = Array.isArray(batches) ? batches : []
@@ -2436,6 +2439,14 @@ export default function Inventory() {
                   </h3>
 
                   <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setShowScanInvoiceModal(true)}
+                      className="text-xs font-bold text-violet-600 hover:text-violet-800 flex items-center gap-1 cursor-pointer bg-violet-50 px-2.5 py-1 rounded-lg border border-violet-200/60"
+                    >
+                      <ScanLine className="w-3.5 h-3.5" /> Scan Invoice
+                    </button>
+
                     <button
                       type="button"
                       onClick={() => {
@@ -3469,6 +3480,18 @@ export default function Inventory() {
             </div>
           </div>
         </div>
+      )}
+
+      {showScanInvoiceModal && (
+        <ScanPurchaseInvoice
+          userId={currentUser?.id || ''}
+          onClose={() => setShowScanInvoiceModal(false)}
+          onCommitted={(purchase: Purchase) => {
+            setShowScanInvoiceModal(false)
+            loadAllData()
+            showToast(`Purchase invoice #${purchase.purchase_invoice_no} saved from scan`, 'success')
+          }}
+        />
       )}
     </div>
   )
