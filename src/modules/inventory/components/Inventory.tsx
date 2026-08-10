@@ -2258,8 +2258,6 @@ export default function Inventory() {
             { key: 'qty_available', header: 'Qty Available', sortable: true, align: 'right', render: (b: any) => <span className="font-bold font-mono">{b.qty_available}</span> },
             { key: 'purchase_price_per_unit', header: 'Purchase Price', sortable: true, align: 'right', render: (b: any) => <span className="font-mono">₹{b.purchase_price_per_unit.toFixed(2)}</span> },
             { key: 'selling_price_per_unit', header: 'Selling Price', sortable: true, align: 'right', render: (b: any) => <span className="font-mono font-bold text-slate-900">₹{b.selling_price_per_unit.toFixed(2)}</span> },
-            { key: 'created_at', header: 'Created At', sortable: true, sortValue: (b: any) => b.created_at ? new Date(b.created_at).getTime() : 0, render: (b: any) => <span className="font-mono text-xs text-slate-600">{formatDateTime(b.created_at)}</span> },
-            { key: 'updated_at', header: 'Updated At', sortable: true, sortValue: (b: any) => b.updated_at ? new Date(b.updated_at).getTime() : 0, render: (b: any) => <span className="font-mono text-xs text-slate-600">{formatDateTime(b.updated_at)}</span> },
             {
               key: 'status',
               header: 'Status',
@@ -2278,6 +2276,8 @@ export default function Inventory() {
                 )
               }
             },
+            { key: 'created_at', header: 'Created At', optional: true, sortable: true, sortValue: (b: any) => b.created_at ? new Date(b.created_at).getTime() : 0, render: (b: any) => <span className="font-mono text-xs text-slate-600">{formatDateTime(b.created_at)}</span> },
+            { key: 'updated_at', header: 'Updated At', optional: true, sortable: true, sortValue: (b: any) => b.updated_at ? new Date(b.updated_at).getTime() : 0, render: (b: any) => <span className="font-mono text-xs text-slate-600">{formatDateTime(b.updated_at)}</span> },
             {
               key: 'actions',
               header: 'Actions',
@@ -2330,8 +2330,8 @@ export default function Inventory() {
             },
             { key: 'reorder_level', header: 'Reorder Level', sortable: true, align: 'right', render: (m: any) => <span className="font-mono font-bold text-slate-800">{m.reorder_level}</span> },
             { key: 'default_gst_percent', header: 'GST %', sortable: true, align: 'right', render: (m: any) => <span className="font-mono">{m.default_gst_percent}%</span> },
-            { key: 'created_at', header: 'Created At', sortable: true, sortValue: (m: any) => m.created_at ? new Date(m.created_at).getTime() : 0, render: (m: any) => <span className="font-mono text-xs text-slate-600">{formatDateTime(m.created_at)}</span> },
-            { key: 'updated_at', header: 'Updated At', sortable: true, sortValue: (m: any) => m.updated_at ? new Date(m.updated_at).getTime() : 0, render: (m: any) => <span className="font-mono text-xs text-slate-600">{formatDateTime(m.updated_at)}</span> },
+            { key: 'created_at', header: 'Created At', optional: true, sortable: true, sortValue: (m: any) => m.created_at ? new Date(m.created_at).getTime() : 0, render: (m: any) => <span className="font-mono text-xs text-slate-600">{formatDateTime(m.created_at)}</span> },
+            { key: 'updated_at', header: 'Updated At', optional: true, sortable: true, sortValue: (m: any) => m.updated_at ? new Date(m.updated_at).getTime() : 0, render: (m: any) => <span className="font-mono text-xs text-slate-600">{formatDateTime(m.updated_at)}</span> },
             {
               key: 'actions',
               header: 'Actions',
@@ -3098,8 +3098,6 @@ export default function Inventory() {
         <DataTable
           columns={[
             { key: 'purchase_date', header: 'Date', sortable: true, render: (p: any) => <span className="font-mono text-xs text-slate-600">{new Date(p.purchase_date).toLocaleDateString('en-GB')}</span> },
-            { key: 'created_at', header: 'Created At', sortable: true, sortValue: (p: any) => p.created_at ? new Date(p.created_at).getTime() : 0, render: (p: any) => <span className="font-mono text-xs text-slate-600">{formatDateTime(p.created_at)}</span> },
-            { key: 'updated_at', header: 'Updated At', sortable: true, sortValue: (p: any) => p.updated_at ? new Date(p.updated_at).getTime() : 0, render: (p: any) => <span className="font-mono text-xs text-slate-600">{formatDateTime(p.updated_at)}</span> },
             {
               key: 'vendor',
               header: 'Vendor & Invoice',
@@ -3178,7 +3176,9 @@ export default function Inventory() {
                 )
               }
             },
-            { key: 'notes', header: 'Notes', render: (p: any) => <span className="text-xs text-slate-400 truncate max-w-xs block">{p.notes || 'N/A'}</span> }
+            { key: 'notes', header: 'Notes', render: (p: any) => <span className="text-xs text-slate-400 truncate max-w-xs block">{p.notes || 'N/A'}</span> },
+            { key: 'created_at', header: 'Created At', optional: true, sortable: true, sortValue: (p: any) => p.created_at ? new Date(p.created_at).getTime() : 0, render: (p: any) => <span className="font-mono text-xs text-slate-600">{formatDateTime(p.created_at)}</span> },
+            { key: 'updated_at', header: 'Updated At', optional: true, sortable: true, sortValue: (p: any) => p.updated_at ? new Date(p.updated_at).getTime() : 0, render: (p: any) => <span className="font-mono text-xs text-slate-600">{formatDateTime(p.updated_at)}</span> }
           ]}
           data={searchablePurchases}
           loading={loading}
@@ -3203,8 +3203,8 @@ export default function Inventory() {
             { key: 'gstin', header: 'GSTIN', sortable: true, render: (v: any) => <span className="font-mono text-xs uppercase">{v.gstin || 'N/A'}</span> },
             { key: 'drug_license_no', header: 'Drug License No', sortable: true, render: (v: any) => <span className="font-mono text-xs uppercase">{v.drug_license_no || 'N/A'}</span> },
             { key: 'notes', header: 'Notes', render: (v: any) => <span className="text-xs text-slate-400 truncate max-w-xs block">{v.notes || 'N/A'}</span> },
-            { key: 'created_at', header: 'Created At', sortable: true, sortValue: (v: any) => v.created_at ? new Date(v.created_at).getTime() : 0, render: (v: any) => <span className="font-mono text-xs text-slate-600">{formatDateTime(v.created_at)}</span> },
-            { key: 'updated_at', header: 'Updated At', sortable: true, sortValue: (v: any) => v.updated_at ? new Date(v.updated_at).getTime() : 0, render: (v: any) => <span className="font-mono text-xs text-slate-600">{formatDateTime(v.updated_at)}</span> },
+            { key: 'created_at', header: 'Created At', optional: true, sortable: true, sortValue: (v: any) => v.created_at ? new Date(v.created_at).getTime() : 0, render: (v: any) => <span className="font-mono text-xs text-slate-600">{formatDateTime(v.created_at)}</span> },
+            { key: 'updated_at', header: 'Updated At', optional: true, sortable: true, sortValue: (v: any) => v.updated_at ? new Date(v.updated_at).getTime() : 0, render: (v: any) => <span className="font-mono text-xs text-slate-600">{formatDateTime(v.updated_at)}</span> },
             {
               key: 'actions',
               header: 'Actions',

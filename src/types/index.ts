@@ -297,6 +297,10 @@ interface ScanCommitBatchFields {
   purchasePrice: number
   sellingPrice: number
   lineAmount: number
+  taxableAmount?: number
+  cgstAmount?: number
+  sgstAmount?: number
+  igstAmount?: number
 }
 
 export type ScanCommitItem = ScanCommitBatchFields &
@@ -336,6 +340,12 @@ export interface ScanCommitPayload {
     pendingAmount?: number
     notes?: string | null
     grandTotal: number
+    taxableAmount?: number
+    cgstAmount?: number
+    sgstAmount?: number
+    igstAmount?: number
+    gstAmount?: number
+    gstPercent?: number
   }
   confirmMismatch?: boolean
 }

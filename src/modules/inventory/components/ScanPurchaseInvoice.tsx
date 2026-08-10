@@ -74,6 +74,21 @@ function lastDayOfMonthISO(yyyyMM: string): string {
   return `${y}-${String(m).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`
 }
 
+// Mirrors the manual Stock-In tax math (Inventory.tsx addStockInItem): purchasePrice is the
+// gross, pre-discount rate — discount is applied on top of it to get the taxable base, then GST
+// is applied on the taxable base. Keep this in sync so scanned and manual purchases agree.
+function computeItemTax(qty: number, purchasePrice: number, discountPercent: number, gstPercent: number) {
+  const baseGross = qty * purchasePrice
+  const discountAmt = baseGross * (discountPercent / 100)
+  const taxableAmount = Math.max(0, baseGross - discountAmt)
+  const gstAmount = taxableAmount * (gstPercent / 100)
+  return { taxableAmount, gstAmount, discountAmt, lineAmount: taxableAmount + gstAmount }
+}
+
+// ₹1 rounding slack for both mismatch checks below — absorbs paise-level OCR/rounding noise
+// without masking a real data-entry error.
+const MISMATCH_TOLERANCE = 1
+
 // Standard field styling — matches the Vendor Master / Medicine Master modals
 const fieldClass =
   'w-full py-2 px-3 rounded-xl border border-slate-200 bg-white text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 placeholder:text-slate-400'
@@ -133,6 +148,7 @@ export default function ScanPurchaseInvoice({ userId, onClose, onCommitted }: Sc
   const [vendorForm, setVendorForm] = useState({ name: '', phone: '', address: '', gstin: '', drug_license_no: '', notes: '' })
 
   const [items, setItems] = useState<EditableItem[]>([])
+  const [taxType, setTaxType] = useState<'INTRASTATE' | 'INTERSTATE'>('INTRASTATE')
 
   const [purchaseForm, setPurchaseForm] = useState({
     invoiceNumber: '',
@@ -185,14 +201,25 @@ export default function ScanPurchaseInvoice({ userId, onClose, onCommitted }: Sc
         })
       }
 
-      setItems(
-        res.items.map((im, idx) => {
-          const e = im.extracted
-          const gstPct = e.gstPct || 12
-          const discountPct = e.discountPct || 0
-          const netPurchase = (e.purchaseRate || 0) * (1 - discountPct / 100)
-          const matched = im.status === 'matched' ? im.matchedMedicine : null
-          return {
+      // Build items and their tax breakdown together — the breakdown also feeds the header
+      // totals below, so both are derived from the one set of per-line numbers we trust
+      // (rate/qty/discount/GST%), not from separately-OCR'd aggregate fields. Invoice layouts
+      // disagree on what their printed "line amount" and "subtotal" mean (pre- or post-GST,
+      // pre- or post-discount) — deriving bottom-up sidesteps that ambiguity entirely.
+      const mapped = res.items.map((im, idx) => {
+        const e = im.extracted
+        const gstPct = e.gstPct || 12
+        const discountPct = e.discountPct || 0
+        // purchaseRate, as extracted, is the gross per-unit rate BEFORE discount — keep it that
+        // way (matching the manual Stock-In form) so discount/GST aren't baked in twice later.
+        const grossRate = e.purchaseRate || 0
+        const qty = e.quantity || 0
+        const netPurchase = grossRate * (1 - discountPct / 100)
+        const matched = im.status === 'matched' ? im.matchedMedicine : null
+        const tax = computeItemTax(qty, grossRate, discountPct, gstPct)
+        return {
+          tax,
+          item: {
             key: `item-${idx}`,
             originalStatus: im.status,
             suggestions: im.suggestions,
@@ -213,14 +240,27 @@ export default function ScanPurchaseInvoice({ userId, onClose, onCommitted }: Sc
             mrp: String(e.mrp ?? 0),
             discountPercent: String(discountPct),
             gstPercent: String(gstPct),
-            purchasePrice: netPurchase ? netPurchase.toFixed(2) : String(e.purchaseRate ?? 0),
+            purchasePrice: grossRate ? grossRate.toFixed(2) : '0',
             sellingPrice: e.mrp ? String(e.mrp) : (netPurchase ? netPurchase.toFixed(2) : '0'),
-            lineAmount: String(e.lineAmount ?? 0),
-          }
-        })
-      )
+            lineAmount: tax.lineAmount.toFixed(2),
+          } as EditableItem,
+        }
+      })
+      setItems(mapped.map((m) => m.item))
 
       const p = res.purchase
+      // Default the CGST+SGST vs IGST split from what the invoice actually printed.
+      const taxTypeDefault: 'INTRASTATE' | 'INTERSTATE' =
+        (p.igst ?? 0) > 0 && (p.cgst ?? 0) === 0 && (p.sgst ?? 0) === 0 ? 'INTERSTATE' : 'INTRASTATE'
+      setTaxType(taxTypeDefault)
+
+      const derivedTaxable = Number(mapped.reduce((sum, m) => sum + m.tax.taxableAmount, 0).toFixed(2))
+      const derivedDiscount = Number(mapped.reduce((sum, m) => sum + m.tax.discountAmt, 0).toFixed(2))
+      const derivedGst = Number(mapped.reduce((sum, m) => sum + m.tax.gstAmount, 0).toFixed(2))
+      const derivedCgst = taxTypeDefault === 'INTERSTATE' ? 0 : Number((derivedGst / 2).toFixed(2))
+      const derivedSgst = taxTypeDefault === 'INTERSTATE' ? 0 : Number((derivedGst / 2).toFixed(2))
+      const derivedIgst = taxTypeDefault === 'INTERSTATE' ? derivedGst : 0
+
       setPurchaseForm({
         invoiceNumber: p.invoiceNumber || '',
         invoiceDate: p.invoiceDate || '',
@@ -228,11 +268,13 @@ export default function ScanPurchaseInvoice({ userId, onClose, onCommitted }: Sc
         purchaseType: 'CASH',
         paymentMode: 'CASH',
         notes: '',
-        subtotal: String(p.subtotal ?? 0),
-        totalDiscount: String(p.totalDiscount ?? 0),
-        cgst: String(p.cgst ?? 0),
-        sgst: String(p.sgst ?? 0),
-        igst: String(p.igst ?? 0),
+        subtotal: String(derivedTaxable),
+        totalDiscount: String(derivedDiscount),
+        cgst: String(derivedCgst),
+        sgst: String(derivedSgst),
+        igst: String(derivedIgst),
+        // grandTotal is the one figure kept from the raw OCR read — it's a single, prominent
+        // printed number invoices rarely get ambiguous, and it's what the mismatch check anchors to.
         grandTotal: String(p.grandTotal ?? 0),
       })
 
@@ -248,10 +290,53 @@ export default function ScanPurchaseInvoice({ userId, onClose, onCommitted }: Sc
     setItems((prev) => prev.map((it) => (it.key === key ? { ...it, ...patch } : it)))
   }
 
+  // Same as updateItem, but for the fields that drive the line total (qty, purchase rate,
+  // discount %, GST %) — keeps "Line Amount" honest after the reviewer edits any of them,
+  // instead of silently saving against a stale OCR-read total.
+  const updateItemAndRecalc = (key: string, patch: Partial<EditableItem>) => {
+    setItems((prev) =>
+      prev.map((it) => {
+        if (it.key !== key) return it
+        const merged = { ...it, ...patch }
+        const { lineAmount } = computeItemTax(
+          parseFloat(merged.qty) || 0,
+          parseFloat(merged.purchasePrice) || 0,
+          parseFloat(merged.discountPercent) || 0,
+          parseFloat(merged.gstPercent) || 0
+        )
+        return { ...merged, lineAmount: lineAmount.toFixed(2) }
+      })
+    )
+  }
+
+  // Primary, blocking check: Σ(line total, GST-inclusive) vs the invoice grand total. Mirrors
+  // the backend's own re-validation in purchase-scan.service.ts#commit, which compares the same
+  // two figures — keep this check's convention in sync with that or saves can 400 unexpectedly.
   const sumLineAmounts = items.reduce((sum, it) => sum + (parseFloat(it.lineAmount) || 0), 0)
   const grandTotalNum = parseFloat(purchaseForm.grandTotal) || 0
   const difference = Number((grandTotalNum - sumLineAmounts).toFixed(2))
-  const mismatch = Math.abs(difference) > 1
+  const mismatch = Math.abs(difference) > MISMATCH_TOLERANCE
+
+  // Secondary, informational check: Σ(item taxable value) vs the invoice's printed taxable
+  // subtotal — both pre-GST, post-discount, so no totalDiscount term belongs here (subtotal is
+  // already net of discount per the extraction schema). A gap here usually means a qty/rate/
+  // discount typo on one line, distinct from a GST/rounding artifact — doesn't block saving.
+  const sumTaxableAmounts = Number(
+    items
+      .reduce((sum, it) => {
+        const { taxableAmount } = computeItemTax(
+          parseFloat(it.qty) || 0,
+          parseFloat(it.purchasePrice) || 0,
+          parseFloat(it.discountPercent) || 0,
+          parseFloat(it.gstPercent) || 0
+        )
+        return sum + Number(taxableAmount.toFixed(2))
+      }, 0)
+      .toFixed(2)
+  )
+  const subtotalNum = Number((parseFloat(purchaseForm.subtotal) || 0).toFixed(2))
+  const taxableDifference = Number((sumTaxableAmounts - subtotalNum).toFixed(2))
+  const taxableMismatch = Math.abs(taxableDifference) > MISMATCH_TOLERANCE
 
   const vendorReady =
     vendorMode === 'existing'
@@ -294,6 +379,8 @@ export default function ScanPurchaseInvoice({ userId, onClose, onCommitted }: Sc
     }
     setSubmitting(true)
     try {
+      // Header GST figures are user-editable (OCR-extracted, reviewer can correct) — trust them as
+      // the source of truth for the Purchase record, same as the manual Stock-In form's totals.
       const taxable = parseFloat(purchaseForm.subtotal) || 0
       const cgst = parseFloat(purchaseForm.cgst) || 0
       const sgst = parseFloat(purchaseForm.sgst) || 0
@@ -315,17 +402,27 @@ export default function ScanPurchaseInvoice({ userId, onClose, onCommitted }: Sc
                 },
               },
         items: items.map((it) => {
+          const qty = parseInt(it.qty, 10) || 0
+          const discountPercent = parseFloat(it.discountPercent) || 0
+          const gstPercent = parseFloat(it.gstPercent) || 0
+          const purchasePrice = parseFloat(it.purchasePrice) || 0
+          const { taxableAmount, gstAmount } = computeItemTax(qty, purchasePrice, discountPercent, gstPercent)
+
           const base = {
             batchNo: it.batchNo.trim() || undefined,
             expiryDate: lastDayOfMonthISO(it.expiryMonth),
-            qty: parseInt(it.qty, 10) || 0,
+            qty,
             freeQty: parseInt(it.freeQty, 10) || 0,
             mrp: parseFloat(it.mrp) || 0,
-            discountPercent: parseFloat(it.discountPercent) || 0,
-            gstPercent: parseFloat(it.gstPercent) || 0,
-            purchasePrice: parseFloat(it.purchasePrice) || 0,
+            discountPercent,
+            gstPercent,
+            purchasePrice,
             sellingPrice: parseFloat(it.sellingPrice) || 0,
             lineAmount: parseFloat(it.lineAmount) || 0,
+            taxableAmount,
+            cgstAmount: taxType === 'INTERSTATE' ? 0 : gstAmount / 2,
+            sgstAmount: taxType === 'INTERSTATE' ? 0 : gstAmount / 2,
+            igstAmount: taxType === 'INTERSTATE' ? gstAmount : 0,
           }
           if (it.mode === 'existing') {
             return { ...base, mode: 'existing' as const, medicineId: it.medicineId }
@@ -354,6 +451,12 @@ export default function ScanPurchaseInvoice({ userId, onClose, onCommitted }: Sc
           paymentMode: purchaseForm.paymentMode,
           notes: purchaseForm.notes.trim() || null,
           grandTotal: grandTotalNum,
+          taxableAmount: taxable,
+          cgstAmount: cgst,
+          sgstAmount: sgst,
+          igstAmount: igst,
+          gstAmount: cgst + sgst + igst,
+          gstPercent: items.length > 0 ? parseFloat(items[0].gstPercent) || 0 : 0,
         },
         confirmMismatch,
       }
@@ -605,7 +708,7 @@ export default function ScanPurchaseInvoice({ userId, onClose, onCommitted }: Sc
                         </div>
                         <div>
                           <label className={compactLabelClass}>Qty <span className="text-red-500">*</span></label>
-                          <input type="number" className={compactFieldClass} value={it.qty} onChange={(e) => updateItem(it.key, { qty: e.target.value })} />
+                          <input type="number" className={compactFieldClass} value={it.qty} onChange={(e) => updateItemAndRecalc(it.key, { qty: e.target.value })} />
                         </div>
                         <div>
                           <label className={compactLabelClass}>Free Qty</label>
@@ -617,7 +720,7 @@ export default function ScanPurchaseInvoice({ userId, onClose, onCommitted }: Sc
                         </div>
                         <div>
                           <label className={compactLabelClass}>Purchase Rate <span className="text-red-500">*</span></label>
-                          <input type="number" step="0.01" className={compactFieldClass} value={it.purchasePrice} onChange={(e) => updateItem(it.key, { purchasePrice: e.target.value })} />
+                          <input type="number" step="0.01" className={compactFieldClass} value={it.purchasePrice} onChange={(e) => updateItemAndRecalc(it.key, { purchasePrice: e.target.value })} />
                         </div>
                         <div>
                           <label className={compactLabelClass}>Selling Rate <span className="text-red-500">*</span></label>
@@ -625,11 +728,11 @@ export default function ScanPurchaseInvoice({ userId, onClose, onCommitted }: Sc
                         </div>
                         <div>
                           <label className={compactLabelClass}>Discount %</label>
-                          <input type="number" step="0.01" className={compactFieldClass} value={it.discountPercent} onChange={(e) => updateItem(it.key, { discountPercent: e.target.value })} />
+                          <input type="number" step="0.01" className={compactFieldClass} value={it.discountPercent} onChange={(e) => updateItemAndRecalc(it.key, { discountPercent: e.target.value })} />
                         </div>
                         <div>
                           <label className={compactLabelClass}>GST %</label>
-                          <input type="number" step="0.01" className={compactFieldClass} value={it.gstPercent} onChange={(e) => updateItem(it.key, { gstPercent: e.target.value })} />
+                          <input type="number" step="0.01" className={compactFieldClass} value={it.gstPercent} onChange={(e) => updateItemAndRecalc(it.key, { gstPercent: e.target.value })} />
                         </div>
                         <div className="col-span-2 sm:col-span-1">
                           <label className={compactLabelClass}>Line Amount <span className="text-red-500">*</span></label>
@@ -671,6 +774,13 @@ export default function ScanPurchaseInvoice({ userId, onClose, onCommitted }: Sc
                       <option value="UPI">UPI</option>
                       <option value="BANK">BANK</option>
                       <option value="CARD">CARD</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className={fieldLabelClass}>Tax Type</label>
+                    <select className={fieldClass} value={taxType} onChange={(e) => setTaxType(e.target.value as 'INTRASTATE' | 'INTERSTATE')}>
+                      <option value="INTRASTATE">CGST + SGST (In-State)</option>
+                      <option value="INTERSTATE">IGST (Out of State)</option>
                     </select>
                   </div>
                   <div>
@@ -722,6 +832,20 @@ export default function ScanPurchaseInvoice({ userId, onClose, onCommitted }: Sc
                         <input type="checkbox" checked={confirmMismatch} onChange={(e) => setConfirmMismatch(e.target.checked)} />
                         Save anyway despite the mismatch
                       </label>
+                    </div>
+                  </div>
+                )}
+
+                {taxableMismatch && (
+                  <div className="mt-3 flex items-start gap-2 p-3 rounded-xl bg-sky-50 border border-sky-200">
+                    <HelpCircle className="w-4 h-4 text-sky-600 shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-xs text-sky-900 font-bold">
+                        Item taxable values (₹{sumTaxableAmounts.toFixed(2)}) differ from the invoice's taxable subtotal (₹{subtotalNum.toFixed(2)}) by ₹{Math.abs(taxableDifference).toFixed(2)}.
+                      </p>
+                      <p className="text-xs text-sky-800/80 mt-0.5">
+                        This usually points to a misread quantity, rate, or discount on one of the item lines above — worth a check, but it won't block saving.
+                      </p>
                     </div>
                   </div>
                 )}

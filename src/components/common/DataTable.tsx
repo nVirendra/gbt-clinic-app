@@ -1,15 +1,17 @@
 import React, { useState, useMemo } from 'react'
-import { 
-  ArrowUpDown, 
-  ArrowUp, 
-  ArrowDown, 
-  Search, 
-  X, 
-  ChevronLeft, 
-  ChevronRight, 
-  Inbox, 
+import {
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  Search,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  ChevronDown,
+  Inbox,
   FilterX,
-  Plus
+  Plus,
+  Columns3
 } from 'lucide-react'
 import { FilterBar, FilterFieldDef, fuzzyMatchTokens } from './FilterBar'
 
@@ -21,6 +23,12 @@ export interface ColumnDef<T> {
   width?: string
   render?: (row: T, index: number) => React.ReactNode
   sortValue?: (row: T) => string | number
+  /** Marks this column as an additional (non-essential) field. Optional columns are
+   *  hidden by default and surfaced through the "Columns" picker in the toolbar
+   *  instead of always taking up table width. */
+  optional?: boolean
+  /** Only relevant when optional is true — show this column by default even though it's optional. */
+  defaultVisible?: boolean
 }
 
 export interface DataTableProps<T> {
@@ -93,6 +101,27 @@ export function DataTable<T extends Record<string, any>>({
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(initialPageSize)
+
+  // Optional Column Visibility State (resets to defaults on every mount — not persisted)
+  const [visibleOptionalColumns, setVisibleOptionalColumns] = useState<Set<string>>(
+    () => new Set(columns.filter((c) => c.optional && c.defaultVisible).map((c) => c.key))
+  )
+  const [showColumnPicker, setShowColumnPicker] = useState(false)
+
+  const optionalColumns = useMemo(() => columns.filter((c) => c.optional), [columns])
+  const displayColumns = useMemo(
+    () => columns.filter((c) => !c.optional || visibleOptionalColumns.has(c.key)),
+    [columns, visibleOptionalColumns]
+  )
+
+  const toggleOptionalColumn = (key: string) => {
+    setVisibleOptionalColumns((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
+  }
 
   // Handle Sort Click
   const handleSort = (colKey: string) => {
@@ -194,6 +223,53 @@ export function DataTable<T extends Record<string, any>>({
           customToolbarActions={
             <>
               {customFilters}
+              {optionalColumns.length > 0 && (
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setShowColumnPicker((v) => !v)}
+                    className={`flex items-center gap-1.5 px-3 py-2 border rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      visibleOptionalColumns.size > 0
+                        ? 'bg-cyan-50/60 border-cyan-500/40 text-cyan-800'
+                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    <Columns3 className="w-3.5 h-3.5" />
+                    Columns
+                    {visibleOptionalColumns.size > 0 && (
+                      <span className="px-1.5 py-0.5 rounded-full bg-cyan-100 text-cyan-800 text-[10px] font-extrabold">
+                        {visibleOptionalColumns.size}
+                      </span>
+                    )}
+                    <ChevronDown className="w-3.5 h-3.5" />
+                  </button>
+
+                  {showColumnPicker && (
+                    <>
+                      <div className="fixed inset-0 z-20" onClick={() => setShowColumnPicker(false)} />
+                      <div className="absolute right-0 top-full mt-2 w-64 bg-white border border-slate-200 rounded-xl shadow-xl z-30 p-2">
+                        <p className="px-2 py-1.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                          Show additional columns
+                        </p>
+                        {optionalColumns.map((col) => (
+                          <label
+                            key={col.key}
+                            className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-slate-50 cursor-pointer text-xs font-semibold text-slate-700"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={visibleOptionalColumns.has(col.key)}
+                              onChange={() => toggleOptionalColumn(col.key)}
+                              className="accent-cyan-600 w-3.5 h-3.5"
+                            />
+                            {col.header}
+                          </label>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
               {toolbarActions}
             </>
           }
@@ -206,7 +282,7 @@ export function DataTable<T extends Record<string, any>>({
           <table className="w-full text-left border-collapse min-w-max">
             <thead>
               <tr className="bg-[#0B132B] border-b border-[#162244] text-cyan-500 font-black uppercase text-[11px] tracking-wider sticky top-0 z-10">
-                {columns.map((col) => {
+                {displayColumns.map((col) => {
                   const isSorted = sortColumn === col.key
                   const alignClass = 
                     col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : 'text-left'
@@ -248,7 +324,7 @@ export function DataTable<T extends Record<string, any>>({
               {loading ? (
                 [...Array(pageSize > 5 ? 5 : pageSize)].map((_, i) => (
                   <tr key={i} className="animate-pulse">
-                    {columns.map((col, cIdx) => (
+                    {displayColumns.map((col, cIdx) => (
                       <td key={cIdx} className="px-5 py-4">
                         <div className="h-4 bg-slate-100 rounded-md w-3/4"></div>
                       </td>
@@ -272,8 +348,8 @@ export function DataTable<T extends Record<string, any>>({
                           : 'hover:bg-[#F4F5F7]'
                       }`}
                     >
-                      {columns.map((col) => {
-                        const alignClass = 
+                      {displayColumns.map((col) => {
+                        const alignClass =
                           col.align === 'right' ? 'text-right font-mono' : col.align === 'center' ? 'text-center' : 'text-left'
 
                         return (
@@ -288,7 +364,7 @@ export function DataTable<T extends Record<string, any>>({
               ) : (
                 /* EMPTY OR NO MATCHING FILTER STATE */
                 <tr>
-                  <td colSpan={columns.length} className="px-6 py-12 text-center">
+                  <td colSpan={displayColumns.length} className="px-6 py-12 text-center">
                     {isFiltered ? (
                       <div className="flex flex-col items-center justify-center space-y-2 text-slate-400">
                         <FilterX className="w-10 h-10 text-slate-300" />
