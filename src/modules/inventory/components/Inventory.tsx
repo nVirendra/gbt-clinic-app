@@ -41,6 +41,13 @@ import { Medicine, Vendor, InventoryBatch, Purchase } from '../../../types'
 import { DataTable, ColumnDef } from '../../../components/common/DataTable'
 import { formatDateTime } from '../../../lib/formatDate'
 import ScanPurchaseInvoice from './ScanPurchaseInvoice'
+import {
+  getAvailableUnitsForMedicine,
+  getLiveConversionSummary,
+  formatStockBreakdown,
+  convertToBaseQuantity,
+  ALL_UNIT_OPTIONS
+} from '../../../lib/unitConversion'
 
 // Toast Component
 function Toast({
@@ -174,10 +181,10 @@ function VendorTypeahead({
           aria-label="Vendor search"
           aria-expanded={isOpen}
           className={`w-full pl-9 pr-8 py-2 text-sm rounded-lg border transition-all ${error
-              ? 'border-red-300 bg-red-50/30 focus:ring-red-500'
-              : value
-                ? 'border-cyan-500 bg-cyan-50/20 font-semibold text-slate-900 focus:ring-cyan-500'
-                : 'border-slate-200 focus:ring-cyan-500'
+            ? 'border-red-300 bg-red-50/30 focus:ring-red-500'
+            : value
+              ? 'border-cyan-500 bg-cyan-50/20 font-semibold text-slate-900 focus:ring-cyan-500'
+              : 'border-slate-200 focus:ring-cyan-500'
             } focus:outline-none focus:ring-2`}
         />
         <ChevronDown
@@ -333,10 +340,10 @@ function MedicineTypeahead({
           aria-label="Medicine search"
           aria-expanded={isOpen}
           className={`w-full pl-9 pr-8 py-2 text-sm rounded-lg border transition-all ${error
-              ? 'border-red-300 bg-red-50/30 focus:ring-red-500'
-              : value
-                ? 'border-cyan-500 bg-cyan-50/20 font-semibold text-slate-900 focus:ring-cyan-500'
-                : 'border-slate-200 focus:ring-cyan-500'
+            ? 'border-red-300 bg-red-50/30 focus:ring-red-500'
+            : value
+              ? 'border-cyan-500 bg-cyan-50/20 font-semibold text-slate-900 focus:ring-cyan-500'
+              : 'border-slate-200 focus:ring-cyan-500'
             } focus:outline-none focus:ring-2`}
         />
         <ChevronDown
@@ -471,8 +478,8 @@ function FreeTextCombobox({
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           className={`w-full py-2 pl-3 pr-8 text-sm rounded-xl border transition-all ${error
-              ? 'border-red-300 bg-red-50/30 focus:ring-red-500'
-              : 'border-slate-200 focus:ring-cyan-500'
+            ? 'border-red-300 bg-red-50/30 focus:ring-red-500'
+            : 'border-slate-200 focus:ring-cyan-500'
             } focus:outline-none focus:ring-2`}
         />
         {options.length > 0 && (
@@ -623,9 +630,35 @@ const INDIAN_GST_STATE_CODES: Record<string, string> = {
   '32': 'Kerala',
   '33': 'Tamil Nadu',
   '34': 'Puducherry',
-  '35': 'Andaman & Nicobar Islands',
   '36': 'Telangana',
   '37': 'Andhra Pradesh'
+}
+
+const getSmartPackagingDefaults = (dosageType: string) => {
+  switch ((dosageType || '').toUpperCase()) {
+    case 'TABLET':
+      return { baseUnit: 'Tablet', innerUnit: 'Strip', unitsPerInner: '10', purchaseUnit: 'Box', innerUnitsPerPurchase: '10' }
+    case 'CAPSULE':
+      return { baseUnit: 'Capsule', innerUnit: 'Strip', unitsPerInner: '10', purchaseUnit: 'Box', innerUnitsPerPurchase: '10' }
+    case 'INJECTION':
+      return { baseUnit: 'Vial', innerUnit: 'Vial', unitsPerInner: '1', purchaseUnit: 'Box', innerUnitsPerPurchase: '10' }
+    case 'SYRUP':
+    case 'SUSPENSION':
+    case 'DROP':
+    case 'LOTION':
+    case 'OIL':
+      return { baseUnit: 'Bottle', innerUnit: 'Bottle', unitsPerInner: '1', purchaseUnit: 'Box', innerUnitsPerPurchase: '10' }
+    case 'OINTMENT':
+    case 'GEL':
+    case 'CREAM':
+    case 'BALM':
+    case 'FACE_WASH':
+      return { baseUnit: 'Tube', innerUnit: 'Tube', unitsPerInner: '1', purchaseUnit: 'Box', innerUnitsPerPurchase: '10' }
+    case 'POWDER':
+      return { baseUnit: 'Sachet', innerUnit: 'Sachet', unitsPerInner: '1', purchaseUnit: 'Box', innerUnitsPerPurchase: '10' }
+    default:
+      return { baseUnit: 'Piece', innerUnit: 'Strip', unitsPerInner: '10', purchaseUnit: 'Box', innerUnitsPerPurchase: '10' }
+  }
 }
 
 // Redesigned Add / Edit Medicine Form Modal Component
@@ -664,6 +697,11 @@ function RedesignedMedicineModal({
     pack: '',
     type: 'TABLET',
     unitLabel: 'strip',
+    baseUnit: 'Tablet',
+    innerUnit: 'Strip',
+    unitsPerInner: '10',
+    purchaseUnit: 'Box',
+    innerUnitsPerPurchase: '10',
     hsnCode: '',
     rackNo: '',
     reorderLevel: '10',
@@ -677,6 +715,7 @@ function RedesignedMedicineModal({
   useEffect(() => {
     if (isOpen) {
       if (editingMed) {
+        const defaults = getSmartPackagingDefaults(editingMed.type || 'TABLET')
         setForm({
           name: editingMed.name || '',
           strength: editingMed.strength || '',
@@ -685,12 +724,18 @@ function RedesignedMedicineModal({
           pack: editingMed.pack || '',
           type: editingMed.type || 'TABLET',
           unitLabel: editingMed.unit_label || 'strip',
+          baseUnit: editingMed.base_unit || defaults.baseUnit,
+          innerUnit: editingMed.inner_unit || defaults.innerUnit,
+          unitsPerInner: (editingMed.units_per_inner ?? parseFloat(defaults.unitsPerInner)).toString(),
+          purchaseUnit: editingMed.purchase_unit || defaults.purchaseUnit,
+          innerUnitsPerPurchase: (editingMed.inner_units_per_purchase ?? parseFloat(defaults.innerUnitsPerPurchase)).toString(),
           hsnCode: editingMed.hsn_code || '',
           rackNo: editingMed.rack_no || '',
           reorderLevel: (editingMed.reorder_level ?? 10).toString(),
           defaultGstPercent: (editingMed.default_gst_percent ?? 12).toString()
         })
       } else if (initialFormValues) {
+        const defaults = getSmartPackagingDefaults(initialFormValues.type || 'TABLET')
         setForm({
           name: initialFormValues.name || '',
           strength: initialFormValues.strength || '',
@@ -699,12 +744,18 @@ function RedesignedMedicineModal({
           pack: initialFormValues.pack || '',
           type: initialFormValues.type || 'TABLET',
           unitLabel: initialFormValues.unitLabel || 'strip',
+          baseUnit: defaults.baseUnit,
+          innerUnit: defaults.innerUnit,
+          unitsPerInner: defaults.unitsPerInner,
+          purchaseUnit: defaults.purchaseUnit,
+          innerUnitsPerPurchase: defaults.innerUnitsPerPurchase,
           hsnCode: initialFormValues.hsnCode || '',
           rackNo: initialFormValues.rackNo || '',
           reorderLevel: initialFormValues.reorderLevel || '10',
           defaultGstPercent: initialFormValues.defaultGstPercent || '12'
         })
       } else {
+        const defaults = getSmartPackagingDefaults('TABLET')
         setForm({
           name: '',
           strength: '',
@@ -713,6 +764,11 @@ function RedesignedMedicineModal({
           pack: '',
           type: 'TABLET',
           unitLabel: 'strip',
+          baseUnit: defaults.baseUnit,
+          innerUnit: defaults.innerUnit,
+          unitsPerInner: defaults.unitsPerInner,
+          purchaseUnit: defaults.purchaseUnit,
+          innerUnitsPerPurchase: defaults.innerUnitsPerPurchase,
           hsnCode: '',
           rackNo: '',
           reorderLevel: '10',
@@ -840,7 +896,12 @@ function RedesignedMedicineModal({
         strength: cleanInputStrength,
         type: cleanInputType,
         pack: cleanInputPack,
-        manufacturer: cleanInputManufacturer
+        manufacturer: cleanInputManufacturer,
+        base_unit: form.baseUnit || 'Piece',
+        inner_unit: form.innerUnit || null,
+        units_per_inner: parseFloat(form.unitsPerInner) || 1.0,
+        purchase_unit: form.purchaseUnit || null,
+        inner_units_per_purchase: parseFloat(form.innerUnitsPerPurchase) || 1.0
       })
     } finally {
       setSubmitting(false)
@@ -907,8 +968,8 @@ function RedesignedMedicineModal({
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value.toUpperCase() })}
                     className={`w-full py-2 px-3 rounded-xl border text-sm focus:outline-none focus:ring-2 font-semibold uppercase ${!isNameValid && form.name !== ''
-                        ? 'border-red-300 bg-red-50/20 focus:ring-red-500'
-                        : 'border-slate-200 focus:ring-cyan-500'
+                      ? 'border-red-300 bg-red-50/20 focus:ring-red-500'
+                      : 'border-slate-200 focus:ring-cyan-500'
                       }`}
                   />
                   {!Boolean(form.name.trim()) && (
@@ -948,103 +1009,78 @@ function RedesignedMedicineModal({
                 </div>
               )}
 
-              {/* Generic Name & Manufacturer Comboboxes */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Generic Name</label>
-                  <FreeTextCombobox
-                    value={form.genericName}
-                    onChange={(val) => setForm({ ...form, genericName: val })}
-                    options={genericOptions}
-                    placeholder="e.g. Paracetamol"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Manufacturer</label>
-                  <FreeTextCombobox
-                    value={form.manufacturer}
-                    onChange={(val) => setForm({ ...form, manufacturer: val })}
-                    options={manufacturerOptions}
-                    placeholder="e.g. Cipla / Sun Pharma"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* SECTION 2: PACKAGING & TYPE */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 border-b border-slate-100 pb-2 text-xs font-bold uppercase tracking-wider text-cyan-700">
-              <Package className="w-4 h-4 text-cyan-500" /> 2. Classification & Packaging
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {/* Type Dropdown */}
-              <div>
-                <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Dosage Form Type</label>
-                <ScrollableSelect
-                  value={form.type}
-                  onChange={(newType) => {
-                    const newAdaptiveUnits = adaptiveUnitLabels[newType] || ['strip', 'vial', 'bottle', 'pcs']
-                    setForm({
-                      ...form,
-                      type: newType,
-                      unitLabel: newAdaptiveUnits.includes(form.unitLabel) ? form.unitLabel : newAdaptiveUnits[0]
-                    })
-                  }}
-                  options={DOSAGE_FORM_OPTIONS}
-                />
-              </div>
-
-              {/* Unit Label (Adaptive Dropdown) */}
-              <div>
-                <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Unit Label</label>
-                <select
-                  value={form.unitLabel}
-                  onChange={(e) => setForm({ ...form, unitLabel: e.target.value })}
-                  className="w-full py-2 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 capitalize bg-white"
-                >
-                  {currentUnitOptions.map((unit) => (
-                    <option key={unit} value={unit}>
-                      {unit.toUpperCase()}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Pack Size */}
-              <div>
-                <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Pack Size</label>
-                <input
-                  type="text"
-                  placeholder="e.g. 10x10 / 100ml"
-                  value={form.pack}
-                  onChange={(e) => setForm({ ...form, pack: e.target.value })}
-                  className="w-full py-2 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 font-mono"
-                />
-              </div>
-
-              {/* Rack No */}
+              {/* Generic Name */}
               <div>
                 <label className="block text-xs font-bold text-slate-600 uppercase mb-1">
-                  Rack No <span className="text-slate-400 font-normal">(Storage location)</span>
+                  Generic Name / Formula
                 </label>
-                <input
-                  type="text"
-                  placeholder="e.g. A-12 / R3-S2"
-                  value={form.rackNo}
-                  onChange={(e) => setForm({ ...form, rackNo: e.target.value.toUpperCase() })}
-                  className="w-full py-2 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 font-mono uppercase"
+                <FreeTextCombobox
+                  value={form.genericName}
+                  onChange={(val) => setForm({ ...form, genericName: val })}
+                  options={genericOptions}
+                  placeholder="e.g. Paracetamol, Amoxicillin"
+                />
+              </div>
+
+              {/* Dosage Form & Pack Size */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-600 uppercase mb-1">
+                    Dosage Form <span className="text-red-500">*</span>
+                  </label>
+                  <ScrollableSelect
+                    value={form.type}
+                    onChange={(val) => {
+                      const defaults = getSmartPackagingDefaults(val)
+                      const defaultUnit = adaptiveUnitLabels[val]?.[0] || 'strip'
+                      setForm({
+                        ...form,
+                        type: val,
+                        unitLabel: defaultUnit,
+                        baseUnit: defaults.baseUnit,
+                        innerUnit: defaults.innerUnit,
+                        unitsPerInner: defaults.unitsPerInner,
+                        purchaseUnit: defaults.purchaseUnit,
+                        innerUnitsPerPurchase: defaults.innerUnitsPerPurchase
+                      })
+                    }}
+                    options={DOSAGE_FORM_OPTIONS}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-600 uppercase mb-1">
+                    Pack Size / Description
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 10x10 Strips, 100ml Bottle"
+                    value={form.pack}
+                    onChange={(e) => setForm({ ...form, pack: e.target.value })}
+                    className="w-full py-2 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 font-semibold"
+                  />
+                </div>
+              </div>
+
+              {/* Manufacturer */}
+              <div>
+                <label className="block text-xs font-bold text-slate-600 uppercase mb-1">
+                  Manufacturer / Brand
+                </label>
+                <FreeTextCombobox
+                  value={form.manufacturer}
+                  onChange={(val) => setForm({ ...form, manufacturer: val })}
+                  options={manufacturerOptions}
+                  placeholder="e.g. Cipla, Sun Pharma, Mankind"
                 />
               </div>
             </div>
           </div>
 
-          {/* SECTION 3: TAX & INVENTORY SETTINGS */}
-          <div className="space-y-4">
+          {/* SECTION 2: INVENTORY & COMPLIANCE */}
+          <div className="space-y-4 pt-2 border-t border-slate-100">
             <div className="flex items-center gap-2 border-b border-slate-100 pb-2 text-xs font-bold uppercase tracking-wider text-cyan-700">
-              <Percent className="w-4 h-4 text-cyan-500" /> 3. Tax & Inventory Control
+              <Package className="w-4 h-4 text-cyan-500" /> 2. Inventory & Compliance
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1073,8 +1109,8 @@ function RedesignedMedicineModal({
                   value={form.reorderLevel}
                   onChange={(e) => setForm({ ...form, reorderLevel: e.target.value })}
                   className={`w-full py-2 px-3 rounded-xl border text-sm focus:outline-none focus:ring-2 font-mono ${!isReorderValid
-                      ? 'border-red-300 bg-red-50/20 focus:ring-red-500'
-                      : 'border-slate-200 focus:ring-cyan-500'
+                    ? 'border-red-300 bg-red-50/20 focus:ring-red-500'
+                    : 'border-slate-200 focus:ring-cyan-500'
                     }`}
                 />
                 {!isReorderValid && (
@@ -1097,8 +1133,8 @@ function RedesignedMedicineModal({
                     type="button"
                     onClick={() => setForm({ ...form, defaultGstPercent: slab })}
                     className={`px-3 py-1 rounded-lg text-xs font-bold border transition-all cursor-pointer ${form.defaultGstPercent === slab
-                        ? 'bg-cyan-600 text-white border-cyan-600 shadow-sm'
-                        : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                      ? 'bg-cyan-600 text-white border-cyan-600 shadow-sm'
+                      : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
                       }`}
                   >
                     {slab}% GST
@@ -1113,13 +1149,110 @@ function RedesignedMedicineModal({
                 value={form.defaultGstPercent}
                 onChange={(e) => setForm({ ...form, defaultGstPercent: e.target.value })}
                 className={`w-full py-2 px-3 rounded-xl border text-sm focus:outline-none focus:ring-2 font-mono font-bold ${!isGstValid
-                    ? 'border-red-300 bg-red-50/20 focus:ring-red-500'
-                    : 'border-slate-200 focus:ring-cyan-500'
+                  ? 'border-red-300 bg-red-50/20 focus:ring-red-500'
+                  : 'border-slate-200 focus:ring-cyan-500'
                   }`}
               />
               {!isGstValid && (
                 <p className="text-[11px] text-red-500 mt-1 font-medium">Valid GST rate between 0% and 100% required.</p>
               )}
+            </div>
+          </div>
+
+          {/* SECTION 3: PHARMACY PACKAGING SETUP */}
+          <div className="space-y-3 pt-2 border-t border-slate-100">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-cyan-700">
+                <Layers className="w-4 h-4 text-cyan-500" /> 3. Pharmacy Packaging Setup
+              </div>
+              <span className="text-[11px] text-cyan-700 font-semibold bg-cyan-50 px-2 py-0.5 rounded border border-cyan-200/60">
+                Auto-configured for {form.type}
+              </span>
+            </div>
+
+            <div className="p-4 bg-slate-50/90 border border-slate-200/90 rounded-2xl space-y-3.5">
+              {/* Physical Packing Rule Inputs */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* 1. Primary Packaging Ratio */}
+                <div className="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-2xs space-y-2">
+                  <label className="block text-xs font-bold text-slate-800 uppercase">
+                    1. Primary Pack Ratio <span className="text-cyan-600 lowercase font-normal">(e.g. Strip size)</span>
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-slate-700 bg-slate-100 px-2.5 py-1.5 rounded-lg whitespace-nowrap font-mono">
+                      1 {form.innerUnit || 'Strip'} =
+                    </span>
+                    <input
+                      type="number"
+                      step="any"
+                      placeholder="10"
+                      value={form.unitsPerInner}
+                      onChange={(e) => setForm({ ...form, unitsPerInner: e.target.value })}
+                      className="w-20 py-1.5 px-2.5 rounded-lg border border-slate-300 text-sm font-mono font-bold focus:outline-none focus:ring-2 focus:ring-cyan-500 bg-white"
+                    />
+                    <select
+                      value={form.baseUnit}
+                      onChange={(e) => setForm({ ...form, baseUnit: e.target.value })}
+                      className="text-xs font-bold text-slate-800 py-1.5 px-2 rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    >
+                      {['Tablet', 'Capsule', 'Piece', 'Vial', 'Bottle', 'Ampoule', 'Tube', 'Sachet', 'Dose', 'ml', 'gm'].map(u => (
+                        <option key={u} value={u}>{u}s</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* 2. Outer Box Ratio */}
+                <div className="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-2xs space-y-2">
+                  <label className="block text-xs font-bold text-slate-800 uppercase">
+                    2. Wholesale Box Ratio <span className="text-cyan-600 lowercase font-normal">(Distributor bill)</span>
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-slate-700 bg-slate-100 px-2.5 py-1.5 rounded-lg whitespace-nowrap font-mono">
+                      1 Box =
+                    </span>
+                    <input
+                      type="number"
+                      step="any"
+                      placeholder="10"
+                      value={form.innerUnitsPerPurchase}
+                      onChange={(e) => setForm({ ...form, innerUnitsPerPurchase: e.target.value })}
+                      className="w-20 py-1.5 px-2.5 rounded-lg border border-slate-300 text-sm font-mono font-bold focus:outline-none focus:ring-2 focus:ring-cyan-500 bg-white"
+                    />
+                    <select
+                      value={form.innerUnit}
+                      onChange={(e) => setForm({ ...form, innerUnit: e.target.value })}
+                      className="text-xs font-bold text-slate-800 py-1.5 px-2 rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    >
+                      {['Strip', 'Box', 'Bottle', 'Vial', 'Ampoule', 'Tube', 'Sachet', 'Pack', 'Piece'].map(u => (
+                        <option key={u} value={u}>{u}s</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* LIVE CONVERSION SUMMARY */}
+              <div className="p-3 bg-cyan-900 text-white rounded-xl flex items-center justify-between shadow-xs">
+                <div className="flex items-center gap-2.5">
+                  <Sparkles className="w-4 h-4 text-cyan-300 shrink-0" />
+                  <div>
+                    <span className="font-bold uppercase tracking-wider text-[10px] text-cyan-200 block">Automatic Packaging Calculation</span>
+                    <span className="font-mono font-bold text-sm text-cyan-100">
+                      {getLiveConversionSummary({
+                        base_unit: form.baseUnit,
+                        inner_unit: form.innerUnit,
+                        units_per_inner: parseFloat(form.unitsPerInner) || 1,
+                        purchase_unit: form.purchaseUnit,
+                        inner_units_per_purchase: parseFloat(form.innerUnitsPerPurchase) || 1
+                      })}
+                    </span>
+                  </div>
+                </div>
+                <span className="text-[11px] font-semibold bg-cyan-800 text-cyan-200 px-2.5 py-1 rounded-lg border border-cyan-700">
+                  Ready for Stock & Billing
+                </span>
+              </div>
             </div>
           </div>
 
@@ -1354,8 +1487,8 @@ function RedesignedVendorModal({
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value.toUpperCase() })}
                   className={`w-full py-2 px-3 rounded-xl border text-sm focus:outline-none focus:ring-2 font-semibold uppercase ${!isNameValid && form.name !== ''
-                      ? 'border-red-300 bg-red-50/20 focus:ring-red-500'
-                      : 'border-slate-200 focus:ring-cyan-500'
+                    ? 'border-red-300 bg-red-50/20 focus:ring-red-500'
+                    : 'border-slate-200 focus:ring-cyan-500'
                     }`}
                 />
                 {!Boolean(form.name.trim()) && (
@@ -1388,8 +1521,8 @@ function RedesignedVendorModal({
                   value={form.phone}
                   onChange={(e) => setForm({ ...form, phone: e.target.value })}
                   className={`w-full py-2 px-3 rounded-xl border text-sm focus:outline-none focus:ring-2 font-mono ${!isPhoneValid
-                      ? 'border-red-300 bg-red-50/20 focus:ring-red-500'
-                      : 'border-slate-200 focus:ring-cyan-500'
+                    ? 'border-red-300 bg-red-50/20 focus:ring-red-500'
+                    : 'border-slate-200 focus:ring-cyan-500'
                     }`}
                 />
                 {!isPhoneValid && (
@@ -1442,8 +1575,8 @@ function RedesignedVendorModal({
                   value={form.gstin}
                   onChange={(e) => setForm({ ...form, gstin: e.target.value.toUpperCase() })}
                   className={`w-full py-2 px-3 rounded-xl border text-sm focus:outline-none focus:ring-2 font-mono font-semibold uppercase ${!isGstinValid
-                      ? 'border-red-300 bg-red-50/20 focus:ring-red-500'
-                      : 'border-slate-200 focus:ring-cyan-500'
+                    ? 'border-red-300 bg-red-50/20 focus:ring-red-500'
+                    : 'border-slate-200 focus:ring-cyan-500'
                     }`}
                 />
                 {!isGstinValid && (
@@ -1605,7 +1738,9 @@ export default function Inventory() {
     batchNo: '',
     expiryDate: '',
     qtyPurchased: '',
+    unit: '',
     freeQty: '',
+    freeUnit: '',
     mrp: '',
     discountPercent: '',
     gstPercent: '12',
@@ -1697,6 +1832,8 @@ export default function Inventory() {
       setStockInItem((prev) => ({
         ...prev,
         medicineId: '',
+        unit: '',
+        freeUnit: '',
         gstPercent: lastUsedGstPercent
       }))
       return
@@ -1704,10 +1841,13 @@ export default function Inventory() {
 
     // Lookup previous batch pricing history for this medicine
     const prevBatch = safeBatches.find((b) => b.medicine_id === selectedMed.id)
+    const defaultUnit = selectedMed.purchase_unit || selectedMed.inner_unit || selectedMed.base_unit || selectedMed.unit_label || 'Piece'
 
     setStockInItem((prev) => ({
       ...prev,
       medicineId: selectedMed.id,
+      unit: defaultUnit,
+      freeUnit: defaultUnit,
       gstPercent: selectedMed.default_gst_percent !== null && selectedMed.default_gst_percent !== undefined
         ? selectedMed.default_gst_percent.toString()
         : lastUsedGstPercent,
@@ -1761,6 +1901,11 @@ export default function Inventory() {
         type: cleanType || 'TABLET',
         unit_label: formData.unitLabel,
         unitLabel: formData.unitLabel,
+        base_unit: formData.baseUnit || 'Piece',
+        inner_unit: formData.innerUnit || null,
+        units_per_inner: parseFloat(formData.unitsPerInner) || 1.0,
+        purchase_unit: formData.purchaseUnit || null,
+        inner_units_per_purchase: parseFloat(formData.innerUnitsPerPurchase) || 1.0,
         hsn_code: formData.hsnCode || null,
         hsnCode: formData.hsnCode || null,
         rack_no: formData.rackNo || null,
@@ -1926,21 +2071,32 @@ export default function Inventory() {
       sgstAmount = gstAmount / 2
     }
 
+    const selectedUnit = stockInItem.unit || selMed?.purchase_unit || selMed?.inner_unit || selMed?.base_unit || selMed?.unit_label || 'Piece'
+    const selectedFreeUnit = stockInItem.freeUnit || selectedUnit
+
     const newItem = {
       medicineId: stockInItem.medicineId,
       batchNo: stockInItem.batchNo.trim() || 'N/A',
       expiryDate: isoExpiryDate,
+      qty: qty,
       qtyPurchased: qty,
+      unit: selectedUnit,
       freeQty,
+      freeUnit: selectedFreeUnit,
       mrp,
+      unitMrp: mrp,
       discountPercent,
       taxableAmount,
       cgstAmount,
       sgstAmount,
       igstAmount,
       gstPercent,
+      purchasePrice: pPrice,
       purchasePricePerUnit: pPrice,
-      sellingPricePerUnit: sPrice
+      unitPurchasePrice: pPrice,
+      sellingPrice: sPrice,
+      sellingPricePerUnit: sPrice,
+      unitSellingPrice: sPrice
     }
 
     let updatedItems = [...purchaseForm.items]
@@ -1968,7 +2124,9 @@ export default function Inventory() {
       batchNo: '',
       expiryDate: '',
       qtyPurchased: '',
+      unit: '',
       freeQty: '',
+      freeUnit: '',
       mrp: '',
       discountPercent: '',
       gstPercent: stockInItem.gstPercent,
@@ -1996,7 +2154,7 @@ export default function Inventory() {
   }
 
   const editStockInItem = (index: number) => {
-    const item = purchaseForm.items[index]
+    const item: any = purchaseForm.items[index]
     if (!item) return
 
     const lineAmount = (item.qtyPurchased * item.purchasePricePerUnit).toFixed(2)
@@ -2005,14 +2163,16 @@ export default function Inventory() {
       medicineId: item.medicineId,
       batchNo: item.batchNo === 'N/A' ? '' : item.batchNo,
       expiryDate: item.expiryDate ? item.expiryDate.slice(0, 7) : '',
-      qtyPurchased: item.qtyPurchased.toString(),
+      qtyPurchased: (item.qtyPurchased || item.qty || '').toString(),
+      unit: item.unit || '',
       freeQty: item.freeQty ? item.freeQty.toString() : '',
-      mrp: item.mrp ? item.mrp.toString() : '',
+      freeUnit: item.freeUnit || '',
+      mrp: (item.unitMrp ?? item.mrp ?? 0).toString(),
       discountPercent: item.discountPercent ? item.discountPercent.toString() : '',
       gstPercent: item.gstPercent ? item.gstPercent.toString() : '12',
-      purchasePricePerUnit: item.purchasePricePerUnit.toString(),
+      purchasePricePerUnit: (item.unitPurchasePrice ?? item.purchasePricePerUnit).toString(),
       amount: lineAmount,
-      sellingPricePerUnit: item.sellingPricePerUnit.toString()
+      sellingPricePerUnit: (item.unitSellingPrice ?? item.sellingPricePerUnit).toString()
     })
     setEditingIndex(index)
     medicineInputRef.current?.focus()
@@ -2025,7 +2185,9 @@ export default function Inventory() {
       batchNo: '',
       expiryDate: '',
       qtyPurchased: '',
+      unit: '',
       freeQty: '',
+      freeUnit: '',
       mrp: '',
       discountPercent: '',
       gstPercent: lastUsedGstPercent,
@@ -2232,8 +2394,8 @@ export default function Inventory() {
               setSearchQuery('')
             }}
             className={`px-6 py-3 font-semibold text-sm border-b-2 transition-all cursor-pointer whitespace-nowrap flex items-center gap-2 ${localTab === tab.id
-                ? 'border-cyan-500 text-cyan-600 bg-cyan-50/40'
-                : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+              ? 'border-cyan-500 text-cyan-600 bg-cyan-50/40'
+              : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
               }`}
           >
             <span>{tab.label}</span>
@@ -2255,7 +2417,25 @@ export default function Inventory() {
             { key: 'medicine', header: 'Medicine', sortable: true, sortValue: (b: any) => b.medicine?.name || '', render: (b: any) => <span className="font-bold text-slate-900">{b.medicine?.name}</span> },
             { key: 'batch_no', header: 'Batch No.', sortable: true, render: (b: any) => <span className="font-mono text-xs text-slate-600">{b.batch_no}</span> },
             { key: 'expiry_date', header: 'Expiry Date', sortable: true, render: (b: any) => <span className="font-mono text-xs">{formatExpiryDisplay(b.expiry_date)}</span> },
-            { key: 'qty_available', header: 'Qty Available', sortable: true, align: 'right', render: (b: any) => <span className="font-bold font-mono">{b.qty_available}</span> },
+            {
+              key: 'qty_available',
+              header: 'Available Stock',
+              sortable: true,
+              sortValue: (b: any) => b.qty_available,
+              render: (b: any) => {
+                const breakdownInfo = b.medicine ? formatStockBreakdown(b.medicine, b.qty_available) : null
+                return (
+                  <div className="flex flex-col">
+                    <span className="font-bold text-slate-900 font-sans text-xs">
+                      {breakdownInfo ? breakdownInfo.breakdown : `${b.qty_available} ${b.medicine?.unit_label || 'Pcs'}`}
+                    </span>
+                    <span className="font-mono text-[11px] text-slate-500">
+                      Total: {b.qty_available} {b.medicine?.base_unit || b.medicine?.unit_label || 'Piece'}s
+                    </span>
+                  </div>
+                )
+              }
+            },
             { key: 'purchase_price_per_unit', header: 'Purchase Price', sortable: true, align: 'right', render: (b: any) => <span className="font-mono">₹{b.purchase_price_per_unit.toFixed(2)}</span> },
             { key: 'selling_price_per_unit', header: 'Selling Price', sortable: true, align: 'right', render: (b: any) => <span className="font-mono font-bold text-slate-900">₹{b.selling_price_per_unit.toFixed(2)}</span> },
             {
@@ -2495,8 +2675,8 @@ export default function Inventory() {
                       value={purchaseForm.purchaseInvoiceNo}
                       onChange={(e) => setPurchaseForm({ ...purchaseForm, purchaseInvoiceNo: e.target.value })}
                       className={`w-full py-2 px-3 rounded-lg border text-sm focus:outline-none focus:ring-2 font-mono ${!purchaseForm.purchaseInvoiceNo.trim()
-                          ? 'border-slate-200 focus:ring-cyan-500'
-                          : 'border-cyan-500 bg-cyan-50/10 font-bold focus:ring-cyan-500'
+                        ? 'border-slate-200 focus:ring-cyan-500'
+                        : 'border-cyan-500 bg-cyan-50/10 font-bold focus:ring-cyan-500'
                         }`}
                     />
                   </div>
@@ -2740,11 +2920,27 @@ export default function Inventory() {
                 </label>
                 <input
                   type="number"
-                  placeholder="100"
+                  placeholder="10"
                   value={stockInItem.qtyPurchased}
                   onChange={(e) => handleQtyPurchasedChange(e.target.value)}
                   className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 font-mono font-bold text-slate-900"
                 />
+              </div>
+
+              {/* Unit Dropdown */}
+              <div className="lg:col-span-1">
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+                  Unit <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={stockInItem.unit}
+                  onChange={(e) => setStockInItem({ ...stockInItem, unit: e.target.value, freeUnit: stockInItem.freeUnit || e.target.value })}
+                  className="w-full py-2 px-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 font-bold text-slate-800 bg-white"
+                >
+                  {getAvailableUnitsForMedicine(safeMedicines.find(m => m.id === stockInItem.medicineId)).map((u) => (
+                    <option key={u} value={u}>{u}</option>
+                  ))}
+                </select>
               </div>
 
               {/* Free Qty */}
@@ -2757,6 +2953,20 @@ export default function Inventory() {
                   onChange={(e) => setStockInItem({ ...stockInItem, freeQty: e.target.value })}
                   className="w-full py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 font-mono text-cyan-700"
                 />
+              </div>
+
+              {/* Free Unit Dropdown */}
+              <div className="lg:col-span-1">
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Free Unit</label>
+                <select
+                  value={stockInItem.freeUnit || stockInItem.unit}
+                  onChange={(e) => setStockInItem({ ...stockInItem, freeUnit: e.target.value })}
+                  className="w-full py-2 px-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 font-medium text-slate-700 bg-white"
+                >
+                  {getAvailableUnitsForMedicine(safeMedicines.find(m => m.id === stockInItem.medicineId)).map((u) => (
+                    <option key={u} value={u}>{u}</option>
+                  ))}
+                </select>
               </div>
 
               {/* MRP */}
@@ -2787,8 +2997,9 @@ export default function Inventory() {
 
               {/* Purchase Price */}
               <div className="lg:col-span-1">
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
-                  Pur.Price <span className="text-red-500">*</span>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1 flex items-center justify-between">
+                  <span>Pur.Price</span>
+                  {stockInItem.unit && <span className="text-[10px] text-cyan-600 font-normal lowercase">/{stockInItem.unit}</span>}
                 </label>
                 <input
                   type="number"
@@ -2835,8 +3046,9 @@ export default function Inventory() {
 
               {/* Selling Price */}
               <div className="lg:col-span-2">
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
-                  Sell Price <span className="text-red-500">*</span>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1 flex items-center justify-between">
+                  <span>Sell Price</span>
+                  {stockInItem.unit && <span className="text-[10px] text-cyan-600 font-normal lowercase">/{stockInItem.unit}</span>}
                 </label>
                 <input
                   type="number"
@@ -2854,8 +3066,8 @@ export default function Inventory() {
                   type="button"
                   onClick={addStockInItem}
                   className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-md cursor-pointer ${editingIndex !== null
-                      ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-500/20'
-                      : 'bg-cyan-600 hover:bg-cyan-700 text-white shadow-cyan-500/20'
+                    ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-500/20'
+                    : 'bg-cyan-600 hover:bg-cyan-700 text-white shadow-cyan-500/20'
                     }`}
                 >
                   {editingIndex !== null ? (
@@ -2870,6 +3082,36 @@ export default function Inventory() {
                 </button>
               </div>
             </div>
+
+            {/* LIVE EQUIVALENT STOCK ADDITION PREVIEW */}
+            {Boolean(stockInItem.medicineId && parseFloat(stockInItem.qtyPurchased) > 0) && (() => {
+              const selMed = safeMedicines.find(m => m.id === stockInItem.medicineId)
+              if (!selMed) return null
+              const basePurchased = convertToBaseQuantity(selMed, parseFloat(stockInItem.qtyPurchased) || 0, stockInItem.unit)
+              const baseFree = convertToBaseQuantity(selMed, parseFloat(stockInItem.freeQty) || 0, stockInItem.freeUnit || stockInItem.unit)
+              const totalBase = basePurchased + baseFree
+              const baseUnitLabel = selMed.base_unit || selMed.unit_label || 'Piece'
+              const factor = (stockInItem.unit ? (selMed.purchase_unit && stockInItem.unit.toLowerCase() === selMed.purchase_unit.toLowerCase() ? (selMed.inner_units_per_purchase || 1) * (selMed.units_per_inner || 1) : (selMed.inner_unit && stockInItem.unit.toLowerCase() === selMed.inner_unit.toLowerCase() ? (selMed.units_per_inner || 1) : 1)) : 1)
+
+              return (
+                <div className="mt-3.5 p-3 bg-cyan-50/90 border border-cyan-200 rounded-xl text-xs flex items-center justify-between text-cyan-950 font-medium animate-fade-in shadow-xs">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-cyan-600 shrink-0" />
+                    <span>
+                      Equivalent Quantity: <strong className="font-mono text-sm text-cyan-900 font-extrabold">{basePurchased} {baseUnitLabel}s</strong>
+                      {baseFree > 0 && (
+                        <span className="text-cyan-800 ml-1.5 font-mono">
+                          (+ {baseFree} {baseUnitLabel}s Free = <strong>{totalBase} Total {baseUnitLabel}s</strong>)
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                  <div className="text-[11px] font-mono text-slate-600 bg-white px-2.5 py-1 rounded-lg border border-cyan-200/80 shadow-xs">
+                    1 {stockInItem.unit || 'Unit'} = {factor} {baseUnitLabel}s
+                  </div>
+                </div>
+              )
+            })()}
           </div>
 
           {/* ZONE 3: RESPONSIVE BATCH ITEMS TABLE (WITH STICKY MEDICINE COLUMN) */}
@@ -2906,7 +3148,7 @@ export default function Inventory() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {purchaseForm.items.map((item, index) => {
+                  {purchaseForm.items.map((item: any, index) => {
                     const med = safeMedicines.find((m) => m.id === item.medicineId)
                     // Net Total = (Qty x Rate - Discount) + GST, matching the invoice-level totals below
                     const itemTotal = (item.taxableAmount || 0) + (item.cgstAmount || 0) + (item.sgstAmount || 0) + (item.igstAmount || 0)
@@ -2917,10 +3159,10 @@ export default function Inventory() {
                       <tr
                         key={index}
                         className={`transition-colors duration-500 ${isRecentlyAdded
-                            ? 'bg-cyan-50/90 font-medium'
-                            : isBeingEdited
-                              ? 'bg-indigo-50/80 border-l-4 border-l-indigo-600'
-                              : 'hover:bg-slate-50/70'
+                          ? 'bg-cyan-50/90 font-medium'
+                          : isBeingEdited
+                            ? 'bg-indigo-50/80 border-l-4 border-l-indigo-600'
+                            : 'hover:bg-slate-50/70'
                           }`}
                       >
                         {/* Sticky Medicine Body Column */}
@@ -2938,9 +3180,11 @@ export default function Inventory() {
                         <td className="px-4 py-3 text-xs font-mono">
                           {formatExpiryDisplay(item.expiryDate)}
                         </td>
-                        <td className="px-4 py-3 text-right font-mono font-bold text-slate-900">{item.qtyPurchased}</td>
-                        <td className="px-4 py-3 text-right font-mono text-cyan-600 font-semibold">
-                          {item.freeQty > 0 ? `+${item.freeQty}` : '-'}
+                        <td className="px-4 py-3 text-right font-mono font-bold text-slate-900">
+                          {item.qtyPurchased} <span className="text-[11px] font-sans font-normal text-slate-500">{item.unit || 'Unit'}</span>
+                        </td>
+                        <td className="px-4 py-3 text-right font-mono text-cyan-700 font-semibold">
+                          {item.freeQty > 0 ? `+${item.freeQty} ${item.freeUnit || item.unit || ''}` : '-'}
                         </td>
                         <td className="px-4 py-3 text-right font-mono text-xs text-slate-600">
                           {item.mrp > 0 ? `₹${item.mrp.toFixed(2)}` : '-'}
@@ -3150,7 +3394,7 @@ export default function Inventory() {
               align: 'center',
               render: (p: any) => (
                 <span className={`text-[10px] px-2 py-0.5 rounded font-extrabold uppercase ${p.payment_status === 'PENDING' ? 'bg-red-100 text-red-800' :
-                    p.payment_status === 'PARTIAL' ? 'bg-amber-100 text-amber-800' : 'bg-cyan-100 text-cyan-800'
+                  p.payment_status === 'PARTIAL' ? 'bg-amber-100 text-amber-800' : 'bg-cyan-100 text-cyan-800'
                   }`}>
                   {p.payment_status || 'PAID'}
                 </span>

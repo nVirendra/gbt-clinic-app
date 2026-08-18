@@ -38,6 +38,11 @@ export interface Medicine {
   pack?: string | null
   type: string
   unit_label: string
+  base_unit?: string | null
+  inner_unit?: string | null
+  units_per_inner?: number | null
+  purchase_unit?: string | null
+  inner_units_per_purchase?: number | null
   hsn_code: string | null
   rack_no?: string | null
   reorder_level: number
@@ -83,6 +88,14 @@ export interface InventoryBatch {
   qty_purchased: number
   qty_free?: number
   qty_available: number
+  purchase_unit_label?: string | null
+  purchase_unit_qty?: number | null
+  purchase_free_unit_label?: string | null
+  purchase_free_unit_qty?: number | null
+  conversion_factor?: number | null
+  unit_purchase_price?: number | null
+  unit_mrp?: number | null
+  unit_selling_price?: number | null
   mrp?: number
   discount_percent?: number
   taxable_amount?: number
