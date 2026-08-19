@@ -15,6 +15,7 @@ import {
   getAvailableUnitsForMedicine,
   convertToBaseQuantity
 } from '../../../../lib/unitConversion'
+import { UnitSelectorCombobox } from '../UnitSelectorCombobox'
 
 export interface StockInItemFormState {
   medicineId: string
@@ -261,26 +262,21 @@ export const BatchItemEntryPanel: React.FC<BatchItemEntryPanelProps> = ({
           />
         </div>
 
-        {/* Purchase Unit */}
+        {/* Purchase Unit Searchable Combobox */}
         <div className="lg:col-span-1">
           <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Unit</label>
-          <select
+          <UnitSelectorCombobox
             value={itemState.unit}
-            onChange={(e) =>
+            onChange={(selectedUnit: string) =>
               onChange({
                 ...itemState,
-                unit: e.target.value,
-                freeUnit: itemState.freeUnit || e.target.value
+                unit: selectedUnit,
+                freeUnit: itemState.freeUnit || selectedUnit
               })
             }
-            className="w-full py-2 px-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 font-bold text-slate-800 bg-white"
-          >
-            {availableUnits.map((u) => (
-              <option key={u} value={u}>
-                {u}
-              </option>
-            ))}
-          </select>
+            availableOptions={availableUnits}
+            placeholder="Unit..."
+          />
         </div>
 
         {/* Free Qty */}

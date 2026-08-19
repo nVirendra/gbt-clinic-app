@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react'
 import { Layers, Sparkles, AlertCircle, Plus, Trash2, CheckCircle2 } from 'lucide-react'
 import { DosageFormOption } from './DosageFormSelector'
+import { UnitSelectorCombobox } from '../UnitSelectorCombobox'
 
 export interface PackagingState {
   purchaseUnit: string // e.g. Box, Carton, Bottle
@@ -309,36 +310,33 @@ export const PackagingBuilder: React.FC<PackagingBuilderProps> = ({
 
           <div className="flex items-center gap-2">
             <span className="text-xs font-semibold text-slate-600">Sale Unit:</span>
-            <select
-              value={packagingState.saleUnit || baseUnit}
-              disabled={disabled}
-              onChange={(e) => onChange({ ...packagingState, saleUnit: e.target.value })}
-              className="py-1 px-2.5 rounded-lg border border-slate-300 text-xs font-bold text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
-            >
-              {Array.from(
-                new Set([
-                  baseUnit,
-                  purchaseUnit,
-                  ...(hasInnerLevel ? [innerUnit] : []),
-                  ...dosageForm.suggestedSaleUnits,
-                  'Tablet',
-                  'Capsule',
-                  'Strip',
-                  'Bottle',
-                  'Tube',
-                  'Vial',
-                  'ml',
-                  'gm',
-                  'Piece'
-                ])
-              )
-                .filter(Boolean)
-                .map((u) => (
-                  <option key={u} value={u}>
-                    {u}
-                  </option>
-                ))}
-            </select>
+            <div className="w-36">
+              <UnitSelectorCombobox
+                value={packagingState.saleUnit || baseUnit}
+                disabled={disabled}
+                onChange={(selectedSaleUnit: string) =>
+                  onChange({ ...packagingState, saleUnit: selectedSaleUnit })
+                }
+                availableOptions={Array.from(
+                  new Set([
+                    baseUnit,
+                    purchaseUnit,
+                    ...(hasInnerLevel ? [innerUnit] : []),
+                    ...dosageForm.suggestedSaleUnits,
+                    'Tablet',
+                    'Capsule',
+                    'Strip',
+                    'Bottle',
+                    'Tube',
+                    'Vial',
+                    'ml',
+                    'gm',
+                    'Piece'
+                  ])
+                ).filter(Boolean)}
+                placeholder="Search sale unit..."
+              />
+            </div>
           </div>
         </div>
 

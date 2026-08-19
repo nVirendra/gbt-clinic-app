@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { Service, Medicine, InventoryBatch } from '../../../../types'
 import ItemTypeahead from '../ItemTypeahead'
+import { UnitSelectorCombobox } from '../../../inventory/components/UnitSelectorCombobox'
 import {
   getAvailableUnitsForMedicine,
   formatStockBreakdown,
@@ -253,24 +254,18 @@ export const MedicinePOSController: React.FC<MedicinePOSControllerProps> = ({
         {itemType === 'MEDICINE' && (
           <div className="lg:col-span-1">
             <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Unit</label>
-            <select
+            <UnitSelectorCombobox
               value={itemForm.unit}
-              onChange={(e) => {
-                const newUnit = e.target.value
+              onChange={(newUnit: string) => {
                 const factor = selectedMed ? getUnitConversionFactor(selectedMed, newUnit) : 1
                 const newPrice = selectedBatch
                   ? (selectedBatch.selling_price_per_unit * factor).toFixed(2)
                   : itemForm.price
                 onChangeItemForm({ ...itemForm, unit: newUnit, price: newPrice })
               }}
-              className="w-full py-2.5 px-2 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
-            >
-              {getAvailableUnitsForMedicine(selectedMed).map((u) => (
-                <option key={u} value={u}>
-                  {u}
-                </option>
-              ))}
-            </select>
+              availableOptions={getAvailableUnitsForMedicine(selectedMed)}
+              placeholder="Unit..."
+            />
           </div>
         )}
 
