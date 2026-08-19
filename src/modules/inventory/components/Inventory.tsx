@@ -716,23 +716,28 @@ function RedesignedMedicineModal({
     if (isOpen) {
       if (editingMed) {
         const defaults = getSmartPackagingDefaults(editingMed.type || 'TABLET')
+        const getVal = (snakeKey: string, camelKey: string, fallback: any) => {
+          const val = (editingMed as any)[snakeKey] ?? (editingMed as any)[camelKey]
+          return val !== null && val !== undefined && val !== '' ? val : fallback
+        }
+
         setForm({
           name: editingMed.name || '',
           strength: editingMed.strength || '',
-          genericName: editingMed.generic_name || '',
+          genericName: getVal('generic_name', 'genericName', ''),
           manufacturer: editingMed.manufacturer || '',
           pack: editingMed.pack || '',
           type: editingMed.type || 'TABLET',
-          unitLabel: editingMed.unit_label || 'strip',
-          baseUnit: editingMed.base_unit || defaults.baseUnit,
-          innerUnit: editingMed.inner_unit || defaults.innerUnit,
-          unitsPerInner: (editingMed.units_per_inner ?? parseFloat(defaults.unitsPerInner)).toString(),
-          purchaseUnit: editingMed.purchase_unit || defaults.purchaseUnit,
-          innerUnitsPerPurchase: (editingMed.inner_units_per_purchase ?? parseFloat(defaults.innerUnitsPerPurchase)).toString(),
-          hsnCode: editingMed.hsn_code || '',
-          rackNo: editingMed.rack_no || '',
-          reorderLevel: (editingMed.reorder_level ?? 10).toString(),
-          defaultGstPercent: (editingMed.default_gst_percent ?? 12).toString()
+          unitLabel: getVal('unit_label', 'unitLabel', 'strip'),
+          baseUnit: String(getVal('base_unit', 'baseUnit', defaults.baseUnit)),
+          innerUnit: String(getVal('inner_unit', 'innerUnit', defaults.innerUnit)),
+          unitsPerInner: String(getVal('units_per_inner', 'unitsPerInner', defaults.unitsPerInner)),
+          purchaseUnit: String(getVal('purchase_unit', 'purchaseUnit', defaults.purchaseUnit)),
+          innerUnitsPerPurchase: String(getVal('inner_units_per_purchase', 'innerUnitsPerPurchase', defaults.innerUnitsPerPurchase)),
+          hsnCode: getVal('hsn_code', 'hsnCode', ''),
+          rackNo: getVal('rack_no', 'rackNo', ''),
+          reorderLevel: String(getVal('reorder_level', 'reorderLevel', 10)),
+          defaultGstPercent: String(getVal('default_gst_percent', 'defaultGstPercent', 12))
         })
       } else if (initialFormValues) {
         const defaults = getSmartPackagingDefaults(initialFormValues.type || 'TABLET')
@@ -1031,18 +1036,25 @@ function RedesignedMedicineModal({
                   <ScrollableSelect
                     value={form.type}
                     onChange={(val) => {
-                      const defaults = getSmartPackagingDefaults(val)
-                      const defaultUnit = adaptiveUnitLabels[val]?.[0] || 'strip'
-                      setForm({
-                        ...form,
-                        type: val,
-                        unitLabel: defaultUnit,
-                        baseUnit: defaults.baseUnit,
-                        innerUnit: defaults.innerUnit,
-                        unitsPerInner: defaults.unitsPerInner,
-                        purchaseUnit: defaults.purchaseUnit,
-                        innerUnitsPerPurchase: defaults.innerUnitsPerPurchase
-                      })
+                      if (!editingMed) {
+                        const defaults = getSmartPackagingDefaults(val)
+                        const defaultUnit = adaptiveUnitLabels[val]?.[0] || 'strip'
+                        setForm({
+                          ...form,
+                          type: val,
+                          unitLabel: defaultUnit,
+                          baseUnit: defaults.baseUnit,
+                          innerUnit: defaults.innerUnit,
+                          unitsPerInner: defaults.unitsPerInner,
+                          purchaseUnit: defaults.purchaseUnit,
+                          innerUnitsPerPurchase: defaults.innerUnitsPerPurchase
+                        })
+                      } else {
+                        setForm({
+                          ...form,
+                          type: val
+                        })
+                      }
                     }}
                     options={DOSAGE_FORM_OPTIONS}
                   />
@@ -1083,7 +1095,7 @@ function RedesignedMedicineModal({
               <Package className="w-4 h-4 text-cyan-500" /> 2. Inventory & Compliance
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {/* HSN Code Combobox */}
               <div>
                 <label className="block text-xs font-bold text-slate-600 uppercase mb-1">
@@ -1095,6 +1107,20 @@ function RedesignedMedicineModal({
                   onSelectOption={handleSelectHsn}
                   options={hsnOptions}
                   placeholder="e.g. 300490"
+                />
+              </div>
+
+              {/* Rack No. / Shelf Location */}
+              <div>
+                <label className="block text-xs font-bold text-slate-600 uppercase mb-1">
+                  Rack / Shelf No.
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. A-1, B-4, R-2"
+                  value={form.rackNo}
+                  onChange={(e) => setForm({ ...form, rackNo: e.target.value.toUpperCase() })}
+                  className="w-full py-2 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 font-mono font-semibold uppercase"
                 />
               </div>
 
@@ -1173,39 +1199,10 @@ function RedesignedMedicineModal({
             <div className="p-4 bg-slate-50/90 border border-slate-200/90 rounded-2xl space-y-3.5">
               {/* Physical Packing Rule Inputs */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* 1. Primary Packaging Ratio */}
+                {/* 1. Wholesale Box Ratio (Outer Box) */}
                 <div className="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-2xs space-y-2">
                   <label className="block text-xs font-bold text-slate-800 uppercase">
-                    1. Primary Pack Ratio <span className="text-cyan-600 lowercase font-normal">(e.g. Strip size)</span>
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-slate-700 bg-slate-100 px-2.5 py-1.5 rounded-lg whitespace-nowrap font-mono">
-                      1 {form.innerUnit || 'Strip'} =
-                    </span>
-                    <input
-                      type="number"
-                      step="any"
-                      placeholder="10"
-                      value={form.unitsPerInner}
-                      onChange={(e) => setForm({ ...form, unitsPerInner: e.target.value })}
-                      className="w-20 py-1.5 px-2.5 rounded-lg border border-slate-300 text-sm font-mono font-bold focus:outline-none focus:ring-2 focus:ring-cyan-500 bg-white"
-                    />
-                    <select
-                      value={form.baseUnit}
-                      onChange={(e) => setForm({ ...form, baseUnit: e.target.value })}
-                      className="text-xs font-bold text-slate-800 py-1.5 px-2 rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                    >
-                      {['Tablet', 'Capsule', 'Piece', 'Vial', 'Bottle', 'Ampoule', 'Tube', 'Sachet', 'Dose', 'ml', 'gm'].map(u => (
-                        <option key={u} value={u}>{u}s</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                {/* 2. Outer Box Ratio */}
-                <div className="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-2xs space-y-2">
-                  <label className="block text-xs font-bold text-slate-800 uppercase">
-                    2. Wholesale Box Ratio <span className="text-cyan-600 lowercase font-normal">(Distributor bill)</span>
+                    1. Wholesale Box Ratio <span className="text-cyan-600 lowercase font-normal">(Distributor bill)</span>
                   </label>
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-bold text-slate-700 bg-slate-100 px-2.5 py-1.5 rounded-lg whitespace-nowrap font-mono">
@@ -1225,6 +1222,35 @@ function RedesignedMedicineModal({
                       className="text-xs font-bold text-slate-800 py-1.5 px-2 rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
                     >
                       {['Strip', 'Box', 'Bottle', 'Vial', 'Ampoule', 'Tube', 'Sachet', 'Pack', 'Piece'].map(u => (
+                        <option key={u} value={u}>{u}s</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* 2. Primary Pack Ratio (Inner Pack) */}
+                <div className="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-2xs space-y-2">
+                  <label className="block text-xs font-bold text-slate-800 uppercase">
+                    2. Primary Pack Ratio <span className="text-cyan-600 lowercase font-normal">(e.g. Strip size)</span>
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-slate-700 bg-slate-100 px-2.5 py-1.5 rounded-lg whitespace-nowrap font-mono">
+                      1 {form.innerUnit || 'Strip'} =
+                    </span>
+                    <input
+                      type="number"
+                      step="any"
+                      placeholder="10"
+                      value={form.unitsPerInner}
+                      onChange={(e) => setForm({ ...form, unitsPerInner: e.target.value })}
+                      className="w-20 py-1.5 px-2.5 rounded-lg border border-slate-300 text-sm font-mono font-bold focus:outline-none focus:ring-2 focus:ring-cyan-500 bg-white"
+                    />
+                    <select
+                      value={form.baseUnit}
+                      onChange={(e) => setForm({ ...form, baseUnit: e.target.value })}
+                      className="text-xs font-bold text-slate-800 py-1.5 px-2 rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    >
+                      {['Tablet', 'Capsule', 'Piece', 'Vial', 'Bottle', 'Ampoule', 'Tube', 'Sachet', 'Dose', 'ml', 'gm'].map(u => (
                         <option key={u} value={u}>{u}s</option>
                       ))}
                     </select>
@@ -2411,15 +2437,47 @@ export default function Inventory() {
 
 
       {/* --- CURRENT STOCK BATCHES TAB --- */}
+      {/* --- CURRENT STOCK BATCHES TAB (MARG ERP ENTERPRISE STANDARD) --- */}
       {localTab === 'batches' && (
         <DataTable
           columns={[
-            { key: 'medicine', header: 'Medicine', sortable: true, sortValue: (b: any) => b.medicine?.name || '', render: (b: any) => <span className="font-bold text-slate-900">{b.medicine?.name}</span> },
-            { key: 'batch_no', header: 'Batch No.', sortable: true, render: (b: any) => <span className="font-mono text-xs text-slate-600">{b.batch_no}</span> },
-            { key: 'expiry_date', header: 'Expiry Date', sortable: true, render: (b: any) => <span className="font-mono text-xs">{formatExpiryDisplay(b.expiry_date)}</span> },
+            {
+              key: 'medicine',
+              header: 'Medicine Particulars',
+              sortable: true,
+              sortValue: (b: any) => b.medicine?.name || '',
+              render: (b: any) => (
+                <div className="flex flex-col">
+                  <span className="font-bold text-slate-900 text-xs">{b.medicine?.name || 'N/A'}</span>
+                  {b.medicine?.strength && (
+                    <span className="text-[10px] text-slate-500 font-semibold mt-0.5">
+                      {b.medicine.strength} &middot; <span className="font-mono text-cyan-800 uppercase">{b.medicine.type}</span>
+                    </span>
+                  )}
+                </div>
+              )
+            },
+            {
+              key: 'rack_no',
+              header: 'Rack / Shelf No',
+              sortable: true,
+              sortValue: (b: any) => b.medicine?.rack_no || b.medicine?.rackNo || '',
+              render: (b: any) => {
+                const rNo = b.medicine?.rack_no || b.medicine?.rackNo
+                return rNo ? (
+                  <span className="font-mono text-xs font-bold bg-amber-50 text-amber-900 border border-amber-200/80 px-1.5 py-0.5 rounded">
+                    {rNo}
+                  </span>
+                ) : (
+                  <span className="text-xs text-slate-400 font-mono">N/A</span>
+                )
+              }
+            },
+            { key: 'batch_no', header: 'Batch No.', sortable: true, render: (b: any) => <span className="font-mono text-xs font-bold text-slate-800">{b.batch_no}</span> },
+            { key: 'expiry_date', header: 'Expiry Date', sortable: true, render: (b: any) => <span className="font-mono text-xs text-slate-700">{formatExpiryDisplay(b.expiry_date)}</span> },
             {
               key: 'qty_available',
-              header: 'Available Stock',
+              header: 'Available Stock (Marg Units)',
               sortable: true,
               sortValue: (b: any) => b.qty_available,
               render: (b: any) => {
@@ -2429,15 +2487,45 @@ export default function Inventory() {
                     <span className="font-bold text-slate-900 font-sans text-xs">
                       {breakdownInfo ? breakdownInfo.breakdown : `${b.qty_available} ${b.medicine?.unit_label || 'Pcs'}`}
                     </span>
-                    <span className="font-mono text-[11px] text-slate-500">
+                    <span className="font-mono text-[10px] text-slate-400">
                       Total: {b.qty_available} {b.medicine?.base_unit || b.medicine?.unit_label || 'Piece'}s
                     </span>
                   </div>
                 )
               }
             },
-            { key: 'purchase_price_per_unit', header: 'Purchase Price', sortable: true, align: 'right', render: (b: any) => <span className="font-mono">₹{b.purchase_price_per_unit.toFixed(2)}</span> },
-            { key: 'selling_price_per_unit', header: 'Selling Price', sortable: true, align: 'right', render: (b: any) => <span className="font-mono font-bold text-slate-900">₹{b.selling_price_per_unit.toFixed(2)}</span> },
+            {
+              key: 'mrp',
+              header: 'MRP',
+              sortable: true,
+              align: 'right',
+              render: (b: any) => <span className="font-mono text-xs font-semibold text-slate-800">₹{Number(b.mrp || 0).toFixed(2)}</span>
+            },
+            {
+              key: 'purchase_price_per_unit',
+              header: 'Pur. Rate',
+              sortable: true,
+              align: 'right',
+              render: (b: any) => <span className="font-mono text-xs text-slate-600">₹{Number(b.purchase_price_per_unit || 0).toFixed(2)}</span>
+            },
+            {
+              key: 'selling_price_per_unit',
+              header: 'Sell Price',
+              sortable: true,
+              align: 'right',
+              render: (b: any) => <span className="font-mono text-xs font-bold text-cyan-900">₹{Number(b.selling_price_per_unit || 0).toFixed(2)}</span>
+            },
+            {
+              key: 'stock_value',
+              header: 'Stock Value (₹)',
+              sortable: true,
+              align: 'right',
+              sortValue: (b: any) => (b.qty_available || 0) * (b.purchase_price_per_unit || 0),
+              render: (b: any) => {
+                const val = (b.qty_available || 0) * (b.purchase_price_per_unit || 0)
+                return <span className="font-mono text-xs font-black text-slate-900">₹{val.toFixed(2)}</span>
+              }
+            },
             {
               key: 'status',
               header: 'Status',
@@ -2448,16 +2536,14 @@ export default function Inventory() {
                 const isExpired = daysToExpiry <= 0
                 const isNearExpiry = daysToExpiry > 0 && daysToExpiry <= 30
                 return isExpired ? (
-                  <span className="inline-flex px-2.5 py-0.5 text-xs rounded-full font-bold bg-red-100 text-red-700">Expired</span>
+                  <span className="inline-flex px-2 py-0.5 text-[11px] rounded-full font-bold bg-red-100 text-red-700 border border-red-200">Expired</span>
                 ) : isNearExpiry ? (
-                  <span className="inline-flex px-2.5 py-0.5 text-xs rounded-full font-bold bg-amber-100 text-amber-800">Expiring in {daysToExpiry}d</span>
+                  <span className="inline-flex px-2 py-0.5 text-[11px] rounded-full font-bold bg-amber-100 text-amber-800 border border-amber-200">Expiring in {daysToExpiry}d</span>
                 ) : (
-                  <span className="inline-flex px-2.5 py-0.5 text-xs rounded-full font-bold bg-cyan-100 text-cyan-800">Active</span>
+                  <span className="inline-flex px-2 py-0.5 text-[11px] rounded-full font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">Active</span>
                 )
               }
             },
-            { key: 'created_at', header: 'Created At', optional: true, sortable: true, sortValue: (b: any) => b.created_at ? new Date(b.created_at).getTime() : 0, render: (b: any) => <span className="font-mono text-xs text-slate-600">{formatDateTime(b.created_at)}</span> },
-            { key: 'updated_at', header: 'Updated At', optional: true, sortable: true, sortValue: (b: any) => b.updated_at ? new Date(b.updated_at).getTime() : 0, render: (b: any) => <span className="font-mono text-xs text-slate-600">{formatDateTime(b.updated_at)}</span> },
             {
               key: 'actions',
               header: 'Actions',
@@ -2470,7 +2556,7 @@ export default function Inventory() {
                     setAdjustReason('Count correction')
                     setShowAdjustModal(true)
                   }}
-                  className="text-xs text-cyan-600 hover:text-cyan-700 font-bold underline cursor-pointer"
+                  className="text-xs text-cyan-600 hover:text-cyan-800 font-bold underline cursor-pointer"
                 >
                   Adjust Stock
                 </button>
@@ -2480,7 +2566,7 @@ export default function Inventory() {
           data={searchableBatches}
           loading={loading}
           rowKey={(b) => b.id}
-          searchPlaceholder="Search by medicine or batch no..."
+          searchPlaceholder="Search by medicine, batch no, or rack..."
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           searchFilterKeys={['medicine_name', 'batch_no']}
@@ -2489,29 +2575,83 @@ export default function Inventory() {
         />
       )}
 
-      {/* --- MEDICINES LIST TAB --- */}
+      {/* --- MEDICINES LIST TAB (MARG ERP ENTERPRISE STANDARD) --- */}
       {localTab === 'medicines' && (
         <DataTable
           columns={[
-            { key: 'name', header: 'Medicine Name', sortable: true, render: (m: any) => <span className="font-bold text-slate-900">{m.name}</span> },
-            { key: 'strength', header: 'Strength', sortable: true, render: (m: any) => <span className="font-semibold text-cyan-800 bg-cyan-50 border border-cyan-200/60 px-2 py-0.5 rounded text-xs">{m.strength || 'N/A'}</span> },
-            { key: 'generic_name', header: 'Generic Name', sortable: true, render: (m: any) => <span className="text-xs text-slate-600 font-medium">{m.generic_name || 'N/A'}</span> },
-            { key: 'manufacturer', header: 'Manufacturer', sortable: true, render: (m: any) => <span className="text-xs text-slate-600">{m.manufacturer || 'N/A'}</span> },
-            { key: 'pack', header: 'Pack', sortable: true, render: (m: any) => <span className="font-mono text-xs">{m.pack || 'N/A'}</span> },
-            { key: 'type', header: 'Type', sortable: true, render: (m: any) => <span className="font-mono text-xs">{m.type}</span> },
-            { key: 'unit_label', header: 'Unit Label', sortable: true, render: (m: any) => <span className="capitalize">{m.unit_label}</span> },
+            {
+              key: 'name',
+              header: 'Medicine Name Particulars',
+              sortable: true,
+              render: (m: any) => (
+                <div className="flex flex-col">
+                  <span className="font-bold text-slate-900 text-xs">{m.name}</span>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    {m.strength && (
+                      <span className="font-semibold text-cyan-900 bg-cyan-50 border border-cyan-200/80 px-1.5 py-0.2 rounded text-[10px]">
+                        {m.strength}
+                      </span>
+                    )}
+                    <span className="font-mono text-[10px] text-slate-500 font-bold uppercase">{m.type}</span>
+                  </div>
+                </div>
+              )
+            },
+            { key: 'generic_name', header: 'Generic Formula', sortable: true, render: (m: any) => <span className="text-xs text-slate-600 font-medium">{m.generic_name || 'N/A'}</span> },
+            { key: 'manufacturer', header: 'Manufacturer / Brand', sortable: true, render: (m: any) => <span className="text-xs text-slate-700">{m.manufacturer || 'N/A'}</span> },
+            { key: 'pack', header: 'Pack Size', sortable: true, render: (m: any) => <span className="font-mono text-xs font-semibold text-slate-800">{m.pack || 'N/A'}</span> },
+            {
+              key: 'packaging_setup',
+              header: 'Packaging Ratio (Box=Strip=Units)',
+              sortable: false,
+              render: (m: any) => (
+                <span className="font-mono text-[11px] font-bold text-cyan-900 bg-cyan-50 px-2 py-0.5 rounded border border-cyan-200/90 whitespace-nowrap">
+                  {getLiveConversionSummary(m)}
+                </span>
+              )
+            },
+            {
+              key: 'total_stock',
+              header: 'Current Stock',
+              sortable: true,
+              sortValue: (m: any) => m.batches?.reduce((sum: number, b: any) => sum + (b.qty_available || 0), 0) || 0,
+              render: (m: any) => {
+                const totalBase = m.batches?.reduce((sum: number, b: any) => sum + (b.qty_available || 0), 0) || 0
+                const breakdown = formatStockBreakdown(m, totalBase)
+                const isLowStock = m.reorder_level && totalBase <= m.reorder_level
+
+                return (
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-1.5">
+                      <span className={`font-bold text-xs ${totalBase === 0 ? 'text-rose-600' : 'text-slate-900'}`}>
+                        {breakdown.breakdown}
+                      </span>
+                      {isLowStock && (
+                        <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.2 bg-rose-100 text-rose-800 rounded border border-rose-200">
+                          {totalBase === 0 ? 'Out of Stock' : 'Low Stock'}
+                        </span>
+                      )}
+                    </div>
+                    <span className="font-mono text-[10px] text-slate-400">
+                      Total: {totalBase} {m.base_unit || m.unit_label || 'Piece'}s
+                    </span>
+                  </div>
+                )
+              }
+            },
             { key: 'hsn_code', header: 'HSN Code', sortable: true, render: (m: any) => <span className="font-mono text-xs">{m.hsn_code || 'N/A'}</span> },
             {
-              key: 'rack_no', header: 'Rack No', sortable: true, render: (m: any) => (
+              key: 'rack_no',
+              header: 'Rack No',
+              sortable: true,
+              render: (m: any) => (
                 m.rack_no
-                  ? <span className="font-mono text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200 px-1.5 py-0.5 rounded">{m.rack_no}</span>
-                  : <span className="text-xs text-slate-400">N/A</span>
+                  ? <span className="font-mono text-xs font-bold bg-amber-50 text-amber-900 border border-amber-200 px-1.5 py-0.5 rounded">{m.rack_no}</span>
+                  : <span className="text-xs text-slate-400 font-mono">N/A</span>
               )
             },
             { key: 'reorder_level', header: 'Reorder Level', sortable: true, align: 'right', render: (m: any) => <span className="font-mono font-bold text-slate-800">{m.reorder_level}</span> },
-            { key: 'default_gst_percent', header: 'GST %', sortable: true, align: 'right', render: (m: any) => <span className="font-mono">{m.default_gst_percent}%</span> },
-            { key: 'created_at', header: 'Created At', optional: true, sortable: true, sortValue: (m: any) => m.created_at ? new Date(m.created_at).getTime() : 0, render: (m: any) => <span className="font-mono text-xs text-slate-600">{formatDateTime(m.created_at)}</span> },
-            { key: 'updated_at', header: 'Updated At', optional: true, sortable: true, sortValue: (m: any) => m.updated_at ? new Date(m.updated_at).getTime() : 0, render: (m: any) => <span className="font-mono text-xs text-slate-600">{formatDateTime(m.updated_at)}</span> },
+            { key: 'default_gst_percent', header: 'GST %', sortable: true, align: 'right', render: (m: any) => <span className="font-mono font-bold">{m.default_gst_percent}%</span> },
             {
               key: 'actions',
               header: 'Actions',
@@ -3592,134 +3732,252 @@ export default function Inventory() {
         </div>
       )}
 
-      {/* --- PURCHASE INVOICE DETAILS MODAL --- */}
+      {/* --- PURCHASE INVOICE DETAILS MODAL (ENTERPRISE MARG ERP STANDARD) --- */}
       {selectedPurchase && (
         <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="bg-white rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col border border-slate-100">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] flex flex-col border border-slate-100 overflow-hidden">
             {/* Header */}
-            <div className="flex items-start justify-between px-6 py-5 border-b border-slate-100">
+            <div className="flex items-start justify-between px-6 py-4 bg-slate-900 text-white shadow-md">
               <div>
-                <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                  <Receipt className="w-5 h-5 text-cyan-500" /> Purchase Invoice Details
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <Receipt className="w-5 h-5 text-cyan-400" /> Purchase Invoice Details
                 </h3>
-                <p className="text-xs text-slate-500 mt-1 font-mono">
-                  Inv #{selectedPurchase.purchase_invoice_no} &middot; {new Date(selectedPurchase.purchase_date).toLocaleDateString('en-GB')}
+                <p className="text-xs text-slate-300 mt-0.5 font-mono">
+                  Invoice #{selectedPurchase.purchase_invoice_no} &middot; Date: {selectedPurchase.purchase_date ? new Date(selectedPurchase.purchase_date).toLocaleDateString('en-GB') : '-'}
                 </p>
               </div>
               <button
                 onClick={() => setSelectedPurchase(null)}
-                className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 cursor-pointer"
+                className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Summary Info */}
-            <div className="px-6 py-4 border-b border-slate-100 grid grid-cols-2 sm:grid-cols-4 gap-4 bg-slate-50/50">
-              <div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase flex items-center gap-1"><Building2 className="w-3 h-3" /> Vendor</p>
+            {/* Vendor & Payment Summary Card */}
+            <div className="px-6 py-4 border-b border-slate-100 grid grid-cols-2 sm:grid-cols-4 gap-4 bg-slate-50/70 text-slate-800">
+              <div className="sm:col-span-2">
+                <p className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
+                  <Building2 className="w-3.5 h-3.5 text-cyan-600" /> Distributor / Vendor
+                </p>
                 <p className="text-sm font-bold text-slate-900 mt-0.5">{selectedPurchase.vendor?.name || 'N/A'}</p>
+                <div className="flex flex-wrap items-center gap-2 mt-1">
+                  {selectedPurchase.vendor?.gstin && (
+                    <span className="text-[10px] font-mono font-semibold text-cyan-800 bg-cyan-50 px-1.5 py-0.5 rounded border border-cyan-200/80">
+                      GSTIN: {selectedPurchase.vendor.gstin}
+                    </span>
+                  )}
+                  {selectedPurchase.vendor?.drug_license_no && (
+                    <span className="text-[10px] font-mono font-semibold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">
+                      DL No: {selectedPurchase.vendor.drug_license_no}
+                    </span>
+                  )}
+                </div>
               </div>
+
               <div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase flex items-center gap-1"><Tag className="w-3 h-3" /> Type</p>
-                <span className={`inline-block mt-0.5 text-[10px] px-2 py-0.5 rounded font-extrabold uppercase ${selectedPurchase.purchase_type === 'CREDIT' ? 'bg-amber-100 text-amber-800' : 'bg-cyan-100 text-cyan-800'}`}>
-                  {selectedPurchase.purchase_type || 'CASH'}
-                </span>
+                <p className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
+                  <Tag className="w-3.5 h-3.5 text-cyan-600" /> Invoice Type / Status
+                </p>
+                <div className="flex items-center gap-1.5 mt-1">
+                  <span className={`text-[10px] px-2 py-0.5 rounded font-extrabold uppercase ${selectedPurchase.purchase_type === 'CREDIT' ? 'bg-amber-100 text-amber-800' : 'bg-cyan-100 text-cyan-800'}`}>
+                    {selectedPurchase.purchase_type || 'CASH'}
+                  </span>
+                  <span className={`text-[10px] px-2 py-0.5 rounded font-extrabold uppercase ${selectedPurchase.payment_status === 'PENDING' ? 'bg-red-100 text-red-800' : selectedPurchase.payment_status === 'PARTIAL' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}`}>
+                    {selectedPurchase.payment_status || 'PAID'}
+                  </span>
+                </div>
               </div>
+
               <div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase flex items-center gap-1"><CreditCard className="w-3 h-3" /> Status</p>
-                <span className={`inline-block mt-0.5 text-[10px] px-2 py-0.5 rounded font-extrabold uppercase ${selectedPurchase.payment_status === 'PENDING' ? 'bg-red-100 text-red-800' : selectedPurchase.payment_status === 'PARTIAL' ? 'bg-amber-100 text-amber-800' : 'bg-cyan-100 text-cyan-800'}`}>
-                  {selectedPurchase.payment_status || 'PAID'}
-                </span>
+                <p className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
+                  <Calendar className="w-3.5 h-3.5 text-cyan-600" /> Due Date
+                </p>
+                <p className="text-xs font-bold text-slate-700 mt-1 font-mono">
+                  {selectedPurchase.due_date ? new Date(selectedPurchase.due_date).toLocaleDateString('en-GB') : 'N/A (Immediate)'}
+                </p>
               </div>
+
               <div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase flex items-center gap-1"><Calendar className="w-3 h-3" /> Due Date</p>
-                <p className="text-sm font-semibold text-slate-700 mt-0.5 font-mono">{selectedPurchase.due_date ? new Date(selectedPurchase.due_date).toLocaleDateString('en-GB') : '-'}</p>
+                <p className="text-[10px] font-bold text-slate-500 uppercase">Gross Total Amount</p>
+                <p className="text-sm font-black text-slate-900 mt-0.5 font-mono">₹{Number(selectedPurchase.total_amount || 0).toFixed(2)}</p>
               </div>
+
               <div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase">Total Amount</p>
-                <p className="text-sm font-bold text-slate-900 mt-0.5 font-mono">₹{Number(selectedPurchase.total_amount || 0).toFixed(2)}</p>
-              </div>
-              <div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase">Paid Amount</p>
-                <p className="text-sm font-bold text-cyan-700 mt-0.5 font-mono">
+                <p className="text-[10px] font-bold text-slate-500 uppercase">Amount Paid</p>
+                <p className="text-sm font-black text-emerald-600 mt-0.5 font-mono">
                   ₹{Number(selectedPurchase.paid_amount !== undefined ? selectedPurchase.paid_amount : (selectedPurchase.purchase_type === 'CREDIT' ? 0 : selectedPurchase.total_amount)).toFixed(2)}
                 </p>
               </div>
+
               <div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase">Pending Dues</p>
-                <p className={`text-sm font-bold mt-0.5 font-mono ${(selectedPurchase.pending_amount ?? 0) > 0 ? 'text-rose-600' : 'text-slate-400'}`}>
+                <p className="text-[10px] font-bold text-slate-500 uppercase">Pending Balance</p>
+                <p className={`text-sm font-black mt-0.5 font-mono ${(selectedPurchase.pending_amount ?? 0) > 0 ? 'text-rose-600' : 'text-slate-400'}`}>
                   ₹{Number(selectedPurchase.pending_amount !== undefined ? selectedPurchase.pending_amount : (selectedPurchase.purchase_type === 'CREDIT' ? selectedPurchase.total_amount : 0)).toFixed(2)}
                 </p>
               </div>
+
               <div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase">Payment Mode</p>
-                <p className="text-sm font-semibold text-slate-700 mt-0.5 uppercase">{selectedPurchase.payment_mode || 'CASH'}</p>
+                <p className="text-[10px] font-bold text-slate-500 uppercase">Payment Mode</p>
+                <p className="text-xs font-bold text-slate-700 mt-1 uppercase">{selectedPurchase.payment_mode || 'CASH'}</p>
               </div>
             </div>
 
             {/* Items Table */}
             <div className="flex-1 overflow-auto px-6 py-4">
-              <p className="text-xs font-bold text-slate-500 uppercase mb-2 flex items-center gap-1.5">
-                <Layers className="w-4 h-4 text-cyan-500" /> Batch Items ({selectedPurchase.batches?.length || 0})
-              </p>
-              <div className="border border-slate-200 rounded-xl overflow-hidden">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs font-bold text-slate-700 uppercase flex items-center gap-1.5">
+                  <Layers className="w-4 h-4 text-cyan-600" /> Invoice Line Items ({selectedPurchase.batches?.length || 0})
+                </p>
+                <span className="text-[11px] text-slate-500 font-medium">Quantities displayed in Marg dual units</span>
+              </div>
+
+              <div className="border border-slate-200 rounded-xl overflow-hidden shadow-xs">
                 <table className="w-full text-left border-collapse min-w-max">
                   <thead>
-                    <tr className="bg-[#0B132B] text-cyan-500 font-black uppercase text-[10px] tracking-wider">
-                      <th className="px-3 py-2.5">Medicine</th>
-                      <th className="px-3 py-2.5">Batch No</th>
-                      <th className="px-3 py-2.5">Expiry</th>
-                      <th className="px-3 py-2.5 text-right">Qty</th>
-                      <th className="px-3 py-2.5 text-right">Free</th>
-                      <th className="px-3 py-2.5 text-right">MRP</th>
-                      <th className="px-3 py-2.5 text-right">Purchase/Unit</th>
-                      <th className="px-3 py-2.5 text-right">Sell/Unit</th>
-                      <th className="px-3 py-2.5 text-right">GST%</th>
+                    <tr className="bg-slate-900 text-cyan-400 font-black uppercase text-[10px] tracking-wider">
+                      <th className="px-3 py-2.5">Medicine Particulars</th>
+                      <th className="px-2.5 py-2.5">HSN</th>
+                      <th className="px-2.5 py-2.5">Batch No</th>
+                      <th className="px-2.5 py-2.5">Expiry</th>
+                      <th className="px-3 py-2.5 text-right">Purchase Qty (Pack + Base)</th>
+                      <th className="px-2.5 py-2.5 text-right">Free Qty</th>
+                      <th className="px-2.5 py-2.5 text-right">MRP</th>
+                      <th className="px-2.5 py-2.5 text-right">Pur. Rate</th>
+                      <th className="px-2.5 py-2.5 text-right">Sell Rate</th>
+                      <th className="px-2 py-2.5 text-right">GST%</th>
                       <th className="px-3 py-2.5 text-right">Taxable Amt</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 text-[#0B132B] text-xs">
-                    {(selectedPurchase.batches || []).map((b: any) => (
-                      <tr key={b.id} className="hover:bg-slate-50">
-                        <td className="px-3 py-2.5 font-semibold flex items-center gap-1.5">
-                          <Pill className="w-3.5 h-3.5 text-slate-400 shrink-0" /> {b.medicine?.name || 'N/A'}
-                        </td>
-                        <td className="px-3 py-2.5 font-mono">{b.batch_no || '-'}</td>
-                        <td className="px-3 py-2.5 font-mono">{b.expiry_date ? new Date(b.expiry_date).toLocaleDateString('en-GB', { month: '2-digit', year: 'numeric' }) : '-'}</td>
-                        <td className="px-3 py-2.5 text-right font-mono font-bold">{b.qty_purchased}</td>
-                        <td className="px-3 py-2.5 text-right font-mono text-slate-500">{b.qty_free || 0}</td>
-                        <td className="px-3 py-2.5 text-right font-mono">₹{Number(b.mrp || 0).toFixed(2)}</td>
-                        <td className="px-3 py-2.5 text-right font-mono">₹{Number(b.purchase_price_per_unit || 0).toFixed(2)}</td>
-                        <td className="px-3 py-2.5 text-right font-mono">₹{Number(b.selling_price_per_unit || 0).toFixed(2)}</td>
-                        <td className="px-3 py-2.5 text-right font-mono">{b.gst_percent ?? 0}%</td>
-                        <td className="px-3 py-2.5 text-right font-mono font-bold">₹{Number(b.taxable_amount || 0).toFixed(2)}</td>
-                      </tr>
-                    ))}
+                  <tbody className="divide-y divide-slate-100 text-slate-800 text-xs">
+                    {(selectedPurchase.batches || []).map((b: any) => {
+                      const qtyBreakdown = b.medicine ? formatStockBreakdown(b.medicine, b.qty_purchased) : null
+                      const freeBreakdown = b.medicine && (b.qty_free || 0) > 0 ? formatStockBreakdown(b.medicine, b.qty_free) : null
+                      const hsn = b.medicine?.hsn_code || b.medicine?.hsnCode || '300490'
+
+                      return (
+                        <tr key={b.id} className="hover:bg-cyan-50/30 transition-colors">
+                          <td className="px-3 py-2.5 font-bold text-slate-900">
+                            <div className="flex items-center gap-1.5">
+                              <Pill className="w-3.5 h-3.5 text-cyan-600 shrink-0" />
+                              <span>{b.medicine?.name || 'N/A'}</span>
+                            </div>
+                            {b.medicine?.strength && (
+                              <span className="text-[10px] text-slate-500 font-normal ml-5">
+                                {b.medicine.strength} &middot; {b.medicine.type}
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-2.5 py-2.5 font-mono text-[11px] text-slate-600">{hsn}</td>
+                          <td className="px-2.5 py-2.5 font-mono text-xs font-bold text-slate-800">{b.batch_no || '-'}</td>
+                          <td className="px-2.5 py-2.5 font-mono text-xs text-slate-600">
+                            {b.expiry_date ? new Date(b.expiry_date).toLocaleDateString('en-GB', { month: '2-digit', year: 'numeric' }) : '-'}
+                          </td>
+
+                          {/* Purchase Qty with Marg Dual Unit Breakdown */}
+                          <td className="px-3 py-2.5 text-right">
+                            {qtyBreakdown ? (
+                              <div className="flex flex-col items-end">
+                                <span className="font-bold text-slate-900 text-xs font-mono">
+                                  {qtyBreakdown.breakdown}
+                                </span>
+                                <span className="font-mono text-[10px] text-slate-400">
+                                  Total: {b.qty_purchased} {qtyBreakdown.baseUnit}s
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="font-mono font-bold">{b.qty_purchased}</span>
+                            )}
+                          </td>
+
+                          {/* Free Qty with Breakdown */}
+                          <td className="px-2.5 py-2.5 text-right font-mono">
+                            {freeBreakdown ? (
+                              <span className="text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200/60 text-[11px]">
+                                +{freeBreakdown.breakdown}
+                              </span>
+                            ) : (b.qty_free || 0) > 0 ? (
+                              <span className="text-emerald-700 font-bold">+{b.qty_free}</span>
+                            ) : (
+                              <span className="text-slate-300">0</span>
+                            )}
+                          </td>
+
+                          <td className="px-2.5 py-2.5 text-right font-mono text-xs font-semibold">
+                            ₹{Number(b.mrp || 0).toFixed(2)}
+                          </td>
+                          <td className="px-2.5 py-2.5 text-right font-mono text-xs text-slate-700">
+                            ₹{Number(b.purchase_price_per_unit || 0).toFixed(2)}
+                          </td>
+                          <td className="px-2.5 py-2.5 text-right font-mono text-xs text-slate-700">
+                            ₹{Number(b.selling_price_per_unit || 0).toFixed(2)}
+                          </td>
+                          <td className="px-2 py-2.5 text-right font-mono font-bold text-cyan-800">
+                            {b.gst_percent ?? 0}%
+                          </td>
+                          <td className="px-3 py-2.5 text-right font-mono font-black text-slate-900">
+                            ₹{Number(b.taxable_amount || 0).toFixed(2)}
+                          </td>
+                        </tr>
+                      )
+                    })}
                     {(!selectedPurchase.batches || selectedPurchase.batches.length === 0) && (
                       <tr>
-                        <td colSpan={10} className="px-3 py-6 text-center text-slate-400 text-xs">No batch items recorded for this purchase.</td>
+                        <td colSpan={11} className="px-3 py-6 text-center text-slate-400 text-xs">
+                          No batch items recorded for this purchase.
+                        </td>
                       </tr>
                     )}
                   </tbody>
                 </table>
               </div>
 
+              {/* MARG ENTERPRISE GST TAX BREAKDOWN CARD */}
+              {selectedPurchase.batches && selectedPurchase.batches.length > 0 && (() => {
+                const totalTaxable = selectedPurchase.batches.reduce((sum: number, b: any) => sum + (Number(b.taxable_amount) || 0), 0)
+                const totalCgst = selectedPurchase.batches.reduce((sum: number, b: any) => sum + (Number(b.cgst_amount) || (Number(b.taxable_amount || 0) * (Number(b.gst_percent || 0) / 200))), 0)
+                const totalSgst = selectedPurchase.batches.reduce((sum: number, b: any) => sum + (Number(b.sgst_amount) || (Number(b.taxable_amount || 0) * (Number(b.gst_percent || 0) / 200))), 0)
+                const totalGst = totalCgst + totalSgst
+
+                return (
+                  <div className="mt-4 p-4 bg-slate-900 text-white rounded-xl grid grid-cols-2 sm:grid-cols-4 gap-4 shadow-sm border border-slate-800">
+                    <div>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase">Total Taxable Value</p>
+                      <p className="text-sm font-black text-white font-mono mt-0.5">₹{totalTaxable.toFixed(2)}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold text-cyan-400 uppercase">CGST + SGST Breakdown</p>
+                      <p className="text-xs font-bold text-slate-300 font-mono mt-0.5">
+                        CGST: ₹{totalCgst.toFixed(2)} | SGST: ₹{totalSgst.toFixed(2)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold text-cyan-400 uppercase">Total GST Amount</p>
+                      <p className="text-sm font-black text-cyan-400 font-mono mt-0.5">₹{totalGst.toFixed(2)}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase">Grand Invoice Total</p>
+                      <p className="text-base font-black text-white font-mono mt-0.5">₹{Number(selectedPurchase.total_amount || 0).toFixed(2)}</p>
+                    </div>
+                  </div>
+                )
+              })()}
+
               {selectedPurchase.notes && (
-                <div className="mt-4 p-3 bg-slate-50 border border-slate-100 rounded-xl">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Notes</p>
-                  <p className="text-xs text-slate-600">{selectedPurchase.notes}</p>
+                <div className="mt-3 p-3 bg-slate-50 border border-slate-200/80 rounded-xl">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Invoice Notes / Remarks</p>
+                  <p className="text-xs text-slate-700">{selectedPurchase.notes}</p>
                 </div>
               )}
             </div>
 
             {/* Footer */}
-            <div className="px-6 py-4 border-t border-slate-100 flex justify-end">
+            <div className="px-6 py-3 border-t border-slate-100 flex justify-end bg-slate-50">
               <button
                 onClick={() => setSelectedPurchase(null)}
-                className="px-4 py-2 bg-[#0B132B] hover:bg-[#162244] text-cyan-500 font-bold rounded-xl text-xs transition cursor-pointer shadow-xs border border-cyan-500/40"
+                className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-cyan-400 font-bold rounded-xl text-xs transition cursor-pointer shadow-sm border border-slate-700"
               >
-                Close
+                Close Invoice View
               </button>
             </div>
           </div>

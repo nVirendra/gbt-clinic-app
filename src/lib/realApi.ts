@@ -255,7 +255,12 @@ export const realApi: Window['api'] = {
       manufacturer: raw.manufacturer || null,
       pack: raw.pack || null,
       type: raw.type || 'TABLET',
-      unit_label: raw.unit_label || raw.unitLabel,
+      unit_label: raw.unit_label || raw.unitLabel || 'strip',
+      base_unit: raw.base_unit !== undefined ? raw.base_unit : (raw.baseUnit || 'Piece'),
+      inner_unit: raw.inner_unit !== undefined ? raw.inner_unit : (raw.innerUnit || null),
+      units_per_inner: raw.units_per_inner !== undefined ? Number(raw.units_per_inner) : (Number(raw.unitsPerInner) || 1.0),
+      purchase_unit: raw.purchase_unit !== undefined ? raw.purchase_unit : (raw.purchaseUnit || null),
+      inner_units_per_purchase: raw.inner_units_per_purchase !== undefined ? Number(raw.inner_units_per_purchase) : (Number(raw.innerUnitsPerPurchase) || 1.0),
       hsn_code: raw.hsn_code !== undefined ? raw.hsn_code : (raw.hsnCode || null),
       rack_no: raw.rack_no !== undefined ? raw.rack_no : (raw.rackNo || null),
       reorder_level: raw.reorder_level !== undefined ? Number(raw.reorder_level) : (Number(raw.reorderLevel) || 0),
@@ -280,6 +285,21 @@ export const realApi: Window['api'] = {
     if (raw.type !== undefined) payload.type = raw.type;
     if (raw.unit_label !== undefined || raw.unitLabel !== undefined) {
       payload.unit_label = raw.unit_label || raw.unitLabel;
+    }
+    if (raw.base_unit !== undefined || raw.baseUnit !== undefined) {
+      payload.base_unit = raw.base_unit !== undefined ? raw.base_unit : raw.baseUnit;
+    }
+    if (raw.inner_unit !== undefined || raw.innerUnit !== undefined) {
+      payload.inner_unit = raw.inner_unit !== undefined ? raw.inner_unit : raw.innerUnit;
+    }
+    if (raw.units_per_inner !== undefined || raw.unitsPerInner !== undefined) {
+      payload.units_per_inner = raw.units_per_inner !== undefined ? Number(raw.units_per_inner) : Number(raw.unitsPerInner);
+    }
+    if (raw.purchase_unit !== undefined || raw.purchaseUnit !== undefined) {
+      payload.purchase_unit = raw.purchase_unit !== undefined ? raw.purchase_unit : raw.purchaseUnit;
+    }
+    if (raw.inner_units_per_purchase !== undefined || raw.innerUnitsPerPurchase !== undefined) {
+      payload.inner_units_per_purchase = raw.inner_units_per_purchase !== undefined ? Number(raw.inner_units_per_purchase) : Number(raw.innerUnitsPerPurchase);
     }
     if (raw.hsn_code !== undefined || raw.hsnCode !== undefined) {
       payload.hsn_code = raw.hsn_code !== undefined ? raw.hsn_code : raw.hsnCode;

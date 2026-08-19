@@ -29,6 +29,12 @@ import { useBillingStore } from '../store'
 import { useAuthStore } from '../../auth/store'
 import { useSettingsStore } from '../../settings/store'
 import { Patient, Service, Medicine, InventoryBatch } from '../../../types'
+import {
+  getAvailableUnitsForMedicine,
+  formatStockBreakdown,
+  convertToBaseQuantity,
+  getUnitConversionFactor
+} from '../../../lib/unitConversion'
 
 interface BillingProps {
   onSuccess: () => void
@@ -445,6 +451,7 @@ export default function Billing({ onSuccess }: BillingProps) {
     name: '',
     price: '',
     quantity: '1',
+    unit: 'Unit',
     discount: '0',
     gstPercent: '18'
   })
@@ -503,19 +510,24 @@ export default function Billing({ onSuccess }: BillingProps) {
           const activeBatches = await window.api.getMedicineBatches(selectedMed.id)
           setMedicineBatches(activeBatches)
           
+          const defaultUnit = selectedMed.inner_unit || selectedMed.base_unit || 'Strip'
+          const factor = getUnitConversionFactor(selectedMed, defaultUnit)
+
           // Pre-select earliest expiry batch if available
           if (activeBatches.length > 0) {
             const firstBatch = activeBatches[0]
             setSelectedBatch(firstBatch)
             setItemForm((prev) => ({
               ...prev,
-              price: firstBatch.selling_price_per_unit.toString(),
+              unit: prev.unit || defaultUnit,
+              price: (firstBatch.selling_price_per_unit * factor).toFixed(2),
               gstPercent: selectedMed.default_gst_percent ? selectedMed.default_gst_percent.toString() : lastUsedGstPercent
             }))
           } else {
             setSelectedBatch(null)
             setItemForm((prev) => ({
               ...prev,
+              unit: defaultUnit,
               price: '0',
               gstPercent: selectedMed.default_gst_percent ? selectedMed.default_gst_percent.toString() : lastUsedGstPercent
             }))
@@ -543,6 +555,7 @@ export default function Billing({ onSuccess }: BillingProps) {
       name: '',
       price: '',
       quantity: '1',
+      unit: 'Strip',
       discount: '0',
       gstPercent: lastUsedGstPercent
     })
@@ -578,6 +591,7 @@ export default function Billing({ onSuccess }: BillingProps) {
       name: service.name,
       price: service.default_price.toString(),
       quantity: '1',
+      unit: 'Unit',
       discount: '0',
       gstPercent: service.gst_percent ? service.gst_percent.toString() : lastUsedGstPercent
     })
@@ -586,10 +600,13 @@ export default function Billing({ onSuccess }: BillingProps) {
   // Handle medicine selection
   const handleMedicineSelect = (med: Medicine) => {
     setSelectedMed(med)
+    const defaultUnit = med.inner_unit || med.base_unit || 'Strip'
+    const factor = getUnitConversionFactor(med, defaultUnit)
     setItemForm({
       name: med.name,
-      price: '',
+      price: selectedBatch ? (selectedBatch.selling_price_per_unit * factor).toFixed(2) : '',
       quantity: '1',
+      unit: defaultUnit,
       discount: '0',
       gstPercent: med.default_gst_percent ? med.default_gst_percent.toString() : lastUsedGstPercent
     })
@@ -607,12 +624,6 @@ export default function Billing({ onSuccess }: BillingProps) {
       return showToast('Please enter custom item description.', 'error')
     }
 
-    const name = itemType === 'SERVICE' 
-      ? selectedService!.name 
-      : itemType === 'MEDICINE' 
-      ? `${selectedMed!.name} (${selectedBatch!.batch_no})` 
-      : itemForm.name.trim()
-
     const price = parseFloat(itemForm.price) || 0
     const qty = parseInt(itemForm.quantity) || 1
     const disc = parseFloat(itemForm.discount) || 0
@@ -623,15 +634,29 @@ export default function Billing({ onSuccess }: BillingProps) {
     if (price < 0) return showToast('Price cannot be negative', 'error')
     if (disc < 0) return showToast('Discount cannot be negative', 'error')
 
+    let baseQty = qty
+    let itemNameStr = itemType === 'SERVICE' 
+      ? selectedService!.name 
+      : itemType === 'MEDICINE' 
+      ? `${selectedMed!.name} (${selectedBatch!.batch_no})` 
+      : itemForm.name.trim()
+
     // Inventory Stock & Expiry Validation
-    if (itemType === 'MEDICINE' && selectedBatch) {
+    if (itemType === 'MEDICINE' && selectedBatch && selectedMed) {
       const expiryTime = new Date(selectedBatch.expiry_date).getTime()
       if (expiryTime <= Date.now()) {
         return showToast('Cannot dispense an expired batch! Dispensation blocked.', 'error')
       }
-      if (qty > selectedBatch.qty_available) {
-        return showToast(`Cannot dispense more than available stock (${selectedBatch.qty_available} units).`, 'error')
+
+      const selectedUnit = itemForm.unit || selectedMed.base_unit || 'Piece'
+      baseQty = convertToBaseQuantity(selectedMed, qty, selectedUnit)
+      const stockBreakdown = formatStockBreakdown(selectedMed, selectedBatch.qty_available)
+
+      if (baseQty > selectedBatch.qty_available) {
+        return showToast(`Cannot dispense more than available stock (${stockBreakdown.breakdown}). Requested: ${qty} ${selectedUnit} (${baseQty} ${selectedMed.base_unit || 'Pcs'}).`, 'error')
       }
+
+      itemNameStr = `${selectedMed.name} (${selectedBatch.batch_no}) - ${qty} ${selectedUnit}`
     }
 
     const lineSubtotal = price * qty
@@ -646,9 +671,9 @@ export default function Billing({ onSuccess }: BillingProps) {
       itemType,
       serviceId: itemType === 'SERVICE' ? selectedService!.id : undefined,
       batchId: itemType === 'MEDICINE' ? selectedBatch!.id : undefined,
-      name,
-      price,
-      quantity: qty,
+      name: itemNameStr,
+      price: itemType === 'MEDICINE' ? (baseQty > 0 ? lineSubtotal / baseQty : price) : price,
+      quantity: baseQty,
       discount: disc,
       gstPercent: gstPct,
       lineTotal,
@@ -658,7 +683,7 @@ export default function Billing({ onSuccess }: BillingProps) {
     const updatedItems = [...items, newItem]
     setItems(updatedItems)
     setRecentlyAddedIndex(updatedItems.length - 1)
-    showToast(`Added '${name}' to invoice`, 'success')
+    showToast(`Added '${itemNameStr}' to invoice`, 'success')
 
     // Remember last used GST%
     setLastUsedGstPercent(itemForm.gstPercent)
@@ -668,6 +693,7 @@ export default function Billing({ onSuccess }: BillingProps) {
       name: '',
       price: '',
       quantity: '1',
+      unit: 'Strip',
       discount: '0',
       gstPercent: itemForm.gstPercent // retain for fast entry
     })
@@ -927,6 +953,7 @@ export default function Billing({ onSuccess }: BillingProps) {
                       name: '',
                       price: '',
                       quantity: '1',
+                      unit: 'Strip',
                       discount: '0',
                       gstPercent: lastUsedGstPercent
                     })
@@ -955,11 +982,11 @@ export default function Billing({ onSuccess }: BillingProps) {
                   </span>
                 ) : selectedBatch.qty_available <= 10 ? (
                   <span className="flex items-center gap-1 bg-amber-50 text-amber-800 px-2.5 py-0.5 rounded-lg font-bold border border-amber-200">
-                    <AlertTriangle className="h-3.5 w-3.5 text-amber-600" /> Low Stock ({selectedBatch.qty_available} units avail)
+                    <AlertTriangle className="h-3.5 w-3.5 text-amber-600" /> Low Stock ({selectedMed ? formatStockBreakdown(selectedMed, selectedBatch.qty_available).breakdown : `${selectedBatch.qty_available} units`})
                   </span>
                 ) : (
                   <span className="bg-cyan-50 text-cyan-800 px-2.5 py-0.5 rounded-lg font-bold border border-cyan-200">
-                    Active Stock ({selectedBatch.qty_available} units avail)
+                    Active Stock ({selectedMed ? formatStockBreakdown(selectedMed, selectedBatch.qty_available).breakdown : `${selectedBatch.qty_available} units`})
                   </span>
                 )}
               </div>
@@ -1002,14 +1029,16 @@ export default function Billing({ onSuccess }: BillingProps) {
                     const b = medicineBatches.find((x) => x.id === e.target.value)
                     if (b) {
                       setSelectedBatch(b)
-                      setItemForm((prev) => ({ ...prev, price: b.selling_price_per_unit.toString() }))
+                      const unitToUse = itemForm.unit || selectedMed?.inner_unit || selectedMed?.base_unit || 'Strip'
+                      const factor = selectedMed ? getUnitConversionFactor(selectedMed, unitToUse) : 1
+                      setItemForm((prev) => ({ ...prev, price: (b.selling_price_per_unit * factor).toFixed(2) }))
                     }
                   }}
                   className="w-full px-2.5 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-cyan-500 bg-white font-mono font-semibold"
                 >
                   {medicineBatches.map((b) => (
                     <option key={b.id} value={b.id}>
-                      {b.batch_no} (Avail: {b.qty_available})
+                      {b.batch_no} ({selectedMed ? formatStockBreakdown(selectedMed, b.qty_available).breakdown : `${b.qty_available} Pcs`})
                     </option>
                   ))}
                   {medicineBatches.length === 0 && (
@@ -1021,7 +1050,12 @@ export default function Billing({ onSuccess }: BillingProps) {
 
             {/* Price */}
             <div className="col-span-2">
-              <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">Price (₹) *</label>
+              <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1 flex items-center justify-between">
+                <span>Price (₹) *</span>
+                {itemType === 'MEDICINE' && itemForm.unit && (
+                  <span className="text-[10px] text-cyan-600 font-normal lowercase">/{itemForm.unit}</span>
+                )}
+              </label>
               <input
                 type="number"
                 step="0.01"
@@ -1033,7 +1067,7 @@ export default function Billing({ onSuccess }: BillingProps) {
             </div>
 
             {/* Qty */}
-            <div className="col-span-1">
+            <div className={itemType === 'MEDICINE' ? 'col-span-1' : 'col-span-1'}>
               <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">Qty *</label>
               <input
                 type="number"
@@ -1044,6 +1078,27 @@ export default function Billing({ onSuccess }: BillingProps) {
                 className="w-full px-2 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 bg-white text-center font-bold"
               />
             </div>
+
+            {/* Billing Unit Selector (For Medicines) */}
+            {itemType === 'MEDICINE' && (
+              <div className="col-span-1">
+                <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">Unit</label>
+                <select
+                  value={itemForm.unit}
+                  onChange={(e) => {
+                    const newUnit = e.target.value
+                    const factor = selectedMed ? getUnitConversionFactor(selectedMed, newUnit) : 1
+                    const newPrice = selectedBatch ? (selectedBatch.selling_price_per_unit * factor).toFixed(2) : itemForm.price
+                    setItemForm({ ...itemForm, unit: newUnit, price: newPrice })
+                  }}
+                  className="w-full py-2 px-1 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                >
+                  {getAvailableUnitsForMedicine(selectedMed).map((u) => (
+                    <option key={u} value={u}>{u}</option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             {/* Discount */}
             <div className="col-span-1">
@@ -1071,13 +1126,13 @@ export default function Billing({ onSuccess }: BillingProps) {
             </div>
 
             {/* Add Button */}
-            <div className={itemType === 'MEDICINE' ? 'col-span-2' : 'col-span-2'}>
+            <div className={itemType === 'MEDICINE' ? 'col-span-1' : 'col-span-2'}>
               <button
                 type="button"
                 onClick={addLineItem}
                 className="w-full flex items-center justify-center gap-1 bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 rounded-xl text-xs uppercase tracking-wider transition-all shadow-sm cursor-pointer"
               >
-                <Plus className="h-4 w-4" /> Add Item
+                <Plus className="h-4 w-4" /> Add
               </button>
             </div>
 
