@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import {
   Vendor,
+  Medicine,
   Purchase,
   ScanInvoiceResult,
   ScanCommitPayload,
@@ -26,8 +27,11 @@ import {
 
 interface ScanPurchaseInvoiceProps {
   userId: string
+  vendors?: Vendor[]
+  medicines?: Medicine[]
   onClose: () => void
   onCommitted: (purchase: Purchase) => void
+  onImportToForm?: (importedData: { header: any; items: any[] }) => void
 }
 
 interface EditableItem {
@@ -85,9 +89,64 @@ function computeItemTax(qty: number, purchasePrice: number, discountPercent: num
   return { taxableAmount, gstAmount, discountAmt, lineAmount: taxableAmount + gstAmount }
 }
 
-// ₹1 rounding slack for both mismatch checks below — absorbs paise-level OCR/rounding noise
-// without masking a real data-entry error.
-const MISMATCH_TOLERANCE = 1
+function inferPackagingFromScan(type: string, pack: string | null, unitLabel: string) {
+  const cleanType = (type || 'TABLET').toUpperCase()
+  const packStr = (pack || '').trim()
+
+  let base_unit = unitLabel.trim() || 'Piece'
+  let inner_unit: string | null = null
+  let units_per_inner = 1
+  let purchase_unit: string | null = 'Box'
+  let inner_units_per_purchase = 1
+
+  if (cleanType === 'TABLET' || cleanType === 'CAPSULE') {
+    base_unit = cleanType === 'CAPSULE' ? 'Capsule' : 'Tablet'
+    inner_unit = 'Strip'
+
+    const matchDbl = packStr.match(/(\d+)\s*[\*xX]\s*(\d+)/)
+    if (matchDbl) {
+      inner_units_per_purchase = parseInt(matchDbl[1], 10) || 10
+      units_per_inner = parseInt(matchDbl[2], 10) || 10
+    } else {
+      const matchSingle = packStr.match(/(\d+)/)
+      if (matchSingle) {
+        units_per_inner = parseInt(matchSingle[1], 10) || 10
+        inner_units_per_purchase = 10
+      } else {
+        units_per_inner = 10
+        inner_units_per_purchase = 10
+      }
+    }
+  } else if (cleanType === 'INJECTION') {
+    base_unit = 'Vial'
+    purchase_unit = 'Box'
+    const m = packStr.match(/(\d+)/)
+    inner_units_per_purchase = m ? parseInt(m[1], 10) || 1 : 1
+  } else if (cleanType === 'SYRUP' || cleanType === 'DROP') {
+    base_unit = 'Bottle'
+    purchase_unit = 'Box'
+    const m = packStr.match(/(\d+)/)
+    inner_units_per_purchase = m ? parseInt(m[1], 10) || 1 : 1
+  } else if (cleanType === 'OINTMENT' || cleanType === 'CREAM' || cleanType === 'GEL') {
+    base_unit = 'Tube'
+    purchase_unit = 'Box'
+    const m = packStr.match(/(\d+)/)
+    inner_units_per_purchase = m ? parseInt(m[1], 10) || 1 : 1
+  }
+
+  return {
+    unit_label: unitLabel.trim() || inner_unit || base_unit,
+    base_unit,
+    inner_unit: inner_unit || base_unit,
+    units_per_inner,
+    purchase_unit: purchase_unit || 'Box',
+    inner_units_per_purchase,
+  }
+}
+
+// ₹3 rounding slack for both mismatch checks below — absorbs multi-line rounding noise
+// on large pharmaceutical invoices without masking major data-entry errors.
+const MISMATCH_TOLERANCE = 3
 
 // Standard field styling — matches the Vendor Master / Medicine Master modals
 const fieldClass =
@@ -133,7 +192,14 @@ function StatusBadge({ status }: { status: ScanItemMatch['status'] | 'existing-v
   )
 }
 
-export default function ScanPurchaseInvoice({ userId, onClose, onCommitted }: ScanPurchaseInvoiceProps) {
+export default function ScanPurchaseInvoice({
+  userId,
+  vendors = [],
+  medicines = [],
+  onClose,
+  onCommitted,
+  onImportToForm
+}: ScanPurchaseInvoiceProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [file, setFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
@@ -156,6 +222,9 @@ export default function ScanPurchaseInvoice({ userId, onClose, onCommitted }: Sc
     purchaseDate: '',
     purchaseType: 'CASH' as 'CASH' | 'CREDIT',
     paymentMode: 'CASH',
+    dueDate: '',
+    paymentDate: new Date().toISOString().split('T')[0],
+    paidAmount: '',
     notes: '',
     subtotal: '0',
     totalDiscount: '0',
@@ -267,6 +336,9 @@ export default function ScanPurchaseInvoice({ userId, onClose, onCommitted }: Sc
         purchaseDate: p.invoiceDate || '',
         purchaseType: 'CASH',
         paymentMode: 'CASH',
+        dueDate: '',
+        paymentDate: p.invoiceDate || new Date().toISOString().split('T')[0],
+        paidAmount: '',
         notes: '',
         subtotal: String(derivedTaxable),
         totalDiscount: String(derivedDiscount),
@@ -360,8 +432,14 @@ export default function ScanPurchaseInvoice({ userId, onClose, onCommitted }: Sc
   const grandTotalReady = grandTotalNum > 0
   const mismatchConfirmed = !mismatch || confirmMismatch
 
+  const canImport = vendorReady && itemsReady
   const canSubmit =
     vendorReady && itemsReady && invoiceNumberReady && purchaseDateReady && grandTotalReady && mismatchConfirmed
+
+  const importBlockingReasons = [
+    !vendorReady && 'Vendor details are incomplete',
+    !itemsReady && 'One or more items are missing required fields',
+  ].filter(Boolean) as string[]
 
   const blockingReasons = [
     !vendorReady && 'Vendor details are incomplete',
@@ -369,7 +447,7 @@ export default function ScanPurchaseInvoice({ userId, onClose, onCommitted }: Sc
     !invoiceNumberReady && 'Invoice number is required',
     !purchaseDateReady && 'Purchase date is required',
     !grandTotalReady && 'Grand total must be greater than 0',
-    mismatch && !confirmMismatch && 'Confirm the total mismatch to proceed',
+    mismatch && !confirmMismatch && 'Confirm or sync total mismatch to proceed',
   ].filter(Boolean) as string[]
 
   const handleCommit = async () => {
@@ -432,17 +510,13 @@ export default function ScanPurchaseInvoice({ userId, onClose, onCommitted }: Sc
           if (it.mode === 'existing') {
             return { ...base, mode: 'existing' as const, medicineId: it.medicineId }
           }
+          const pkg = inferPackagingFromScan(it.type, it.pack, it.unitLabel)
           return {
             ...base,
             mode: 'new' as const,
             data: {
               name: it.name.trim(),
-              unit_label: it.unitLabel.trim() || 'strip',
-              base_unit: it.unitLabel.trim() || 'Piece',
-              inner_unit: 'Strip',
-              units_per_inner: 10,
-              purchase_unit: 'Box',
-              inner_units_per_purchase: 10,
+              ...pkg,
               strength: it.strength.trim() || null,
               generic_name: it.genericName.trim() || null,
               manufacturer: it.manufacturer.trim() || null,
@@ -459,6 +533,13 @@ export default function ScanPurchaseInvoice({ userId, onClose, onCommitted }: Sc
           purchaseDate: purchaseForm.purchaseDate,
           purchaseType: purchaseForm.purchaseType,
           paymentMode: purchaseForm.paymentMode,
+          dueDate: purchaseForm.dueDate || null,
+          paymentDate: purchaseForm.paymentDate || null,
+          paidAmount: purchaseForm.purchaseType === 'CREDIT' ? (parseFloat(purchaseForm.paidAmount) || 0) : grandTotalNum,
+          pendingAmount: purchaseForm.purchaseType === 'CREDIT' ? Math.max(0, grandTotalNum - (parseFloat(purchaseForm.paidAmount) || 0)) : 0,
+          paymentStatus: purchaseForm.purchaseType === 'CREDIT'
+            ? ((parseFloat(purchaseForm.paidAmount) || 0) <= 0 ? 'PENDING' : (parseFloat(purchaseForm.paidAmount) || 0) < grandTotalNum ? 'PARTIAL' : 'PAID')
+            : 'PAID',
           notes: purchaseForm.notes.trim() || null,
           grandTotal: grandTotalNum,
           taxableAmount: taxable,
@@ -476,6 +557,104 @@ export default function ScanPurchaseInvoice({ userId, onClose, onCommitted }: Sc
       onCommitted(created)
     } catch (err: any) {
       toast.error(err.message || 'Failed to save purchase')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const handleImportToForm = async () => {
+    if (!canImport) {
+      toast.error('Please complete vendor and item details before importing')
+      return
+    }
+    setSubmitting(true)
+    try {
+      const resolvedItems: any[] = []
+      for (const it of items) {
+        let medicineId = it.medicineId
+        if (it.mode === 'new') {
+          const pkg = inferPackagingFromScan(it.type, it.pack, it.unitLabel)
+          const created = await window.api.createMedicine({
+            data: {
+              name: it.name.trim(),
+              ...pkg,
+              strength: it.strength.trim() || null,
+              generic_name: it.genericName.trim() || null,
+              manufacturer: it.manufacturer.trim() || null,
+              pack: it.pack.trim() || null,
+              type: it.type || 'TABLET',
+              hsn_code: it.hsnCode.trim() || null,
+              default_gst_percent: parseFloat(it.gstPercent) || 12,
+            },
+            userId,
+          })
+          medicineId = created.id
+        }
+
+        const qty = parseInt(it.qty, 10) || 0
+        const discountPercent = parseFloat(it.discountPercent) || 0
+        const gstPercent = parseFloat(it.gstPercent) || 0
+        const purchasePrice = parseFloat(it.purchasePrice) || 0
+        const sellingPrice = parseFloat(it.sellingPrice) || 0
+        const mrp = parseFloat(it.mrp) || 0
+        const { taxableAmount, gstAmount } = computeItemTax(qty, purchasePrice, discountPercent, gstPercent)
+
+        resolvedItems.push({
+          medicineId,
+          batchNo: it.batchNo.trim() ? it.batchNo.trim().toUpperCase() : 'N/A',
+          expiryDate: lastDayOfMonthISO(it.expiryMonth),
+          qtyPurchased: qty,
+          unit: it.unitLabel || 'strip',
+          freeQty: parseInt(it.freeQty, 10) || 0,
+          freeUnit: it.unitLabel || 'strip',
+          mrp,
+          discountPercent,
+          taxableAmount,
+          cgstAmount: taxType === 'INTERSTATE' ? 0 : gstAmount / 2,
+          sgstAmount: taxType === 'INTERSTATE' ? 0 : gstAmount / 2,
+          igstAmount: taxType === 'INTERSTATE' ? gstAmount : 0,
+          gstPercent,
+          purchasePricePerUnit: purchasePrice,
+          sellingPricePerUnit: sellingPrice,
+        })
+      }
+
+      let selectedVendorId = vendorId
+      if (vendorMode === 'new') {
+        const createdVendor = await window.api.createVendor({
+          data: {
+            name: vendorForm.name.trim(),
+            phone: vendorForm.phone.trim(),
+            address: vendorForm.address.trim(),
+            gstin: vendorForm.gstin.trim() || null,
+            drug_license_no: vendorForm.drug_license_no.trim() || null,
+            notes: vendorForm.notes.trim() || null,
+          },
+          userId,
+        })
+        selectedVendorId = createdVendor.id
+      }
+
+      const header = {
+        vendorId: selectedVendorId,
+        purchaseInvoiceNo: purchaseForm.invoiceNumber.trim().toUpperCase(),
+        purchaseDate: purchaseForm.purchaseDate || new Date().toISOString().split('T')[0],
+        purchaseType: purchaseForm.purchaseType,
+        taxType: taxType,
+        paymentMode: purchaseForm.paymentMode,
+        dueDate: purchaseForm.dueDate || '',
+        paymentDate: purchaseForm.paymentDate || new Date().toISOString().split('T')[0],
+        paidAmount: purchaseForm.paidAmount || '',
+        notes: purchaseForm.notes.trim() || '',
+      }
+
+      if (onImportToForm) {
+        onImportToForm({ header, items: resolvedItems })
+      }
+      onClose()
+      toast.success('Scanned items imported into Stock Purchase Entry form!')
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to import invoice into entry form')
     } finally {
       setSubmitting(false)
     }
@@ -823,6 +1002,40 @@ export default function ScanPurchaseInvoice({ userId, onClose, onCommitted }: Sc
                       onChange={(e) => setPurchaseForm({ ...purchaseForm, grandTotal: e.target.value })}
                     />
                   </div>
+
+                  {purchaseForm.purchaseType === 'CREDIT' && (
+                    <div className="col-span-2 md:col-span-4 grid grid-cols-1 md:grid-cols-3 gap-3 p-3 bg-amber-50 rounded-xl border border-amber-200/80 mt-1">
+                      <div>
+                        <label className={fieldLabelClass}>Paid Amount (₹)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          placeholder="0.00"
+                          className={`${fieldClass} font-bold text-amber-900`}
+                          value={purchaseForm.paidAmount}
+                          onChange={(e) => setPurchaseForm({ ...purchaseForm, paidAmount: e.target.value })}
+                        />
+                      </div>
+                      <div>
+                        <label className={fieldLabelClass}>Payment Due Date</label>
+                        <input
+                          type="date"
+                          className={fieldClass}
+                          value={purchaseForm.dueDate}
+                          onChange={(e) => setPurchaseForm({ ...purchaseForm, dueDate: e.target.value })}
+                        />
+                      </div>
+                      <div>
+                        <label className={fieldLabelClass}>Payment Date</label>
+                        <input
+                          type="date"
+                          className={fieldClass}
+                          value={purchaseForm.paymentDate}
+                          onChange={(e) => setPurchaseForm({ ...purchaseForm, paymentDate: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex items-center justify-between text-xs text-slate-500 border-t border-slate-100 pt-3">
@@ -831,17 +1044,30 @@ export default function ScanPurchaseInvoice({ userId, onClose, onCommitted }: Sc
                 </div>
 
                 {mismatch && (
-                  <div className="mt-3 flex items-start gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200">
+                  <div className="mt-3 flex items-start gap-2.5 p-3.5 rounded-xl bg-amber-50 border border-amber-200 shadow-sm">
                     <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                    <div className="flex-1">
-                      <p className="text-xs text-amber-900 font-bold">
-                        Line amounts differ from the invoice grand total by ₹{Math.abs(difference).toFixed(2)}.
-                      </p>
-                      <p className="text-xs text-amber-800/80 mt-0.5">Double-check the totals above, or confirm to save anyway.</p>
-                      <label className="flex items-center gap-2 mt-2 text-xs font-semibold text-amber-900 cursor-pointer">
-                        <input type="checkbox" checked={confirmMismatch} onChange={(e) => setConfirmMismatch(e.target.checked)} />
-                        Save anyway despite the mismatch
-                      </label>
+                    <div className="flex-1 space-y-2">
+                      <div>
+                        <p className="text-xs text-amber-900 font-bold">
+                          Line amounts (₹{sumLineAmounts.toFixed(2)}) differ from the invoice grand total (₹{grandTotalNum.toFixed(2)}) by ₹{Math.abs(difference).toFixed(2)}.
+                        </p>
+                        <p className="text-[11px] text-amber-800/90 mt-0.5">
+                          You can sync the grand total in 1 click, confirm to save anyway, or import to purchase form to edit items.
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-3 pt-0.5">
+                        <button
+                          type="button"
+                          onClick={() => setPurchaseForm({ ...purchaseForm, grandTotal: sumLineAmounts.toFixed(2) })}
+                          className="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer shadow-xs"
+                        >
+                          Sync Grand Total to ₹{sumLineAmounts.toFixed(2)}
+                        </button>
+                        <label className="flex items-center gap-1.5 text-xs font-semibold text-amber-900 cursor-pointer">
+                          <input type="checkbox" checked={confirmMismatch} onChange={(e) => setConfirmMismatch(e.target.checked)} />
+                          Save anyway despite mismatch
+                        </label>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -867,11 +1093,36 @@ export default function ScanPurchaseInvoice({ userId, onClose, onCommitted }: Sc
         {/* Footer */}
         {result && (
           <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-white">
-            <p className="text-xs text-slate-500">Nothing is saved until you confirm.</p>
+            <p className="text-xs text-slate-500">Choose to direct save or import into stock purchase entry form.</p>
             <div className="flex items-center gap-3">
-              <button onClick={onClose} className="px-5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase tracking-wider text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer">
+              <button onClick={onClose} className="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase tracking-wider text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer">
                 Cancel
               </button>
+
+              {onImportToForm && (
+                <div className="relative group">
+                  <button
+                    onClick={handleImportToForm}
+                    disabled={!canImport || submitting}
+                    className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl border border-cyan-500 bg-cyan-50 text-cyan-900 hover:bg-cyan-100 disabled:bg-slate-100 disabled:text-slate-400 disabled:border-slate-200 text-xs font-bold uppercase tracking-wider shadow-sm cursor-pointer disabled:cursor-not-allowed transition-all"
+                  >
+                    {submitting ? <Loader2 className="w-4 h-4 animate-spin text-cyan-600" /> : <Package className="w-4 h-4 text-cyan-600" />}
+                    Import to Purchase Form
+                  </button>
+
+                  {!canImport && !submitting && importBlockingReasons.length > 0 && (
+                    <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block w-64 p-2 bg-slate-900 text-slate-200 text-xs rounded-lg shadow-xl z-50">
+                      <p className="font-semibold text-amber-400 mb-1">Cannot import yet:</p>
+                      <ul className="list-disc pl-4 space-y-0.5 text-[11px]">
+                        {importBlockingReasons.map((reason) => (
+                          <li key={reason}>{reason}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="relative group">
                 <button
                   onClick={handleCommit}

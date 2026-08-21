@@ -22,34 +22,54 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({
 }) => {
   const [deleteConfirmIndex, setDeleteConfirmIndex] = useState<number | null>(null)
 
+  // Compute table totals
+  const totalBilledQty = items.reduce((sum, item) => sum + (item.qtyPurchased || 0), 0)
+  const totalFreeQty = items.reduce((sum, item) => sum + (item.freeQty || 0), 0)
+  const totalTaxable = items.reduce((sum, item) => sum + (item.taxableAmount || 0), 0)
+  const totalGst = items.reduce(
+    (sum, item) => sum + (item.cgstAmount || 0) + (item.sgstAmount || 0) + (item.igstAmount || 0),
+    0
+  )
+  const grandTotal = totalTaxable + totalGst
+
   return (
     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden space-y-4 p-6">
-      <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+      <div className="flex flex-wrap items-center justify-between border-b border-slate-100 pb-3 gap-3">
         <div className="flex items-center gap-2">
           <Layers className="h-5 w-5 text-cyan-600" />
           <div>
             <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
               Step 3 — Review Received Invoice Items
-              <span className="text-xs font-mono font-normal bg-slate-100 text-slate-700 px-2.5 py-0.5 rounded-full">
+              <span className="text-xs font-mono font-bold bg-cyan-100 text-cyan-800 border border-cyan-200/80 px-2.5 py-0.5 rounded-full">
                 {items.length} {items.length === 1 ? 'item' : 'items'}
               </span>
             </h3>
-            <p className="text-xs text-slate-500">Inspect medicines, batches, quantities and rates added to invoice</p>
+            <p className="text-xs text-slate-500">Inspect medicines, batches, quantities, tax slabs, and rates added to invoice</p>
           </div>
         </div>
+
+        {items.length > 0 && (
+          <div className="flex items-center gap-2 text-xs font-mono bg-slate-50 p-1.5 rounded-xl border border-slate-200">
+            <span className="text-slate-500 px-2">Total Billed Qty: <strong className="text-slate-900">{totalBilledQty}</strong></span>
+            {totalFreeQty > 0 && <span className="text-emerald-700 font-bold px-2 bg-emerald-50 rounded border border-emerald-200/60">Free: +{totalFreeQty}</span>}
+            <span className="text-slate-500 px-2">Taxable: <strong className="text-slate-900">₹{totalTaxable.toFixed(2)}</strong></span>
+            <span className="text-cyan-700 font-bold px-2">GST: ₹{totalGst.toFixed(2)}</span>
+            <span className="bg-slate-900 text-cyan-300 font-extrabold px-3 py-1 rounded-lg">Total: ₹{grandTotal.toFixed(2)}</span>
+          </div>
+        )}
       </div>
 
       <div className="overflow-x-auto relative rounded-xl border border-slate-200">
         <table className="w-full text-left border-collapse text-sm">
           <thead>
-            <tr className="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider">
-              <th className="px-4 py-3 sticky left-0 bg-slate-50 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] min-w-[220px]">
+            <tr className="bg-slate-900 text-slate-300 border-b border-slate-800 text-[11px] font-bold uppercase tracking-wider">
+              <th className="px-4 py-3 sticky left-0 bg-slate-900 text-cyan-400 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.3)] min-w-[220px]">
                 Medicine Particulars
               </th>
               <th className="px-4 py-3">HSN / GST</th>
               <th className="px-4 py-3">Batch No</th>
               <th className="px-4 py-3">Expiry Date</th>
-              <th className="px-4 py-3 text-right">Qty</th>
+              <th className="px-4 py-3 text-right">Qty & Unit</th>
               <th className="px-4 py-3 text-right">Free</th>
               <th className="px-4 py-3 text-right">MRP</th>
               <th className="px-4 py-3 text-right">Disc %</th>
@@ -70,10 +90,23 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({
               const isRecentlyAdded = recentlyAddedIndex === index
               const isBeingEdited = editingIndex === index
 
+              // Check expiry warnings
+              let expiryBadge = null
+              if (item.expiryDate) {
+                const expTime = new Date(item.expiryDate).getTime()
+                const nowTime = new Date().setHours(0, 0, 0, 0)
+                const daysLeft = Math.ceil((expTime - nowTime) / (1000 * 60 * 60 * 24))
+                if (daysLeft <= 0) {
+                  expiryBadge = <span className="text-[9px] font-extrabold bg-red-100 text-red-800 px-1.5 py-0.5 rounded uppercase">Expired</span>
+                } else if (daysLeft <= 90) {
+                  expiryBadge = <span className="text-[9px] font-extrabold bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded uppercase">Near Exp ({daysLeft}d)</span>
+                }
+              }
+
               return (
                 <tr
                   key={index}
-                  className={`transition-colors duration-500 ${
+                  className={`transition-colors duration-300 ${
                     isRecentlyAdded
                       ? 'bg-cyan-50/90 font-medium'
                       : isBeingEdited
@@ -84,16 +117,16 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({
                   {/* Sticky Medicine Column */}
                   <td className="px-4 py-3 font-semibold text-slate-900 sticky left-0 bg-white z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">
                     <div className="font-bold text-slate-900">{med?.name || 'Medicine'}</div>
-                    <div className="flex items-center gap-1.5 mt-0.5 text-[11px] text-slate-500">
+                    <div className="flex flex-wrap items-center gap-1.5 mt-0.5 text-[11px] text-slate-500">
                       {med?.strength && <span className="font-semibold text-cyan-800">{med.strength}</span>}
-                      {med?.type && <span className="font-mono uppercase font-bold text-[10px] text-slate-400">{med.type}</span>}
+                      {med?.type && <span className="font-mono uppercase font-bold text-[10px] bg-slate-100 px-1 py-0.5 rounded text-slate-600">{med.type}</span>}
                       {med?.pack && <span>&middot; Pack: {med.pack}</span>}
                     </div>
                   </td>
 
                   <td className="px-4 py-3 text-xs font-mono">
-                    <div>{med?.hsn_code || '---'}</div>
-                    <span className="text-[10px] bg-cyan-50 text-cyan-700 border border-cyan-200/60 font-sans px-1.5 py-0.5 rounded font-bold">
+                    <div>{med?.hsn_code || item.hsn_code || '---'}</div>
+                    <span className="text-[10px] bg-cyan-50 text-cyan-800 border border-cyan-200/80 font-sans px-1.5 py-0.5 rounded font-bold">
                       GST {item.gstPercent ?? med?.default_gst_percent ?? 12}%
                     </span>
                   </td>
@@ -103,7 +136,8 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({
                   </td>
 
                   <td className="px-4 py-3 text-xs font-mono">
-                    {formatExpiryDisplay(item.expiryDate)}
+                    <div>{formatExpiryDisplay(item.expiryDate)}</div>
+                    {expiryBadge && <div className="mt-0.5">{expiryBadge}</div>}
                   </td>
 
                   <td className="px-4 py-3 text-right font-mono font-bold text-slate-900">
@@ -114,7 +148,13 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({
                   </td>
 
                   <td className="px-4 py-3 text-right font-mono text-cyan-700 font-semibold">
-                    {item.freeQty > 0 ? `+${item.freeQty} ${item.freeUnit || item.unit || ''}` : '-'}
+                    {item.freeQty > 0 ? (
+                      <span className="bg-emerald-50 text-emerald-800 px-1.5 py-0.5 rounded border border-emerald-200 text-xs font-bold">
+                        +{item.freeQty} {item.freeUnit || item.unit || ''}
+                      </span>
+                    ) : (
+                      <span className="text-slate-300">-</span>
+                    )}
                   </td>
 
                   <td className="px-4 py-3 text-right font-mono text-xs text-slate-600">
@@ -125,13 +165,13 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({
                     {item.discountPercent > 0 ? `${item.discountPercent}%` : '-'}
                   </td>
 
-                  <td className="px-4 py-3 text-right font-mono">₹{item.purchasePricePerUnit.toFixed(2)}</td>
+                  <td className="px-4 py-3 text-right font-mono font-semibold">₹{item.purchasePricePerUnit.toFixed(2)}</td>
 
                   <td className="px-4 py-3 text-right font-mono font-semibold text-slate-900">
                     ₹{item.sellingPricePerUnit.toFixed(2)}
                   </td>
 
-                  <td className="px-4 py-3 text-right font-mono font-extrabold text-cyan-900 bg-cyan-50/40">
+                  <td className="px-4 py-3 text-right font-mono font-extrabold text-cyan-950 bg-cyan-50/40">
                     ₹{itemTotal.toFixed(2)}
                   </td>
 
@@ -166,8 +206,8 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({
                     </div>
                     <p className="text-sm font-semibold text-slate-800">No items added to this purchase invoice yet.</p>
                     <p className="text-xs text-slate-500">
-                      Select a medicine in Step 2 above and press{' '}
-                      <kbd className="px-1.5 py-0.5 bg-white border rounded text-[11px] font-mono shadow-2xs">Enter</kbd> to add your first batch item.
+                      Select a medicine in Step 2 above or scan an invoice to populate items, then press{' '}
+                      <kbd className="px-1.5 py-0.5 bg-white border rounded text-[11px] font-mono shadow-2xs">Enter</kbd> to add.
                     </p>
                   </div>
                 </td>

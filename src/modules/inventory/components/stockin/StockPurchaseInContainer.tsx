@@ -19,6 +19,8 @@ interface StockPurchaseInContainerProps {
   onOpenQuickCreateMedicine: () => void
   onOpenScanInvoice: () => void
   loadAllData: () => Promise<void>
+  importedScanData?: { header: Partial<PurchaseHeaderFormState>; items: any[] } | null
+  onClearImportedScanData?: () => void
 }
 
 export const StockPurchaseInContainer: React.FC<StockPurchaseInContainerProps> = ({
@@ -31,7 +33,9 @@ export const StockPurchaseInContainer: React.FC<StockPurchaseInContainerProps> =
   onOpenQuickAddVendor,
   onOpenQuickCreateMedicine,
   onOpenScanInvoice,
-  loadAllData
+  loadAllData,
+  importedScanData,
+  onClearImportedScanData
 }) => {
   // Toast feedback helper
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
@@ -89,6 +93,26 @@ export const StockPurchaseInContainer: React.FC<StockPurchaseInContainerProps> =
       medicineInputRef.current?.focus()
     }, 100)
   }, [])
+
+  // Auto-fill header & items when invoice scan data is imported
+  useEffect(() => {
+    if (importedScanData) {
+      if (importedScanData.header) {
+        setHeaderForm((prev) => ({
+          ...prev,
+          ...importedScanData.header
+        }))
+      }
+      if (importedScanData.items && importedScanData.items.length > 0) {
+        setInvoiceItems(importedScanData.items)
+        setIsHeaderCollapsed(true)
+      }
+      showToast(`Imported ${importedScanData.items?.length || 0} item(s) from scanned invoice!`, 'success')
+      if (onClearImportedScanData) {
+        onClearImportedScanData()
+      }
+    }
+  }, [importedScanData])
 
   // Handle Medicine Selection with Auto-Filling Defaults from Medicine Master & Previous Batches
   const handleMedicineSelect = (selectedMed: Medicine | null) => {

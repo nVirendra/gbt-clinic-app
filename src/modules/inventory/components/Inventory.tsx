@@ -1095,6 +1095,7 @@ export default function Inventory() {
   const [recentlyAddedIndex, setRecentlyAddedIndex] = useState<number | null>(null)
   const [lastUsedGstPercent, setLastUsedGstPercent] = useState('12')
   const [showScanInvoiceModal, setShowScanInvoiceModal] = useState(false)
+  const [importedScanData, setImportedScanData] = useState<{ header: any; items: any[] } | null>(null)
   const medicineInputRef = useRef<HTMLInputElement>(null)
 
   const safeBatches = Array.isArray(batches) ? batches : []
@@ -2041,6 +2042,8 @@ export default function Inventory() {
           }}
           onOpenScanInvoice={() => setShowScanInvoiceModal(true)}
           loadAllData={loadAllData}
+          importedScanData={importedScanData}
+          onClearImportedScanData={() => setImportedScanData(null)}
         />
       )}
 
@@ -2554,11 +2557,19 @@ export default function Inventory() {
       {showScanInvoiceModal && (
         <ScanPurchaseInvoice
           userId={currentUser?.id || ''}
+          vendors={safeVendors}
+          medicines={safeMedicines}
           onClose={() => setShowScanInvoiceModal(false)}
           onCommitted={(purchase: Purchase) => {
             setShowScanInvoiceModal(false)
             loadAllData()
             showToast(`Purchase invoice #${purchase.purchase_invoice_no} saved from scan`, 'success')
+          }}
+          onImportToForm={({ header, items }) => {
+            setImportedScanData({ header, items })
+            setShowScanInvoiceModal(false)
+            setLocalTab('stock-in')
+            loadAllData()
           }}
         />
       )}
