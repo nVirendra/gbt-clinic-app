@@ -162,7 +162,7 @@ export const MedicinePOSController: React.FC<MedicinePOSControllerProps> = ({
         )}
       </div>
 
-      {/* FAST ENTRY GRID */}
+      {/* FAST ENTRY GRID — SPACIOUS 2-ROW LAYOUT */}
       <div
         onKeyDown={(e) => {
           if (e.key === 'Enter' || (e.ctrlKey && e.key === 'Enter')) {
@@ -170,157 +170,175 @@ export const MedicinePOSController: React.FC<MedicinePOSControllerProps> = ({
             onAddLineItem()
           }
         }}
-        className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-12 gap-3 items-end"
+        className="space-y-3.5"
       >
-        {/* Item Typeahead Search Input */}
-        <div className={itemType === 'MEDICINE' ? 'lg:col-span-3' : 'lg:col-span-5'}>
-          <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-            {itemType === 'SERVICE'
-              ? 'Search Service *'
-              : itemType === 'MEDICINE'
-              ? 'Search Medicine (Name / Generic / Pack) *'
-              : 'Charge Description *'}
-          </label>
-          <ItemTypeahead
-            itemType={itemType}
-            services={services}
-            medicines={medicines}
-            value={itemForm.name}
-            onChange={(val: string) => onChangeItemForm({ ...itemForm, name: val })}
-            onSelectService={onSelectService}
-            onSelectMedicine={onSelectMedicine}
-            inputRef={itemNameInputRef}
-          />
-        </div>
-
-        {/* Medicine Batch Selection Dropdown */}
-        {itemType === 'MEDICINE' && (
-          <div className="lg:col-span-3">
-            <label className="block text-xs font-bold text-slate-700 uppercase mb-1 flex items-center justify-between">
-              <span>Select Batch *</span>
-              <span className="text-[10px] text-cyan-700 font-extrabold lowercase">FEFO Priority</span>
+        {/* ROW 1: ITEM SEARCH & BATCH SELECTION */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 items-end">
+          {/* Item Typeahead Search Input */}
+          <div className={itemType === 'MEDICINE' ? 'lg:col-span-7' : 'lg:col-span-12'}>
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+              {itemType === 'SERVICE'
+                ? 'Search Service *'
+                : itemType === 'MEDICINE'
+                ? 'Search Medicine (Name / Generic / Pack) *'
+                : 'Charge Description *'}
             </label>
-            <select
-              value={selectedBatch ? selectedBatch.id : ''}
-              onChange={(e) => {
-                const b = sortedBatches.find((x) => x.id === e.target.value)
-                if (b && selectedMed) {
-                  onSelectBatch(b)
-                  const unitToUse =
-                    itemForm.unit || selectedMed.inner_unit || selectedMed.base_unit || 'Strip'
-                  const factor = getUnitConversionFactor(selectedMed, unitToUse)
-                  onChangeItemForm({
-                    ...itemForm,
-                    price: (b.selling_price_per_unit * factor).toFixed(2)
-                  })
-                }
-              }}
-              className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-cyan-500 bg-white font-mono font-bold text-slate-900"
-            >
-              {sortedBatches.map((b) => {
-                const isFEFO = b.id === fefoBatchId
-                const isExpired = new Date(b.expiry_date).getTime() <= Date.now()
-                const breakdown = selectedMed
-                  ? formatStockBreakdown(selectedMed, b.qty_available).breakdown
-                  : `${b.qty_available} Pcs`
-
-                return (
-                  <option key={b.id} value={b.id} disabled={isExpired}>
-                    {isFEFO ? '✓ [FEFO] ' : ''}
-                    {b.batch_no} (Exp: {new Date(b.expiry_date).toLocaleDateString('en-GB')}) —{' '}
-                    {breakdown} {isExpired ? ' [EXPIRED]' : ''}
-                  </option>
-                )
-              })}
-              {sortedBatches.length === 0 && <option value="">No Active Stock Batches</option>}
-            </select>
-          </div>
-        )}
-
-        {/* Quantity */}
-        <div className="lg:col-span-1">
-          <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Qty *</label>
-          <input
-            type="number"
-            min="1"
-            value={itemForm.quantity}
-            onChange={(e) => onChangeItemForm({ ...itemForm, quantity: e.target.value })}
-            placeholder="1"
-            className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 bg-white text-center font-bold font-mono text-slate-900"
-          />
-        </div>
-
-        {/* Billing Unit Selector (For Medicines) */}
-        {itemType === 'MEDICINE' && (
-          <div className="lg:col-span-1">
-            <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Unit</label>
-            <UnitSelectorCombobox
-              value={itemForm.unit}
-              onChange={(newUnit: string) => {
-                const factor = selectedMed ? getUnitConversionFactor(selectedMed, newUnit) : 1
-                const newPrice = selectedBatch
-                  ? (selectedBatch.selling_price_per_unit * factor).toFixed(2)
-                  : itemForm.price
-                onChangeItemForm({ ...itemForm, unit: newUnit, price: newPrice })
-              }}
-              availableOptions={getAvailableUnitsForMedicine(selectedMed)}
-              placeholder="Unit..."
+            <ItemTypeahead
+              itemType={itemType}
+              services={services}
+              medicines={medicines}
+              value={itemForm.name}
+              onChange={(val: string) => onChangeItemForm({ ...itemForm, name: val })}
+              onSelectService={onSelectService}
+              onSelectMedicine={onSelectMedicine}
+              inputRef={itemNameInputRef}
             />
           </div>
-        )}
 
-        {/* Unit Selling Price */}
-        <div className="lg:col-span-1">
-          <label className="block text-xs font-bold text-slate-700 uppercase mb-1 flex items-center justify-between">
-            <span>Price (₹)</span>
-            {itemType === 'MEDICINE' && itemForm.unit && (
-              <span className="text-[10px] text-cyan-600 font-normal lowercase">/{itemForm.unit}</span>
-            )}
-          </label>
-          <input
-            type="number"
-            step="0.01"
-            value={itemForm.price}
-            onChange={(e) => onChangeItemForm({ ...itemForm, price: e.target.value })}
-            placeholder="0.00"
-            className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 bg-white text-right font-mono font-bold"
-          />
+          {/* Medicine Batch Selection Dropdown */}
+          {itemType === 'MEDICINE' && (
+            <div className="lg:col-span-5">
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+                <span>Select Batch *</span>
+                <span className="text-[10px] text-cyan-700 font-extrabold uppercase bg-cyan-100/80 px-2 py-0.5 rounded-full border border-cyan-200">
+                  FEFO Priority
+                </span>
+              </label>
+              <select
+                value={selectedBatch ? selectedBatch.id : ''}
+                onChange={(e) => {
+                  const b = sortedBatches.find((x) => x.id === e.target.value)
+                  if (b && selectedMed) {
+                    onSelectBatch(b)
+                    const unitToUse =
+                      itemForm.unit || selectedMed.inner_unit || selectedMed.base_unit || 'Strip'
+                    const factor = getUnitConversionFactor(selectedMed, unitToUse)
+                    onChangeItemForm({
+                      ...itemForm,
+                      price: (b.selling_price_per_unit * factor).toFixed(2)
+                    })
+                  }
+                }}
+                className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-cyan-500 bg-white font-mono font-bold text-slate-900 shadow-2xs"
+              >
+                {sortedBatches.map((b) => {
+                  const isFEFO = b.id === fefoBatchId
+                  const isExpired = new Date(b.expiry_date).getTime() <= Date.now()
+                  const breakdown = selectedMed
+                    ? formatStockBreakdown(selectedMed, b.qty_available).breakdown
+                    : `${b.qty_available} Pcs`
+
+                  return (
+                    <option key={b.id} value={b.id} disabled={isExpired}>
+                      {isFEFO ? '✓ [FEFO] ' : ''}
+                      {b.batch_no} (Exp: {new Date(b.expiry_date).toLocaleDateString('en-GB')}) —{' '}
+                      {breakdown} {isExpired ? ' [EXPIRED]' : ''}
+                    </option>
+                  )
+                })}
+                {sortedBatches.length === 0 && <option value="">No Active Stock Batches</option>}
+              </select>
+            </div>
+          )}
         </div>
 
-        {/* Discount (₹) */}
-        <div className="lg:col-span-1">
-          <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Disc (₹)</label>
-          <input
-            type="number"
-            step="0.01"
-            value={itemForm.discount}
-            onChange={(e) => onChangeItemForm({ ...itemForm, discount: e.target.value })}
-            placeholder="0"
-            className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 bg-white text-right text-red-600 font-mono font-medium"
-          />
-        </div>
+        {/* ROW 2: QUANTITY, UNIT, PRICE, DISCOUNT, GST, ADD BUTTON */}
+        <div className="grid grid-cols-2 sm:grid-cols-6 lg:grid-cols-12 gap-3 items-end">
+          {/* Quantity */}
+          <div className="col-span-1 sm:col-span-2 lg:col-span-2">
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Qty *</label>
+            <input
+              type="number"
+              min="1"
+              value={itemForm.quantity}
+              onChange={(e) => onChangeItemForm({ ...itemForm, quantity: e.target.value })}
+              placeholder="1"
+              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 bg-white text-center font-bold font-mono text-slate-900 shadow-2xs"
+            />
+          </div>
 
-        {/* GST % */}
-        <div className="lg:col-span-1">
-          <label className="block text-xs font-bold text-slate-700 uppercase mb-1">GST %</label>
-          <input
-            type="number"
-            value={itemForm.gstPercent}
-            onChange={(e) => onChangeItemForm({ ...itemForm, gstPercent: e.target.value })}
-            placeholder="12"
-            className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 bg-white text-right font-mono font-semibold"
-          />
-        </div>
+          {/* Billing Unit Selector (For Medicines) */}
+          {itemType === 'MEDICINE' ? (
+            <div className="col-span-1 sm:col-span-2 lg:col-span-2">
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Unit</label>
+              <UnitSelectorCombobox
+                value={itemForm.unit}
+                onChange={(newUnit: string) => {
+                  const factor = selectedMed ? getUnitConversionFactor(selectedMed, newUnit) : 1
+                  const newPrice = selectedBatch
+                    ? (selectedBatch.selling_price_per_unit * factor).toFixed(2)
+                    : itemForm.price
+                  onChangeItemForm({ ...itemForm, unit: newUnit, price: newPrice })
+                }}
+                availableOptions={getAvailableUnitsForMedicine(selectedMed)}
+                placeholder="Unit..."
+              />
+            </div>
+          ) : (
+            <div className="col-span-1 sm:col-span-2 lg:col-span-2">
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Unit</label>
+              <input
+                type="text"
+                disabled
+                value={itemForm.unit || 'Unit'}
+                className="w-full px-3 py-2 border border-slate-200 bg-slate-100/70 text-slate-500 rounded-xl text-xs font-bold text-center"
+              />
+            </div>
+          )}
 
-        {/* Add Button */}
-        <div className={itemType === 'MEDICINE' ? 'lg:col-span-1' : 'lg:col-span-2'}>
-          <button
-            type="button"
-            onClick={onAddLineItem}
-            className="w-full flex items-center justify-center gap-1 bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all shadow-md shadow-cyan-600/20 cursor-pointer"
-          >
-            <Plus className="h-4 w-4" /> Add
-          </button>
+          {/* Unit Selling Price */}
+          <div className="col-span-2 sm:col-span-2 lg:col-span-3">
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+              <span>Selling Price (₹)</span>
+              {itemType === 'MEDICINE' && itemForm.unit && (
+                <span className="text-[10px] text-cyan-700 font-bold lowercase bg-cyan-50 px-1.5 rounded">/{itemForm.unit}</span>
+              )}
+            </label>
+            <input
+              type="number"
+              step="0.01"
+              value={itemForm.price}
+              onChange={(e) => onChangeItemForm({ ...itemForm, price: e.target.value })}
+              placeholder="0.00"
+              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 bg-white text-right font-mono font-bold text-slate-900 shadow-2xs"
+            />
+          </div>
+
+          {/* Discount (₹) */}
+          <div className="col-span-1 sm:col-span-2 lg:col-span-2">
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Disc (₹)</label>
+            <input
+              type="number"
+              step="0.01"
+              value={itemForm.discount}
+              onChange={(e) => onChangeItemForm({ ...itemForm, discount: e.target.value })}
+              placeholder="0"
+              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 bg-white text-right text-red-600 font-mono font-bold shadow-2xs"
+            />
+          </div>
+
+          {/* GST % */}
+          <div className="col-span-1 sm:col-span-2 lg:col-span-1">
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">GST %</label>
+            <input
+              type="number"
+              value={itemForm.gstPercent}
+              onChange={(e) => onChangeItemForm({ ...itemForm, gstPercent: e.target.value })}
+              placeholder="12"
+              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 bg-white text-right font-mono font-semibold shadow-2xs"
+            />
+          </div>
+
+          {/* Add Button */}
+          <div className="col-span-2 sm:col-span-2 lg:col-span-2">
+            <button
+              type="button"
+              onClick={onAddLineItem}
+              className="w-full flex items-center justify-center gap-1.5 bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-cyan-800 text-white font-extrabold py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all shadow-md shadow-cyan-600/20 cursor-pointer border border-cyan-500/40"
+            >
+              <Plus className="h-4 w-4" /> Add Item
+            </button>
+          </div>
         </div>
       </div>
 

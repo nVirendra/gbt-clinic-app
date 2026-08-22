@@ -208,7 +208,7 @@ export default function Reports() {
 
           <button
             onClick={activeReportTab === 'financials' ? exportCollectionStats : exportGstPeriod}
-            className="flex items-center bg-slate-900 hover:bg-slate-800 text-white font-semibold px-4 py-2 rounded-lg text-xs transition cursor-pointer"
+            className="flex items-center bg-[#0B132B] hover:bg-[#162244] text-cyan-400 font-bold px-4 py-2 rounded-xl text-xs transition cursor-pointer border border-[#162244]"
           >
             <Download className="h-3.5 w-3.5 mr-1.5" /> Export Period CSV
           </button>
@@ -226,7 +226,7 @@ export default function Reports() {
             <div className="space-y-6 animate-fade-in">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 
-                <div className="bg-slate-900 p-6 rounded-2xl text-slate-100 shadow-sm border border-slate-800 flex items-center justify-between">
+                <div className="bg-[#0B132B] p-6 rounded-2xl text-slate-100 shadow-sm border border-[#162244] flex items-center justify-between">
                   <div>
                     <p className="text-[10px] font-bold text-cyan-400 uppercase tracking-widest">Total Collections</p>
                     <h3 className="text-3xl font-black text-white mt-1 flex items-center font-mono">
@@ -395,7 +395,7 @@ export default function Reports() {
             <div className="space-y-6 animate-fade-in">
               {/* Valuation cards */}
               <div className="grid grid-cols-2 gap-6">
-                <div className="bg-slate-900 p-6 rounded-2xl text-slate-100 shadow-sm border border-slate-800">
+                <div className="bg-[#0B132B] p-6 rounded-2xl text-slate-100 shadow-sm border border-[#162244]">
                   <p className="text-[10px] font-bold text-cyan-400 uppercase tracking-widest">Inventory Valuation (Purchase Cost)</p>
                   <h3 className="text-3xl font-black text-white mt-1 font-mono">
                     ₹{inventoryValuation.purchaseValuation.toFixed(2)}

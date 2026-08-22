@@ -24,6 +24,7 @@ interface InventoryState {
   deleteVendor: (args: { id: string; userId: string }) => Promise<Vendor>;
 
   createPurchase: (args: { data: any; userId: string }) => Promise<Purchase>;
+  updatePurchase: (args: { id: string; data: any; userId: string }) => Promise<Purchase>;
   adjustStock: (args: { id: string; qtyChange: number; reason: string; userId: string }) => Promise<InventoryBatch>;
 }
 
@@ -114,6 +115,12 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
 
   createPurchase: async (args) => {
     const res = await window.api.createPurchase(args);
+    await get().loadAllData();
+    return res;
+  },
+
+  updatePurchase: async (args) => {
+    const res = await window.api.updatePurchase(args);
     await get().loadAllData();
     return res;
   },

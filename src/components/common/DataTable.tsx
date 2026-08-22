@@ -11,6 +11,7 @@ import {
   Inbox,
   FilterX,
   Plus,
+  Minus,
   Columns3
 } from 'lucide-react'
 import { FilterBar, FilterFieldDef, fuzzyMatchTokens } from './FilterBar'
@@ -52,6 +53,7 @@ export interface DataTableProps<T> {
   emptyActionLabel?: string
   onEmptyAction?: () => void
   onRowClick?: (row: T) => void
+  renderExpandedRow?: (row: T, index: number) => React.ReactNode
   highlightedRowId?: string
   defaultSortColumn?: string
   defaultSortDirection?: 'asc' | 'desc'
@@ -82,6 +84,7 @@ export function DataTable<T extends Record<string, any>>({
   emptyActionLabel,
   onEmptyAction,
   onRowClick,
+  renderExpandedRow,
   highlightedRowId,
   defaultSortColumn,
   defaultSortDirection = 'asc',
@@ -101,6 +104,18 @@ export function DataTable<T extends Record<string, any>>({
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(initialPageSize)
+
+  // Expanded Row State
+  const [expandedRowKeys, setExpandedRowKeys] = useState<Set<string>>(new Set())
+
+  const toggleRowExpand = (key: string) => {
+    setExpandedRowKeys((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
+  }
 
   // Optional Column Visibility State (resets to defaults on every mount — not persisted)
   const [visibleOptionalColumns, setVisibleOptionalColumns] = useState<Set<string>>(
@@ -282,6 +297,9 @@ export function DataTable<T extends Record<string, any>>({
           <table className="w-full text-left border-collapse min-w-max">
             <thead>
               <tr className="bg-[#0B132B] border-b border-[#162244] text-cyan-500 font-black uppercase text-[11px] tracking-wider sticky top-0 z-10">
+                {renderExpandedRow && (
+                  <th className="px-3 py-3.5 w-10 text-center text-slate-400"></th>
+                )}
                 {displayColumns.map((col) => {
                   const isSorted = sortColumn === col.key
                   const alignClass = 
@@ -324,6 +342,7 @@ export function DataTable<T extends Record<string, any>>({
               {loading ? (
                 [...Array(pageSize > 5 ? 5 : pageSize)].map((_, i) => (
                   <tr key={i} className="animate-pulse">
+                    {renderExpandedRow && <td className="px-3 py-4 w-10"></td>}
                     {displayColumns.map((col, cIdx) => (
                       <td key={cIdx} className="px-5 py-4">
                         <div className="h-4 bg-slate-100 rounded-md w-3/4"></div>
@@ -335,36 +354,67 @@ export function DataTable<T extends Record<string, any>>({
                 pageData.map((row, rIdx) => {
                   const rKey = rowKey ? rowKey(row, rIdx) : row.id || `row-${rIdx}`
                   const isHighlighted = highlightedRowId === rKey
+                  const isExpanded = expandedRowKeys.has(rKey)
 
                   return (
-                    <tr
-                      key={rKey}
-                      onClick={() => onRowClick && onRowClick(row)}
-                      className={`transition-colors ${
-                        onRowClick ? 'cursor-pointer' : ''
-                      } ${
-                        isHighlighted 
-                          ? 'bg-cyan-500/10 font-bold border-l-4 border-l-cyan-500' 
-                          : 'hover:bg-[#F4F5F7]'
-                      }`}
-                    >
-                      {displayColumns.map((col) => {
-                        const alignClass =
-                          col.align === 'right' ? 'text-right font-mono' : col.align === 'center' ? 'text-center' : 'text-left'
-
-                        return (
-                          <td key={col.key} className={`px-5 py-3.5 ${alignClass}`}>
-                            {col.render ? col.render(row, rIdx) : row[col.key] ?? '-'}
+                    <React.Fragment key={rKey}>
+                      <tr
+                        onClick={() => onRowClick && onRowClick(row)}
+                        className={`transition-colors ${
+                          onRowClick ? 'cursor-pointer' : ''
+                        } ${
+                          isHighlighted 
+                            ? 'bg-cyan-500/10 font-bold border-l-4 border-l-cyan-500' 
+                            : isExpanded
+                            ? 'bg-cyan-50/40'
+                            : 'hover:bg-[#F4F5F7]'
+                        }`}
+                      >
+                        {renderExpandedRow && (
+                          <td className="px-3 py-3.5 text-center" onClick={(e) => e.stopPropagation()}>
+                            <button
+                              type="button"
+                              onClick={() => toggleRowExpand(rKey)}
+                              title={isExpanded ? 'Collapse details' : 'Expand details'}
+                              className={`p-1 rounded-lg transition-all cursor-pointer inline-flex items-center justify-center ${
+                                isExpanded
+                                  ? 'bg-cyan-600 text-white shadow-xs'
+                                  : 'bg-slate-100 text-slate-600 hover:bg-cyan-100 hover:text-cyan-800'
+                              }`}
+                            >
+                              {isExpanded ? (
+                                <Minus className="w-3.5 h-3.5 font-bold" />
+                              ) : (
+                                <Plus className="w-3.5 h-3.5 font-bold" />
+                              )}
+                            </button>
                           </td>
-                        )
-                      })}
-                    </tr>
+                        )}
+                        {displayColumns.map((col) => {
+                          const alignClass =
+                            col.align === 'right' ? 'text-right font-mono' : col.align === 'center' ? 'text-center' : 'text-left'
+
+                          return (
+                            <td key={col.key} className={`px-5 py-3.5 ${alignClass}`}>
+                              {col.render ? col.render(row, rIdx) : row[col.key] ?? '-'}
+                            </td>
+                          )
+                        })}
+                      </tr>
+                      {renderExpandedRow && isExpanded && (
+                        <tr key={`${rKey}-expanded`} className="bg-slate-50/90 border-b border-slate-200/80 animate-fade-in">
+                          <td colSpan={displayColumns.length + 1} className="px-5 py-3 border-l-4 border-l-cyan-500">
+                            {renderExpandedRow(row, rIdx)}
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
                   )
                 })
               ) : (
                 /* EMPTY OR NO MATCHING FILTER STATE */
                 <tr>
-                  <td colSpan={displayColumns.length} className="px-6 py-12 text-center">
+                  <td colSpan={displayColumns.length + (renderExpandedRow ? 1 : 0)} className="px-6 py-12 text-center">
                     {isFiltered ? (
                       <div className="flex flex-col items-center justify-center space-y-2 text-slate-400">
                         <FilterX className="w-10 h-10 text-slate-300" />

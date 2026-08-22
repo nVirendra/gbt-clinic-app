@@ -54,7 +54,7 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({
             {totalFreeQty > 0 && <span className="text-emerald-700 font-bold px-2 bg-emerald-50 rounded border border-emerald-200/60">Free: +{totalFreeQty}</span>}
             <span className="text-slate-500 px-2">Taxable: <strong className="text-slate-900">₹{totalTaxable.toFixed(2)}</strong></span>
             <span className="text-cyan-700 font-bold px-2">GST: ₹{totalGst.toFixed(2)}</span>
-            <span className="bg-slate-900 text-cyan-300 font-extrabold px-3 py-1 rounded-lg">Total: ₹{grandTotal.toFixed(2)}</span>
+            <span className="bg-[#0B132B] text-cyan-300 font-extrabold px-3 py-1 rounded-lg">Total: ₹{grandTotal.toFixed(2)}</span>
           </div>
         )}
       </div>
@@ -62,8 +62,8 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({
       <div className="overflow-x-auto relative rounded-xl border border-slate-200">
         <table className="w-full text-left border-collapse text-sm">
           <thead>
-            <tr className="bg-slate-900 text-slate-300 border-b border-slate-800 text-[11px] font-bold uppercase tracking-wider">
-              <th className="px-4 py-3 sticky left-0 bg-slate-900 text-cyan-400 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.3)] min-w-[220px]">
+            <tr className="bg-[#0B132B] text-slate-300 border-b border-[#162244] text-[11px] font-bold uppercase tracking-wider">
+              <th className="px-4 py-3 sticky left-0 bg-[#0B132B] text-cyan-400 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.3)] min-w-[220px]">
                 Medicine Particulars
               </th>
               <th className="px-4 py-3">HSN / GST</th>

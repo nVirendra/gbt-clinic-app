@@ -786,7 +786,7 @@ function RedesignedVendorModal({
         className="bg-white rounded-2xl shadow-2xl max-w-lg w-full border border-slate-100 overflow-hidden flex flex-col max-h-[90vh]"
       >
         {/* MODAL HEADER */}
-        <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between shadow-md">
+        <div className="px-6 py-4 bg-[#0B132B] text-white flex items-center justify-between shadow-md">
           <div className="flex items-center gap-2.5">
             <Building2 className="w-5 h-5 text-cyan-400" />
             <h3 className="text-md font-bold">
@@ -1014,6 +1014,7 @@ export default function Inventory() {
   const deleteVendor = useInventoryStore((state) => state.deleteVendor)
 
   const createPurchase = useInventoryStore((state) => state.createPurchase)
+  const updatePurchase = useInventoryStore((state) => state.updatePurchase)
   const adjustStock = useInventoryStore((state) => state.adjustStock)
 
   const currentUser = useAuthStore((state) => state.user)
@@ -1041,6 +1042,17 @@ export default function Inventory() {
   const [adjustReason, setAdjustReason] = useState('Count correction')
 
   const [selectedPurchase, setSelectedPurchase] = useState<any | null>(null)
+  const [editingPurchase, setEditingPurchase] = useState<any | null>(null)
+
+  const startEditPurchase = (p: any) => {
+    setEditingPurchase(p)
+    setSelectedPurchase(null)
+    setLocalTab('stock-in')
+  }
+
+  const cancelEditPurchase = () => {
+    setEditingPurchase(null)
+  }
 
   // Stock In Form State
   const [purchaseForm, setPurchaseForm] = useState({
@@ -1751,7 +1763,6 @@ export default function Inventory() {
 
 
 
-      {/* --- CURRENT STOCK BATCHES TAB --- */}
       {/* --- CURRENT STOCK BATCHES TAB (MARG ERP ENTERPRISE STANDARD) --- */}
       {localTab === 'batches' && (
         <DataTable
@@ -1772,27 +1783,10 @@ export default function Inventory() {
                 </div>
               )
             },
-            {
-              key: 'rack_no',
-              header: 'Rack / Shelf No',
-              sortable: true,
-              sortValue: (b: any) => b.medicine?.rack_no || b.medicine?.rackNo || '',
-              render: (b: any) => {
-                const rNo = b.medicine?.rack_no || b.medicine?.rackNo
-                return rNo ? (
-                  <span className="font-mono text-xs font-bold bg-amber-50 text-amber-900 border border-amber-200/80 px-1.5 py-0.5 rounded">
-                    {rNo}
-                  </span>
-                ) : (
-                  <span className="text-xs text-slate-400 font-mono">N/A</span>
-                )
-              }
-            },
             { key: 'batch_no', header: 'Batch No.', sortable: true, render: (b: any) => <span className="font-mono text-xs font-bold text-slate-800">{b.batch_no}</span> },
-            { key: 'expiry_date', header: 'Expiry Date', sortable: true, render: (b: any) => <span className="font-mono text-xs text-slate-700">{formatExpiryDisplay(b.expiry_date)}</span> },
             {
               key: 'qty_available',
-              header: 'Available Stock (Marg Units)',
+              header: 'Available Stock',
               sortable: true,
               sortValue: (b: any) => b.qty_available,
               render: (b: any) => {
@@ -1807,38 +1801,6 @@ export default function Inventory() {
                     </span>
                   </div>
                 )
-              }
-            },
-            {
-              key: 'mrp',
-              header: 'MRP',
-              sortable: true,
-              align: 'right',
-              render: (b: any) => <span className="font-mono text-xs font-semibold text-slate-800">₹{Number(b.mrp || 0).toFixed(2)}</span>
-            },
-            {
-              key: 'purchase_price_per_unit',
-              header: 'Pur. Rate',
-              sortable: true,
-              align: 'right',
-              render: (b: any) => <span className="font-mono text-xs text-slate-600">₹{Number(b.purchase_price_per_unit || 0).toFixed(2)}</span>
-            },
-            {
-              key: 'selling_price_per_unit',
-              header: 'Sell Price',
-              sortable: true,
-              align: 'right',
-              render: (b: any) => <span className="font-mono text-xs font-bold text-cyan-900">₹{Number(b.selling_price_per_unit || 0).toFixed(2)}</span>
-            },
-            {
-              key: 'stock_value',
-              header: 'Stock Value (₹)',
-              sortable: true,
-              align: 'right',
-              sortValue: (b: any) => (b.qty_available || 0) * (b.purchase_price_per_unit || 0),
-              render: (b: any) => {
-                const val = (b.qty_available || 0) * (b.purchase_price_per_unit || 0)
-                return <span className="font-mono text-xs font-black text-slate-900">₹{val.toFixed(2)}</span>
               }
             },
             {
@@ -1878,6 +1840,40 @@ export default function Inventory() {
               ) : null
             }
           ]}
+          renderExpandedRow={(b: any) => {
+            const stockVal = (b.qty_available || 0) * (b.purchase_price_per_unit || 0)
+            const rNo = b.medicine?.rack_no || b.medicine?.rackNo
+            return (
+              <div className="grid grid-cols-2 sm:grid-cols-6 gap-3 bg-white p-3 rounded-xl border border-slate-200 text-xs shadow-2xs">
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase block">Rack / Shelf</span>
+                  <span className="font-mono text-xs font-bold text-amber-900 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200/80 inline-block mt-0.5">
+                    {rNo || 'N/A'}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase block">Expiry Date</span>
+                  <span className="font-mono font-semibold text-slate-800 mt-0.5 block">{formatExpiryDisplay(b.expiry_date)}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase block">MRP (Per Unit)</span>
+                  <span className="font-mono font-bold text-slate-900 mt-0.5 block">₹{Number(b.unit_mrp ?? b.mrp ?? 0).toFixed(2)}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase block">Pur. Rate</span>
+                  <span className="font-mono font-semibold text-slate-700 mt-0.5 block">₹{Number(b.unit_purchase_price ?? b.purchase_price_per_unit ?? 0).toFixed(2)}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase block">Sell Price</span>
+                  <span className="font-mono font-bold text-cyan-900 mt-0.5 block">₹{Number(b.unit_selling_price ?? b.selling_price_per_unit ?? 0).toFixed(2)}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase block">Stock Value</span>
+                  <span className="font-mono font-black text-slate-900 mt-0.5 block">₹{stockVal.toFixed(2)}</span>
+                </div>
+              </div>
+            )
+          }}
           data={searchableBatches}
           loading={loading}
           rowKey={(b) => b.id}
@@ -1896,7 +1892,7 @@ export default function Inventory() {
           columns={[
             {
               key: 'name',
-              header: 'Medicine Name Particulars',
+              header: 'Medicine Particulars',
               sortable: true,
               render: (m: any) => (
                 <div className="flex flex-col">
@@ -1912,19 +1908,7 @@ export default function Inventory() {
                 </div>
               )
             },
-            { key: 'generic_name', header: 'Generic Formula', sortable: true, render: (m: any) => <span className="text-xs text-slate-600 font-medium">{m.generic_name || 'N/A'}</span> },
-            { key: 'manufacturer', header: 'Manufacturer / Brand', sortable: true, render: (m: any) => <span className="text-xs text-slate-700">{m.manufacturer || 'N/A'}</span> },
             { key: 'pack', header: 'Pack Size', sortable: true, render: (m: any) => <span className="font-mono text-xs font-semibold text-slate-800">{m.pack || 'N/A'}</span> },
-            {
-              key: 'packaging_setup',
-              header: 'Packaging Ratio (Box=Strip=Units)',
-              sortable: false,
-              render: (m: any) => (
-                <span className="font-mono text-[11px] font-bold text-cyan-900 bg-cyan-50 px-2 py-0.5 rounded border border-cyan-200/90 whitespace-nowrap">
-                  {getLiveConversionSummary(m)}
-                </span>
-              )
-            },
             {
               key: 'total_stock',
               header: 'Current Stock',
@@ -1954,19 +1938,6 @@ export default function Inventory() {
                 )
               }
             },
-            { key: 'hsn_code', header: 'HSN Code', sortable: true, render: (m: any) => <span className="font-mono text-xs">{m.hsn_code || 'N/A'}</span> },
-            {
-              key: 'rack_no',
-              header: 'Rack No',
-              sortable: true,
-              render: (m: any) => (
-                m.rack_no
-                  ? <span className="font-mono text-xs font-bold bg-amber-50 text-amber-900 border border-amber-200 px-1.5 py-0.5 rounded">{m.rack_no}</span>
-                  : <span className="text-xs text-slate-400 font-mono">N/A</span>
-              )
-            },
-            { key: 'reorder_level', header: 'Reorder Level', sortable: true, align: 'right', render: (m: any) => <span className="font-mono font-bold text-slate-800">{m.reorder_level}</span> },
-            { key: 'default_gst_percent', header: 'GST %', sortable: true, align: 'right', render: (m: any) => <span className="font-mono font-bold">{m.default_gst_percent}%</span> },
             {
               key: 'actions',
               header: 'Actions',
@@ -1991,6 +1962,43 @@ export default function Inventory() {
               )
             }
           ]}
+          renderExpandedRow={(m: any) => (
+            <div className="grid grid-cols-2 sm:grid-cols-6 gap-3 bg-white p-3 rounded-xl border border-slate-200 text-xs shadow-2xs">
+              <div>
+                <span className="text-[10px] font-bold text-slate-400 uppercase block">Generic Formula</span>
+                <span className="text-slate-800 font-medium mt-0.5 block">{m.generic_name || 'N/A'}</span>
+              </div>
+              <div>
+                <span className="text-[10px] font-bold text-slate-400 uppercase block">Manufacturer / Brand</span>
+                <span className="text-slate-800 mt-0.5 block">{m.manufacturer || 'N/A'}</span>
+              </div>
+              <div>
+                <span className="text-[10px] font-bold text-slate-400 uppercase block">Packaging Ratio</span>
+                <span className="font-mono text-[11px] font-bold text-cyan-900 bg-cyan-50 px-2 py-0.5 rounded border border-cyan-200/90 inline-block mt-0.5">
+                  {getLiveConversionSummary(m)}
+                </span>
+              </div>
+              <div>
+                <span className="text-[10px] font-bold text-slate-400 uppercase block">HSN Code</span>
+                <span className="font-mono font-semibold text-slate-800 mt-0.5 block">{m.hsn_code || 'N/A'}</span>
+              </div>
+              <div>
+                <span className="text-[10px] font-bold text-slate-400 uppercase block">Rack Location / GST%</span>
+                <div className="flex items-center gap-2 mt-0.5">
+                  {m.rack_no ? (
+                    <span className="font-mono text-xs font-bold bg-amber-50 text-amber-900 border border-amber-200 px-1.5 py-0.5 rounded">
+                      Rack: {m.rack_no}
+                    </span>
+                  ) : null}
+                  <span className="font-mono font-bold text-cyan-800">GST: {m.default_gst_percent ?? 12}%</span>
+                </div>
+              </div>
+              <div>
+                <span className="text-[10px] font-bold text-slate-400 uppercase block">Reorder Alert Level</span>
+                <span className="font-mono font-bold text-slate-800 mt-0.5 block">{m.reorder_level || 0} base units</span>
+              </div>
+            </div>
+          )}
           data={safeMedicines}
           loading={loading}
           rowKey={(m) => m.id}
@@ -2026,8 +2034,17 @@ export default function Inventory() {
           batches={safeBatches}
           purchases={safePurchases}
           currentUser={currentUser}
+          editingPurchaseData={editingPurchase}
+          onCancelEditPurchase={cancelEditPurchase}
           onSavePurchase={async (payload) => {
             await createPurchase({
+              data: payload,
+              userId: currentUser?.id || ''
+            })
+          }}
+          onUpdatePurchase={async (purchaseId, payload) => {
+            await updatePurchase({
+              id: purchaseId,
               data: payload,
               userId: currentUser?.id || ''
             })
@@ -2064,39 +2081,7 @@ export default function Inventory() {
                 </div>
               )
             },
-            {
-              key: 'purchase_type',
-              header: 'Type',
-              sortable: true,
-              render: (p: any) => (
-                <span className={`text-[10px] px-2 py-0.5 rounded font-extrabold uppercase ${p.purchase_type === 'CREDIT' ? 'bg-amber-100 text-amber-800' : 'bg-cyan-100 text-cyan-800'
-                  }`}>
-                  {p.purchase_type || 'CASH'}
-                </span>
-              )
-            },
             { key: 'total_amount', header: 'Total Amount', sortable: true, align: 'right', render: (p: any) => <span className="font-mono font-bold text-slate-900">₹{p.total_amount.toFixed(2)}</span> },
-            {
-              key: 'paid_amount',
-              header: 'Paid Amount',
-              sortable: true,
-              align: 'right',
-              render: (p: any) => {
-                const paid = p.paid_amount !== undefined ? p.paid_amount : (p.purchase_type === 'CREDIT' ? 0 : p.total_amount)
-                return <span className="font-mono font-semibold text-cyan-700">₹{paid.toFixed(2)}</span>
-              }
-            },
-            {
-              key: 'pending_amount',
-              header: 'Pending Dues',
-              sortable: true,
-              align: 'right',
-              render: (p: any) => {
-                const pending = p.pending_amount !== undefined ? p.pending_amount : (p.purchase_type === 'CREDIT' ? p.total_amount : 0)
-                return <span className={`font-mono font-semibold ${pending > 0 ? 'text-rose-600 font-bold' : 'text-slate-400'}`}>₹{pending.toFixed(2)}</span>
-              }
-            },
-            { key: 'due_date', header: 'Due Date', sortable: true, render: (p: any) => <span className="font-mono text-xs">{p.due_date ? new Date(p.due_date).toLocaleDateString('en-GB') : '-'}</span> },
             {
               key: 'payment_status',
               header: 'Status',
@@ -2110,30 +2095,65 @@ export default function Inventory() {
                 </span>
               )
             },
-            { key: 'payment_mode', header: 'Mode', sortable: true, render: (p: any) => <span className="font-mono text-xs uppercase">{p.payment_mode || 'CASH'}</span> },
             {
-              key: 'items_summary',
-              header: 'Batch Items',
-              render: (p: any) => {
-                const batchCount = p.batches?.length || 0
-                if (!batchCount) return <span className="text-xs text-slate-400">N/A</span>
-                const firstItem = p.batches[0]?.medicine?.name || 'Item'
-                return (
-                  <span className="inline-flex items-center gap-1.5 text-xs text-slate-600">
-                    <span className="truncate max-w-[140px]">{firstItem}</span>
-                    {batchCount > 1 && (
-                      <span className="shrink-0 px-1.5 py-0.5 rounded-full bg-cyan-100 text-cyan-700 font-bold text-[10px]">
-                        +{batchCount - 1} more
-                      </span>
-                    )}
-                  </span>
-                )
-              }
-            },
-            { key: 'notes', header: 'Notes', render: (p: any) => <span className="text-xs text-slate-400 truncate max-w-xs block">{p.notes || 'N/A'}</span> },
-            { key: 'created_at', header: 'Created At', optional: true, sortable: true, sortValue: (p: any) => p.created_at ? new Date(p.created_at).getTime() : 0, render: (p: any) => <span className="font-mono text-xs text-slate-600">{formatDateTime(p.created_at)}</span> },
-            { key: 'updated_at', header: 'Updated At', optional: true, sortable: true, sortValue: (p: any) => p.updated_at ? new Date(p.updated_at).getTime() : 0, render: (p: any) => <span className="font-mono text-xs text-slate-600">{formatDateTime(p.updated_at)}</span> }
+              key: 'actions',
+              header: 'Actions',
+              align: 'center',
+              render: (p: any) => (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    startEditPurchase(p)
+                  }}
+                  className="text-xs text-indigo-600 hover:text-indigo-800 font-bold cursor-pointer inline-flex items-center"
+                >
+                  <Edit2 className="h-3 w-3 mr-1" /> Edit
+                </button>
+              )
+            }
           ]}
+          renderExpandedRow={(p: any) => {
+            const paid = p.paid_amount !== undefined ? p.paid_amount : (p.purchase_type === 'CREDIT' ? 0 : p.total_amount)
+            const pending = p.pending_amount !== undefined ? p.pending_amount : (p.purchase_type === 'CREDIT' ? p.total_amount : 0)
+            const batchCount = p.batches?.length || 0
+            const firstItem = p.batches && p.batches[0]?.medicine?.name ? p.batches[0].medicine.name : 'N/A'
+
+            return (
+              <div className="grid grid-cols-2 sm:grid-cols-6 gap-3 bg-white p-3 rounded-xl border border-slate-200 text-xs shadow-2xs">
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase block">Invoice Type</span>
+                  <span className={`text-[10px] px-2 py-0.5 rounded font-extrabold uppercase inline-block mt-0.5 ${p.purchase_type === 'CREDIT' ? 'bg-amber-100 text-amber-800' : 'bg-cyan-100 text-cyan-800'}`}>
+                    {p.purchase_type || 'CASH'}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase block">Paid Amount</span>
+                  <span className="font-mono font-semibold text-cyan-700 mt-0.5 block">₹{paid.toFixed(2)}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase block">Pending Dues & Due Date</span>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className={`font-mono font-semibold ${pending > 0 ? 'text-rose-600 font-bold' : 'text-slate-400'}`}>₹{pending.toFixed(2)}</span>
+                    <span className="text-[11px] text-slate-500 font-mono">({p.due_date ? new Date(p.due_date).toLocaleDateString('en-GB') : 'No Due'})</span>
+                  </div>
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase block">Payment Mode</span>
+                  <span className="font-mono text-xs uppercase text-slate-800 font-bold mt-0.5 block">{p.payment_mode || 'CASH'}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase block">Batch Items ({batchCount})</span>
+                  <span className="text-xs text-slate-700 mt-0.5 block truncate font-semibold">
+                    {firstItem} {batchCount > 1 ? `+${batchCount - 1} more` : ''}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase block">Invoice Remarks / Notes</span>
+                  <span className="text-xs text-slate-600 mt-0.5 block truncate">{p.notes || 'N/A'}</span>
+                </div>
+              </div>
+            )
+          }}
           data={searchablePurchases}
           loading={loading}
           rowKey={(p) => p.id}
@@ -2152,13 +2172,7 @@ export default function Inventory() {
         <DataTable
           columns={[
             { key: 'name', header: 'Vendor Name', sortable: true, render: (v: any) => <span className="font-bold text-slate-900">{v.name}</span> },
-            { key: 'phone', header: 'Phone Number', sortable: true, render: (v: any) => <span className="font-mono text-xs">{v.phone}</span> },
-            { key: 'address', header: 'Address', sortable: true, render: (v: any) => <span className="text-xs text-slate-600">{v.address}</span> },
-            { key: 'gstin', header: 'GSTIN', sortable: true, render: (v: any) => <span className="font-mono text-xs uppercase">{v.gstin || 'N/A'}</span> },
-            { key: 'drug_license_no', header: 'Drug License No', sortable: true, render: (v: any) => <span className="font-mono text-xs uppercase">{v.drug_license_no || 'N/A'}</span> },
-            { key: 'notes', header: 'Notes', render: (v: any) => <span className="text-xs text-slate-400 truncate max-w-xs block">{v.notes || 'N/A'}</span> },
-            { key: 'created_at', header: 'Created At', optional: true, sortable: true, sortValue: (v: any) => v.created_at ? new Date(v.created_at).getTime() : 0, render: (v: any) => <span className="font-mono text-xs text-slate-600">{formatDateTime(v.created_at)}</span> },
-            { key: 'updated_at', header: 'Updated At', optional: true, sortable: true, sortValue: (v: any) => v.updated_at ? new Date(v.updated_at).getTime() : 0, render: (v: any) => <span className="font-mono text-xs text-slate-600">{formatDateTime(v.updated_at)}</span> },
+            { key: 'phone', header: 'Phone Number', sortable: true, render: (v: any) => <span className="font-mono text-xs font-semibold text-slate-800">{v.phone}</span> },
             {
               key: 'actions',
               header: 'Actions',
@@ -2183,6 +2197,26 @@ export default function Inventory() {
               )
             }
           ]}
+          renderExpandedRow={(v: any) => (
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 bg-white p-3 rounded-xl border border-slate-200 text-xs shadow-2xs">
+              <div>
+                <span className="text-[10px] font-bold text-slate-400 uppercase block">Vendor Address</span>
+                <span className="text-slate-800 font-medium mt-0.5 block">{v.address || 'N/A'}</span>
+              </div>
+              <div>
+                <span className="text-[10px] font-bold text-slate-400 uppercase block">GSTIN</span>
+                <span className="font-mono font-bold text-slate-800 uppercase mt-0.5 block">{v.gstin || 'N/A'}</span>
+              </div>
+              <div>
+                <span className="text-[10px] font-bold text-slate-400 uppercase block">Drug License No</span>
+                <span className="font-mono font-bold text-slate-800 uppercase mt-0.5 block">{v.drug_license_no || 'N/A'}</span>
+              </div>
+              <div>
+                <span className="text-[10px] font-bold text-slate-400 uppercase block">Vendor Notes / Remarks</span>
+                <span className="text-slate-600 mt-0.5 block truncate">{v.notes || 'N/A'}</span>
+              </div>
+            </div>
+          )}
           data={safeVendors}
           loading={loading}
           rowKey={(v) => v.id}
@@ -2307,7 +2341,7 @@ export default function Inventory() {
         <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
           <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] flex flex-col border border-slate-100 overflow-hidden">
             {/* Header */}
-            <div className="flex items-start justify-between px-6 py-4 bg-slate-900 text-white shadow-md">
+            <div className="flex items-start justify-between px-6 py-4 bg-[#0B132B] text-white shadow-md">
               <div>
                 <h3 className="text-base font-bold text-white flex items-center gap-2">
                   <Receipt className="w-5 h-5 text-cyan-400" /> Purchase Invoice Details
@@ -2405,7 +2439,7 @@ export default function Inventory() {
               <div className="border border-slate-200 rounded-xl overflow-hidden shadow-xs">
                 <table className="w-full text-left border-collapse min-w-max">
                   <thead>
-                    <tr className="bg-slate-900 text-cyan-400 font-black uppercase text-[10px] tracking-wider">
+                    <tr className="bg-[#0B132B] text-cyan-400 font-black uppercase text-[10px] tracking-wider">
                       <th className="px-3 py-2.5">Medicine Particulars</th>
                       <th className="px-2.5 py-2.5">HSN</th>
                       <th className="px-2.5 py-2.5">Batch No</th>
@@ -2510,7 +2544,7 @@ export default function Inventory() {
                 const totalGst = totalCgst + totalSgst
 
                 return (
-                  <div className="mt-4 p-4 bg-slate-900 text-white rounded-xl grid grid-cols-2 sm:grid-cols-4 gap-4 shadow-sm border border-slate-800">
+                  <div className="mt-4 p-4 bg-[#0B132B] text-white rounded-xl grid grid-cols-2 sm:grid-cols-4 gap-4 shadow-sm border border-[#162244]">
                     <div>
                       <p className="text-[10px] font-bold text-slate-400 uppercase">Total Taxable Value</p>
                       <p className="text-sm font-black text-white font-mono mt-0.5">₹{totalTaxable.toFixed(2)}</p>
@@ -2542,10 +2576,20 @@ export default function Inventory() {
             </div>
 
             {/* Footer */}
-            <div className="px-6 py-3 border-t border-slate-100 flex justify-end bg-slate-50">
+            <div className="px-6 py-3 border-t border-slate-100 flex items-center justify-between bg-slate-50">
+              <button
+                onClick={() => {
+                  const p = selectedPurchase
+                  setSelectedPurchase(null)
+                  startEditPurchase(p)
+                }}
+                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition cursor-pointer shadow-sm flex items-center gap-1.5"
+              >
+                <Edit2 className="w-3.5 h-3.5" /> Edit Purchase Invoice
+              </button>
               <button
                 onClick={() => setSelectedPurchase(null)}
-                className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-cyan-400 font-bold rounded-xl text-xs transition cursor-pointer shadow-sm border border-slate-700"
+                className="px-5 py-2 bg-[#0B132B] hover:bg-[#162244] text-cyan-400 font-bold rounded-xl text-xs transition cursor-pointer shadow-sm border border-[#162244]"
               >
                 Close Invoice View
               </button>

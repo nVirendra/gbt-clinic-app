@@ -77,7 +77,7 @@ export const PurchaseInvoiceHeader: React.FC<PurchaseInvoiceHeaderProps> = ({
     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm transition-all duration-200 overflow-hidden">
       {isCollapsed ? (
         /* COLLAPSED PINNED SUMMARY STRIP */
-        <div className="p-4 bg-slate-900 text-white flex flex-wrap items-center justify-between gap-4 shadow-md border border-slate-800">
+        <div className="p-4 bg-[#0B132B] text-white flex flex-wrap items-center justify-between gap-4 shadow-md border border-[#162244]">
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs">
             <div className="flex items-center gap-2">
               <Building2 className="w-4 h-4 text-cyan-400 shrink-0" />

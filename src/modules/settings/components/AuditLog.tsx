@@ -122,7 +122,7 @@ export default function AuditLog() {
     <div className="space-y-6 animate-fade-in pb-12">
       
       {/* HEADER BANNER */}
-      <div className="bg-slate-900 text-white p-5 rounded-2xl border border-slate-800 shadow-md flex items-center justify-between">
+      <div className="bg-[#0B132B] text-white p-5 rounded-2xl border border-[#162244] shadow-md flex items-center justify-between">
         <div>
           <h2 className="text-lg font-bold flex items-center gap-2">
             <Lock className="w-5 h-5 text-cyan-400" /> Immutable Security Audit Logs

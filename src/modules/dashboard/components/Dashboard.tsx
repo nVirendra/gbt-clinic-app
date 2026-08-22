@@ -105,7 +105,7 @@ export default function Dashboard() {
     <div className="space-y-6 animate-fade-in pb-12 text-slate-800">
       
       {/* HEADER BANNER & DATE RANGE SELECTOR */}
-      <div className="bg-slate-900 rounded-2xl p-6 text-white shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4 border border-slate-800">
+      <div className="bg-[#0B132B] rounded-2xl p-6 text-white shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4 border border-[#162244]">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <h2 className="text-xl md:text-2xl font-bold tracking-tight">
@@ -122,15 +122,15 @@ export default function Dashboard() {
 
         {/* Global Date-Range Pill Selector & Quick Launcher */}
         <div className="flex flex-wrap items-center gap-2">
-          <div className="bg-slate-800/90 p-1 rounded-xl border border-slate-700/80 flex items-center gap-1 text-xs">
+          <div className="bg-[#162244]/90 p-1 rounded-xl border border-[#1E2B4D] flex items-center gap-1 text-xs">
             {(['today', 'week', 'month', 'all'] as DateRangeOption[]).map((option) => (
               <button
                 key={option}
                 onClick={() => setDateRange(option)}
                 className={`px-3 py-1.5 rounded-lg font-bold capitalize transition-all cursor-pointer ${
                   dateRange === option
-                    ? 'bg-cyan-500 text-white shadow-md shadow-cyan-500/20'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
+                    ? 'bg-cyan-500 text-[#0B132B] shadow-md shadow-cyan-500/20 font-extrabold'
+                    : 'text-slate-400 hover:text-white hover:bg-[#0B132B]/50'
                 }`}
               >
                 {option === 'today' ? 'Today' : option === 'week' ? '7 Days' : option === 'month' ? '30 Days' : 'All Time'}
@@ -141,14 +141,14 @@ export default function Dashboard() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setActiveTab('billing')}
-              className="flex items-center bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold px-3.5 py-2 rounded-xl text-xs transition shadow-md shadow-cyan-500/10 cursor-pointer"
+              className="flex items-center bg-cyan-500 hover:bg-cyan-400 text-[#0B132B] font-extrabold px-3.5 py-2 rounded-xl text-xs transition shadow-md shadow-cyan-500/10 cursor-pointer"
             >
               <PlusCircle className="h-4 w-4 mr-1.5" />
               New Bill
             </button>
             <button
               onClick={() => setActiveTab('patients')}
-              className="flex items-center bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer"
+              className="flex items-center bg-[#162244] hover:bg-[#1E2B4D] text-cyan-400 font-bold border border-[#1E2B4D] px-3.5 py-2 rounded-xl text-xs transition cursor-pointer"
             >
               <UserPlus className="h-4 w-4 mr-1.5" />
               Add Patient
@@ -304,19 +304,21 @@ export default function Dashboard() {
         </div>
       )}
 
+
+
       {/* ACTION-NEEDED ZONE & LIGHTWEIGHT CHARTS GRID */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
         {/* LEFT 7 COLS: ACTION-NEEDED ZONE */}
-        <div className="lg:col-span-7 bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col">
-          <div className="p-4 bg-slate-900 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800">
+        <div className="lg:col-span-7 bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden flex flex-col">
+          <div className="p-4 bg-[#0B132B] text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#162244]">
             <div className="flex items-center gap-2">
               <ShieldAlert className="w-5 h-5 text-amber-400" />
               <h3 className="font-bold text-sm">Action-Needed Operational Zone</h3>
             </div>
 
             {/* Action Zone Sub-Tabs */}
-            <div className="flex items-center gap-1 bg-slate-800/90 p-1 rounded-xl text-xs font-semibold">
+            <div className="flex items-center gap-1 bg-[#162244]/90 p-1 rounded-xl text-xs font-semibold">
               <button
                 onClick={() => setActiveActionTab('dues')}
                 className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
@@ -384,7 +386,7 @@ export default function Dashboard() {
                           </div>
                           <button
                             onClick={() => setActiveTab('invoices')}
-                            className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold cursor-pointer transition shadow-sm"
+                            className="px-3 py-1.5 bg-[#0B132B] hover:bg-[#162244] text-cyan-400 font-bold rounded-xl text-xs cursor-pointer transition shadow-2xs border border-[#162244]"
                           >
                             Collect
                           </button>
@@ -421,7 +423,7 @@ export default function Dashboard() {
                           </span>
                           <button
                             onClick={() => setActiveTab('inventory')}
-                            className="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl text-xs font-bold cursor-pointer transition shadow-sm"
+                            className="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl text-xs font-bold cursor-pointer transition shadow-2xs"
                           >
                             + Purchase Stock
                           </button>
@@ -462,7 +464,7 @@ export default function Dashboard() {
                           </span>
                           <button
                             onClick={() => setActiveTab('inventory')}
-                            className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold cursor-pointer transition shadow-sm"
+                            className="px-3 py-1.5 bg-[#0B132B] hover:bg-[#162244] text-cyan-400 font-bold rounded-xl text-xs cursor-pointer transition shadow-2xs border border-[#162244]"
                           >
                             View Stock
                           </button>

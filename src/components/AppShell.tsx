@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
   Users,
-  Receipt,
+  ReceiptText,
   Settings as SettingsIcon,
   TrendingUp,
   LayoutDashboard,
@@ -38,6 +38,7 @@ export default function AppShell({ children, activeTab }: AppShellProps) {
   const router = useRouter()
   const pathname = usePathname()
   const [isApiConnected, setIsApiConnected] = useState<boolean>(false)
+  const [showAdminMenu, setShowAdminMenu] = useState<boolean>(false)
 
   const user = useAuthStore((state) => state.user)
   const initializing = useAuthStore((state) => state.initializing)
@@ -127,17 +128,23 @@ export default function AppShell({ children, activeTab }: AppShellProps) {
     return <Login />
   }
 
-  // Sidebar navigation items
-  const menuItems = [
+  // Primary daily routine sidebar navigation items
+  const dailyMenuItems = [
     { id: 'dashboard', href: '/dashboard', name: 'Dashboard', icon: LayoutDashboard },
     { id: 'patients', href: '/patients', name: 'Patients', icon: Users },
     { id: 'inventory', href: '/inventory', name: 'Inventory', icon: Package },
-    { id: 'billing', href: '/billing', name: 'New Invoice', icon: Receipt },
+    { id: 'billing', href: '/billing', name: 'New Invoice', icon: ReceiptText }
+  ]
+
+  // Secondary management/admin items (moved to top header dropdown to simplify sidebar for daily staff)
+  const adminMenuItems = [
     { id: 'invoices', href: '/invoices', name: 'Bills & Payments', icon: FileSpreadsheet },
     { id: 'reports', href: '/reports', name: 'Reports', icon: TrendingUp },
     ...(user.role === 'ADMIN' ? [{ id: 'audit-log', href: '/audit-log', name: 'Audit Log', icon: History }] : []),
     { id: 'settings', href: '/settings', name: 'Settings', icon: SettingsIcon }
   ]
+
+  const allMenuItems = [...dailyMenuItems, ...adminMenuItems]
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-[#F4F5F7] text-[#0B132B] font-sans selection:bg-cyan-500 selection:text-[#0B132B]">
@@ -151,9 +158,12 @@ export default function AppShell({ children, activeTab }: AppShellProps) {
           </div>
         </div>
 
-        {/* Navigation Items */}
+        {/* Navigation Items — DAILY ROUTINE ROUTER */}
         <nav className="flex-1 px-4 py-4 space-y-1.5 overflow-y-auto">
-          {menuItems.map((item) => {
+          <p className="px-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">
+            Daily Routine
+          </p>
+          {dailyMenuItems.map((item) => {
             const Icon = item.icon
             const isActive = pathname === item.href || activeTab === item.id
             return (
@@ -221,9 +231,59 @@ export default function AppShell({ children, activeTab }: AppShellProps) {
         {/* Header */}
         <header className="h-16 bg-white border-b border-slate-200/80 flex items-center justify-between px-8 flex-shrink-0 shadow-2xs">
           <h1 className="text-xl font-black text-[#0B132B] capitalize tracking-tight">
-            {menuItems.find((item) => item.id === activeTab || item.href === pathname)?.name || activeTab}
+            {allMenuItems.find((item) => item.id === activeTab || item.href === pathname)?.name || activeTab}
           </h1>
+
           <div className="flex items-center space-x-4">
+            {/* Top Bar Admin & Management Dropdown */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setShowAdminMenu((v) => !v)}
+                className={`flex items-center gap-2 px-3.5 py-2 border rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  adminMenuItems.some((item) => pathname === item.href || activeTab === item.id)
+                    ? 'bg-[#0B132B] text-cyan-400 border-[#162244] shadow-sm font-black'
+                    : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50 hover:text-slate-900'
+                }`}
+              >
+                <SettingsIcon className="w-4 h-4 text-cyan-600" />
+                <span>Management & Admin</span>
+              </button>
+
+              {showAdminMenu && (
+                <>
+                  <div className="fixed inset-0 z-30" onClick={() => setShowAdminMenu(false)} />
+                  <div className="absolute right-0 top-full mt-2 w-60 bg-white border border-slate-200 rounded-2xl shadow-xl z-40 p-2 space-y-1 animate-fade-in">
+                    <div className="px-3 py-1.5 border-b border-slate-100 mb-1">
+                      <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                        Admin & System Tools
+                      </p>
+                    </div>
+                    {adminMenuItems.map((item) => {
+                      const Icon = item.icon
+                      const isActive = pathname === item.href || activeTab === item.id
+                      return (
+                        <Link
+                          key={item.id}
+                          href={item.href}
+                          onClick={() => setShowAdminMenu(false)}
+                          className={`flex items-center px-3 py-2.5 rounded-xl text-xs font-bold transition-colors ${
+                            isActive
+                              ? 'bg-cyan-50 text-cyan-900 font-extrabold border border-cyan-200'
+                              : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
+                          }`}
+                        >
+                          <Icon className="w-4 h-4 mr-2.5 text-cyan-600" />
+                          {item.name}
+                        </Link>
+                      )
+                    })}
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* API Connection Status Badge */}
             <div className={`text-xs px-3.5 py-1.5 rounded-full font-bold flex items-center space-x-1.5 ${
               isApiConnected ? 'bg-cyan-50 text-cyan-800 border border-cyan-200' : 'bg-amber-50 text-amber-800 border border-amber-200'
             }`}>

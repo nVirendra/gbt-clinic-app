@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { toast } from 'sonner'
+import { Edit2 } from 'lucide-react'
 import { Medicine, Vendor, InventoryBatch, Purchase } from '../../../../types'
 import { PurchaseInvoiceHeader, PurchaseHeaderFormState } from './PurchaseInvoiceHeader'
 import { MedicineSearchPreview } from './MedicineSearchPreview'
@@ -15,6 +16,9 @@ interface StockPurchaseInContainerProps {
   purchases: Purchase[]
   currentUser: any
   onSavePurchase: (purchasePayload: any) => Promise<void>
+  onUpdatePurchase?: (purchaseId: string, purchasePayload: any) => Promise<void>
+  onCancelEditPurchase?: () => void
+  editingPurchaseData?: any | null
   onOpenQuickAddVendor: () => void
   onOpenQuickCreateMedicine: () => void
   onOpenScanInvoice: () => void
@@ -30,6 +34,9 @@ export const StockPurchaseInContainer: React.FC<StockPurchaseInContainerProps> =
   purchases,
   currentUser,
   onSavePurchase,
+  onUpdatePurchase,
+  onCancelEditPurchase,
+  editingPurchaseData,
   onOpenQuickAddVendor,
   onOpenQuickCreateMedicine,
   onOpenScanInvoice,
@@ -93,6 +100,49 @@ export const StockPurchaseInContainer: React.FC<StockPurchaseInContainerProps> =
       medicineInputRef.current?.focus()
     }, 100)
   }, [])
+
+  // Auto-fill form when editing an existing purchase invoice
+  useEffect(() => {
+    if (editingPurchaseData) {
+      setHeaderForm({
+        vendorId: editingPurchaseData.vendor_id || editingPurchaseData.vendor?.id || '',
+        purchaseInvoiceNo: editingPurchaseData.purchase_invoice_no || '',
+        purchaseDate: editingPurchaseData.purchase_date ? new Date(editingPurchaseData.purchase_date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        purchaseType: editingPurchaseData.purchase_type || 'CASH',
+        taxType: (editingPurchaseData.igst_amount || 0) > 0 ? 'INTERSTATE' : 'INTRASTATE',
+        paymentMode: editingPurchaseData.payment_mode || 'CASH',
+        dueDate: editingPurchaseData.due_date ? new Date(editingPurchaseData.due_date).toISOString().split('T')[0] : '',
+        paymentDate: editingPurchaseData.payment_date ? new Date(editingPurchaseData.payment_date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        paidAmount: (editingPurchaseData.paid_amount !== undefined && editingPurchaseData.paid_amount !== null) ? editingPurchaseData.paid_amount.toString() : '',
+        notes: editingPurchaseData.notes || ''
+      })
+
+      if (editingPurchaseData.batches && editingPurchaseData.batches.length > 0) {
+        setInvoiceItems(editingPurchaseData.batches.map((b: any) => ({
+          id: b.id,
+          medicineId: b.medicine_id,
+          batchNo: b.batch_no === 'N/A' ? '' : (b.batch_no || ''),
+          expiryDate: b.expiry_date ? new Date(b.expiry_date).toISOString().split('T')[0] : '',
+          qtyPurchased: b.purchase_unit_qty ?? b.qty_purchased,
+          unit: b.purchase_unit_label || b.medicine?.purchase_unit || b.medicine?.inner_unit || b.medicine?.base_unit || b.medicine?.unit_label || '',
+          freeQty: b.purchase_free_unit_qty ?? b.qty_free ?? 0,
+          freeUnit: b.purchase_free_unit_label || b.purchase_unit_label || '',
+          mrp: b.unit_mrp ?? b.mrp ?? 0,
+          discountPercent: b.discount_percent ?? 0,
+          taxableAmount: b.taxable_amount ?? 0,
+          cgstAmount: b.cgst_amount ?? 0,
+          sgstAmount: b.sgst_amount ?? 0,
+          igstAmount: b.igst_amount ?? 0,
+          gstPercent: b.gst_percent ?? 12,
+          purchasePricePerUnit: b.unit_purchase_price ?? b.purchase_price_per_unit ?? 0,
+          sellingPricePerUnit: b.unit_selling_price ?? b.selling_price_per_unit ?? 0
+        })))
+        setIsHeaderCollapsed(true)
+      } else {
+        setInvoiceItems([])
+      }
+    }
+  }, [editingPurchaseData])
 
   // Auto-fill header & items when invoice scan data is imported
   useEffect(() => {
@@ -217,6 +267,7 @@ export const StockPurchaseInContainer: React.FC<StockPurchaseInContainerProps> =
       'Piece'
 
     const newItem = {
+      id: editingIndex !== null && invoiceItems[editingIndex] ? invoiceItems[editingIndex].id : undefined,
       medicineId: stockInItem.medicineId,
       batchNo: stockInItem.batchNo.trim() ? stockInItem.batchNo.trim().toUpperCase() : 'N/A',
       expiryDate: isoExpiryDate,
@@ -380,6 +431,7 @@ export const StockPurchaseInContainer: React.FC<StockPurchaseInContainerProps> =
       pendingAmount,
       notes: headerForm.notes ? headerForm.notes.trim() : null,
       items: invoiceItems.map((item) => ({
+        id: item.id || undefined,
         medicineId: item.medicineId,
         batchNo: item.batchNo,
         expiryDate: item.expiryDate,
@@ -401,8 +453,16 @@ export const StockPurchaseInContainer: React.FC<StockPurchaseInContainerProps> =
 
     setSubmittingPurchase(true)
     try {
-      await onSavePurchase(payload)
-      showToast(`Purchase invoice #${payload.purchaseInvoiceNo} recorded & stock updated!`, 'success')
+      if (editingPurchaseData && onUpdatePurchase) {
+        await onUpdatePurchase(editingPurchaseData.id, payload)
+        showToast(`Purchase invoice #${payload.purchaseInvoiceNo} updated successfully!`, 'success')
+        if (onCancelEditPurchase) {
+          onCancelEditPurchase()
+        }
+      } else {
+        await onSavePurchase(payload)
+        showToast(`Purchase invoice #${payload.purchaseInvoiceNo} recorded & stock updated!`, 'success')
+      }
 
       // Reset invoice form after successful save
       setHeaderForm({
@@ -421,7 +481,7 @@ export const StockPurchaseInContainer: React.FC<StockPurchaseInContainerProps> =
       setIsHeaderCollapsed(false)
       await loadAllData()
     } catch (err: any) {
-      showToast(err.message || 'Error recording purchase invoice', 'error')
+      showToast(err.message || 'Error saving purchase invoice', 'error')
     } finally {
       setSubmittingPurchase(false)
     }
@@ -429,6 +489,27 @@ export const StockPurchaseInContainer: React.FC<StockPurchaseInContainerProps> =
 
   return (
     <div className="space-y-6 animate-fade-in pb-12">
+      {/* EDIT MODE HEADER BANNER */}
+      {editingPurchaseData && (
+        <div className="p-4 bg-indigo-900 text-white rounded-2xl shadow-md border border-indigo-700 flex items-center justify-between animate-fade-in">
+          <div className="flex items-center gap-3">
+            <Edit2 className="w-5 h-5 text-indigo-300" />
+            <div>
+              <p className="font-bold text-sm">Editing Purchase Invoice #{editingPurchaseData.purchase_invoice_no}</p>
+              <p className="text-xs text-indigo-200">Correcting past entry details, units, prices & inventory batch items</p>
+            </div>
+          </div>
+          {onCancelEditPurchase && (
+            <button
+              onClick={onCancelEditPurchase}
+              className="px-3.5 py-1.5 bg-indigo-800 hover:bg-indigo-700 text-indigo-100 text-xs font-bold rounded-xl border border-indigo-600 transition cursor-pointer"
+            >
+              Cancel Edit Mode
+            </button>
+          )}
+        </div>
+      )}
+
       {/* STEP 1: PURCHASE INVOICE HEADER */}
       <PurchaseInvoiceHeader
         form={headerForm}
@@ -485,6 +566,7 @@ export const StockPurchaseInContainer: React.FC<StockPurchaseInContainerProps> =
         items={invoiceItems}
         onSubmitPurchase={handlePurchaseSubmit}
         submitting={submittingPurchase}
+        isEditing={Boolean(editingPurchaseData)}
       />
     </div>
   )

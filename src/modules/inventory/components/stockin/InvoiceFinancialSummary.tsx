@@ -16,13 +16,15 @@ interface InvoiceFinancialSummaryProps {
   items: any[]
   onSubmitPurchase: () => Promise<void>
   submitting: boolean
+  isEditing?: boolean
 }
 
 export const InvoiceFinancialSummary: React.FC<InvoiceFinancialSummaryProps> = ({
   headerForm,
   items,
   onSubmitPurchase,
-  submitting
+  submitting,
+  isEditing = false
 }) => {
   const [supplierPrintedTotal, setSupplierPrintedTotal] = useState('')
 
@@ -125,7 +127,7 @@ export const InvoiceFinancialSummary: React.FC<InvoiceFinancialSummaryProps> = (
       </div>
 
       {/* PINNED RUNNING TOTALS & FINAL SUBMIT BAR */}
-      <div className="sticky bottom-4 z-30 bg-slate-900 text-white p-5 rounded-2xl shadow-2xl border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="sticky bottom-4 z-30 bg-[#0B132B] text-white p-5 rounded-2xl shadow-2xl border border-[#162244] flex flex-col md:flex-row items-center justify-between gap-4">
         {/* COMPUTED TAX BREAKDOWN STRIP */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full md:w-auto">
           <div className="bg-slate-800/80 px-3.5 py-2 rounded-xl border border-slate-700/60">
@@ -182,10 +184,10 @@ export const InvoiceFinancialSummary: React.FC<InvoiceFinancialSummaryProps> = (
               className="px-6 py-3 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-extrabold rounded-xl text-sm shadow-lg shadow-cyan-500/20 transition-all disabled:bg-slate-800 disabled:text-slate-500 disabled:shadow-none cursor-pointer flex items-center gap-2 uppercase tracking-wider"
             >
               {submitting ? (
-                <span>Posting Stock...</span>
+                <span>{isEditing ? 'Updating Purchase...' : 'Posting Stock...'}</span>
               ) : (
                 <>
-                  <span>Save Purchase & Add Stock</span>
+                  <span>{isEditing ? 'Update Purchase Invoice' : 'Save Purchase & Add Stock'}</span>
                   <ArrowRight className="h-4 w-4" />
                 </>
               )}

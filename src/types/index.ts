@@ -407,6 +407,7 @@ declare global {
 
       // Purchases
       createPurchase(args: { data: any; userId: string }): Promise<Purchase>
+      updatePurchase(args: { id: string; data: any; userId: string }): Promise<Purchase>
       getPurchases(): Promise<Purchase[]>
 
       // Scan Purchase Invoice
